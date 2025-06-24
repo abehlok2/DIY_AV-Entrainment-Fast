@@ -24,6 +24,8 @@ juce_add_console_app(diy_av_audio_cpp
         synths/SpatialAngleModulation.cpp
         synths/NoiseFlanger.cpp
         synths/Subliminals.cpp
+        Common.h
+        Common.cpp
         AudioUtils.h
         AudioUtils.cpp
 )
