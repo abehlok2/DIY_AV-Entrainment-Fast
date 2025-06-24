@@ -2,12 +2,8 @@ cmake_minimum_required(VERSION 3.14)
 
 project(DIY_AV_Audio_CPP)
 
-# Look for JUCE via find_package. The user must set JUCE_ROOT or add
-# the JUCE install prefix to CMAKE_PREFIX_PATH.
-
 find_package(JUCE CONFIG REQUIRED)
 
-# Enable JUCE modules required by the conversion plan
 juce_add_console_app(diy_av_audio_cpp
     PRODUCT_NAME "DIY AV Audio CPP"
     BUNDLE_ID com.example.diyavcpp
@@ -17,12 +13,20 @@ juce_add_console_app(diy_av_audio_cpp
         Track.h
         Track.cpp
         SynthFunctions.h
-        SynthFunctions.cpp
+        synths/BinauralBeat.cpp
+        synths/IsochronicTone.cpp
+        synths/RhythmicWaveshaping.cpp
+        synths/StereoAMIndependent.cpp
+        synths/WaveShapeStereoAm.cpp
+        synths/MonauralBeatStereoAmps.cpp
+        synths/QamBeat.cpp
+        synths/HybridQamMonauralBeat.cpp
+        synths/SpatialAngleModulation.cpp
+        synths/NoiseFlanger.cpp
+        synths/Subliminals.cpp
         AudioUtils.h
         AudioUtils.cpp
 )
-
-# Link necessary JUCE modules
 
 juce_generate_juce_header(diy_av_audio_cpp)
 
@@ -32,4 +36,3 @@ target_link_libraries(diy_av_audio_cpp
         juce::juce_dsp
         juce::juce_audio_formats
 )
-

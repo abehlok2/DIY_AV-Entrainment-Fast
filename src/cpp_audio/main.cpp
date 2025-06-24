@@ -9,7 +9,27 @@ using SynthFunc = juce::AudioBuffer<float>(*)(double, double, const juce::NamedV
 
 static std::map<juce::String, SynthFunc> synthMap {
     { "binaural_beat", binauralBeat },
-    { "isochronic_tone", isochronicTone }
+    { "binaural_beat_transition", binauralBeatTransition },
+    { "isochronic_tone", isochronicTone },
+    { "rhythmic_waveshaping", rhythmicWaveshaping },
+    { "rhythmic_waveshaping_transition", rhythmicWaveshapingTransition },
+    { "stereo_am_independent", stereoAMIndependent },
+    { "stereo_am_independent_transition", stereoAMIndependentTransition },
+    { "wave_shape_stereo_am", waveShapeStereoAm },
+    { "wave_shape_stereo_am_transition", waveShapeStereoAmTransition },
+    { "monaural_beat_stereo_amps", monauralBeatStereoAmps },
+    { "monaural_beat_stereo_amps_transition", monauralBeatStereoAmpsTransition },
+    { "qam_beat", qamBeat },
+    { "qam_beat_transition", qamBeatTransition },
+    { "hybrid_qam_monaural_beat", hybridQamMonauralBeat },
+    { "hybrid_qam_monaural_beat_transition", hybridQamMonauralBeatTransition },
+    { "spatial_angle_modulation", spatialAngleModulation },
+    { "spatial_angle_modulation_transition", spatialAngleModulationTransition },
+    { "spatial_angle_modulation_monaural_beat", spatialAngleModulationMonauralBeat },
+    { "spatial_angle_modulation_monaural_beat_transition", spatialAngleModulationMonauralBeatTransition },
+    { "generate_swept_notch_pink_sound", generateSweptNotchPinkSound },
+    { "generate_swept_notch_pink_sound_transition", generateSweptNotchPinkSoundTransition },
+    { "subliminal_encode", subliminalEncode }
 };
 
 int main (int argc, char* argv[])
