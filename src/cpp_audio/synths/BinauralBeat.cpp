@@ -3,6 +3,8 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <random>
+#include <juce_dsp/juce_dsp.h>
 
 using namespace juce;
 
@@ -32,6 +34,12 @@ AudioBuffer<float> binauralBeat(double duration, double sampleRate, const NamedV
     double ampOscPhaseOffsetR = params.getWithDefault("ampOscPhaseOffsetR", 0.0);
     double pOF  = params.getWithDefault("phaseOscFreq", 0.0);
     double pOR  = params.getWithDefault("phaseOscRange", 0.0);
+
+    double glitchInterval   = params.getWithDefault("glitchInterval", 0.0);
+    double glitchDur        = params.getWithDefault("glitchDur", 0.0);
+    double glitchNoiseLevel = params.getWithDefault("glitchNoiseLevel", 0.0);
+    double glitchFocusWidth = params.getWithDefault("glitchFocusWidth", 0.0);
+    double glitchFocusExp   = params.getWithDefault("glitchFocusExp", 0.0);
 
     std::vector<double> t(N);
     std::vector<double> instL(N), instR(N);
@@ -83,12 +91,87 @@ AudioBuffer<float> binauralBeat(double duration, double sampleRate, const NamedV
         envR[i] = 1.0 - aODR * (0.5 * (1.0 + std::sin(2.0 * MathConstants<double>::pi * aOFR * t[i] + ampOscPhaseOffsetR)));
     }
 
+    std::vector<int> glitchPos;
+    std::vector<float> glitchBuf;
+    if (glitchInterval > 0.0 && glitchDur > 0.0 && glitchNoiseLevel > 0.0 && N > 0)
+    {
+        int fullN = static_cast<int>(glitchDur * sampleRate);
+        if (fullN > 0)
+        {
+            int repeats = glitchInterval > 0.0 ? static_cast<int>(duration / glitchInterval) : 0;
+            std::mt19937 rng(std::random_device{}());
+            std::normal_distribution<float> dist(0.0f, 1.0f);
+
+            juce::dsp::IIR::Filter<float> bpFilter;
+            if (glitchFocusWidth > 0.0)
+            {
+                double q = baseF / std::max(1e-6, glitchFocusWidth);
+                bpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeBandPass(sampleRate, baseF, q);
+            }
+
+            for (int k = 1; k <= repeats; ++k)
+            {
+                double tEnd = k * glitchInterval;
+                double tStart = std::max(0.0, tEnd - glitchDur);
+                int i0 = static_cast<int>(tStart * sampleRate);
+                int i1 = i0 + fullN;
+                if (i1 > N)
+                    continue;
+
+                std::vector<float> noise(fullN);
+                for (int i = 0; i < fullN; ++i)
+                    noise[i] = dist(rng);
+
+                if (glitchFocusWidth > 0.0)
+                {
+                    bpFilter.reset();
+                    for (int i = 0; i < fullN; ++i)
+                        noise[i] = bpFilter.processSample(noise[i]);
+                }
+
+                float maxAbs = 0.0f;
+                for (float s : noise)
+                    maxAbs = std::max(maxAbs, std::abs(s));
+                if (maxAbs < 1e-6f)
+                    maxAbs = 1.0f;
+
+                for (int i = 0; i < fullN; ++i)
+                {
+                    float ramp = static_cast<float>(i) / static_cast<float>(fullN);
+                    glitchBuf.push_back((noise[i] / maxAbs) * ramp * static_cast<float>(glitchNoiseLevel));
+                }
+                glitchPos.push_back(i0);
+            }
+        }
+    }
+
     for (int i = 0; i < N; ++i)
     {
         float outL = static_cast<float>(std::sin(phaseL[i]) * envL[i] * ampL);
         float outR = static_cast<float>(std::sin(phaseR[i]) * envR[i] * ampR);
         buffer.setSample(0, i, outL);
         buffer.setSample(1, i, outR);
+    }
+
+    if (!glitchBuf.empty() && glitchBuf.size() % glitchPos.size() == 0)
+    {
+        int segLen = static_cast<int>(glitchBuf.size() / glitchPos.size());
+        size_t idx = 0;
+        for (size_t b = 0; b < glitchPos.size(); ++b)
+        {
+            int start = glitchPos[b];
+            for (int j = 0; j < segLen; ++j)
+            {
+                int p = start + j;
+                if (p < N)
+                {
+                    float val = glitchBuf[idx + j];
+                    buffer.addSample(0, p, val);
+                    buffer.addSample(1, p, val);
+                }
+            }
+            idx += segLen;
+        }
     }
 
     return buffer;
@@ -139,6 +222,26 @@ AudioBuffer<float> binauralBeatTransition(double duration, double sampleRate, co
     double endFORR   = params.getWithDefault("endFreqOscRangeR", startFORR);
     double startFOFR = params.getWithDefault("startFreqOscFreqR", params.getWithDefault("freqOscFreqR", 0.0));
     double endFOFR   = params.getWithDefault("endFreqOscFreqR", startFOFR);
+
+    double sGlitchInterval = params.getWithDefault("startGlitchInterval", params.getWithDefault("glitchInterval", 0.0));
+    double eGlitchInterval = params.getWithDefault("endGlitchInterval", sGlitchInterval);
+    double avgGlitchInterval = (sGlitchInterval + eGlitchInterval) / 2.0;
+
+    double sGlitchDur = params.getWithDefault("startGlitchDur", params.getWithDefault("glitchDur", 0.0));
+    double eGlitchDur = params.getWithDefault("endGlitchDur", sGlitchDur);
+    double avgGlitchDur = (sGlitchDur + eGlitchDur) / 2.0;
+
+    double sGlitchNoiseLevel = params.getWithDefault("startGlitchNoiseLevel", params.getWithDefault("glitchNoiseLevel", 0.0));
+    double eGlitchNoiseLevel = params.getWithDefault("endGlitchNoiseLevel", sGlitchNoiseLevel);
+    double avgGlitchNoiseLevel = (sGlitchNoiseLevel + eGlitchNoiseLevel) / 2.0;
+
+    double sGlitchFocusWidth = params.getWithDefault("startGlitchFocusWidth", params.getWithDefault("glitchFocusWidth", 0.0));
+    double eGlitchFocusWidth = params.getWithDefault("endGlitchFocusWidth", sGlitchFocusWidth);
+    double avgGlitchFocusWidth = (sGlitchFocusWidth + eGlitchFocusWidth) / 2.0;
+
+    double sGlitchFocusExp = params.getWithDefault("startGlitchFocusExp", params.getWithDefault("glitchFocusExp", 0.0));
+    double eGlitchFocusExp = params.getWithDefault("endGlitchFocusExp", sGlitchFocusExp);
+    double avgGlitchFocusExp = (sGlitchFocusExp + eGlitchFocusExp) / 2.0;
     double initialOffset = params.getWithDefault("initial_offset", 0.0);
     double postOffset    = params.getWithDefault("post_offset", 0.0);
     String curve = params.getWithDefault("transition_curve", "linear");
@@ -150,6 +253,61 @@ AudioBuffer<float> binauralBeatTransition(double duration, double sampleRate, co
 
     std::vector<double> instL(N), instR(N), phaseL(N), phaseR(N), envL(N), envR(N);
     std::vector<double> outAmpL(N), outAmpR(N);
+
+    std::vector<int> glitchPos;
+    std::vector<float> glitchBuf;
+    if (avgGlitchInterval > 0.0 && avgGlitchDur > 0.0 && avgGlitchNoiseLevel > 0.0 && N > 0)
+    {
+        int gSamples = static_cast<int>(avgGlitchDur * sampleRate);
+        if (gSamples > 0)
+        {
+            int repeats = avgGlitchInterval > 0.0 ? static_cast<int>(duration / avgGlitchInterval) : 0;
+            std::mt19937 rng(std::random_device{}());
+            std::normal_distribution<float> dist(0.0f, 1.0f);
+            double shapingFreq = (startBaseF + endBaseF) * 0.5;
+            juce::dsp::IIR::Filter<float> bpFilter;
+            if (avgGlitchFocusWidth > 0.0)
+            {
+                double q = shapingFreq / std::max(1e-6, avgGlitchFocusWidth);
+                bpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeBandPass(sampleRate, shapingFreq, q);
+            }
+
+            for (int k = 1; k <= repeats; ++k)
+            {
+                double tEnd = k * avgGlitchInterval;
+                double tStart = std::max(0.0, tEnd - avgGlitchDur);
+                int i0 = static_cast<int>(tStart * sampleRate);
+                int i1 = i0 + gSamples;
+                if (i1 > N)
+                    continue;
+
+                std::vector<float> noise(gSamples);
+                for (int i = 0; i < gSamples; ++i)
+                    noise[i] = dist(rng);
+
+                if (avgGlitchFocusWidth > 0.0)
+                {
+                    bpFilter.reset();
+                    for (int i = 0; i < gSamples; ++i)
+                        noise[i] = bpFilter.processSample(noise[i]);
+                }
+
+                float maxAbs = 0.0f;
+                for (float s : noise)
+                    maxAbs = std::max(maxAbs, std::abs(s));
+                if (maxAbs < 1e-6f)
+                    maxAbs = 1.0f;
+
+                for (int i = 0; i < gSamples; ++i)
+                {
+                    float ramp = static_cast<float>(i) / static_cast<float>(gSamples);
+                    float val = (noise[i] / maxAbs) * ramp * static_cast<float>(avgGlitchNoiseLevel);
+                    glitchBuf.push_back(val);
+                }
+                glitchPos.push_back(i0);
+            }
+        }
+    }
 
     for (int i = 0; i < N; ++i)
     {
@@ -207,6 +365,27 @@ AudioBuffer<float> binauralBeatTransition(double duration, double sampleRate, co
         float outR = static_cast<float>(std::sin(phaseR[i]) * envR[i] * outAmpR[i]);
         buffer.setSample(0, i, outL);
         buffer.setSample(1, i, outR);
+    }
+
+    if (!glitchBuf.empty() && glitchBuf.size() % glitchPos.size() == 0)
+    {
+        int segLen = static_cast<int>(glitchBuf.size() / glitchPos.size());
+        size_t idx = 0;
+        for (size_t b = 0; b < glitchPos.size(); ++b)
+        {
+            int start = glitchPos[b];
+            for (int j = 0; j < segLen; ++j)
+            {
+                int p = start + j;
+                if (p < N)
+                {
+                    float val = glitchBuf[idx + j];
+                    buffer.addSample(0, p, val);
+                    buffer.addSample(1, p, val);
+                }
+            }
+            idx += segLen;
+        }
     }
 
     return buffer;
