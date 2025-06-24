@@ -6,6 +6,7 @@ juce::AudioBuffer<float> binauralBeat(double duration, double sampleRate, const 
 juce::AudioBuffer<float> binauralBeatTransition(double duration, double sampleRate, const juce::NamedValueSet& params);
 
 juce::AudioBuffer<float> isochronicTone(double duration, double sampleRate, const juce::NamedValueSet& params);
+juce::AudioBuffer<float> isochronicToneTransition(double duration, double sampleRate, const juce::NamedValueSet& params);
 
 juce::AudioBuffer<float> rhythmicWaveshaping(double duration, double sampleRate, const juce::NamedValueSet& params);
 juce::AudioBuffer<float> rhythmicWaveshapingTransition(double duration, double sampleRate, const juce::NamedValueSet& params);
