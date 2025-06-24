@@ -27,6 +27,7 @@ Track loadTrackFromJson(const juce::File& file)
                 if (auto* sobj = s.getDynamicObject())
                 {
                     step.durationSeconds = sobj->getProperty("duration", 0.0);
+                    step.description = sobj->getProperty("description").toString();
                     if (auto* voicesVar = sobj->getProperty("voices").getArray())
                     {
                         for (const auto& v : *voicesVar)
@@ -38,6 +39,7 @@ Track loadTrackFromJson(const juce::File& file)
                                 voice.isTransition = vobj->getProperty("is_transition", false);
                                 if (auto* paramsObj = vobj->getProperty("params").getDynamicObject())
                                     voice.params = *paramsObj;
+                                voice.description = vobj->getProperty("description").toString();
                             }
                             step.voices.push_back(std::move(voice));
                         }
