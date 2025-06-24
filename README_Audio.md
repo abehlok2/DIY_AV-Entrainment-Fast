@@ -72,3 +72,6 @@ duration adapts to the step length:
 
 This behaviour ensures that very long steps do not delay the preview yet short
 steps can still be heard in full.
+
+## C++ Port
+A minimal C++ implementation using JUCE lives in `src/cpp_audio`. Build it with CMake and ensure JUCE is available on your system.
