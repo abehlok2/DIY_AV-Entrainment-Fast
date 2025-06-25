@@ -14,7 +14,7 @@ class StepConfigPanel  : public Component,
 public:
     StepConfigPanel()
     {
-        addAndMakeVisible(voiceList);
+        addAndMakeVisible(&voiceList);
         voiceList.setModel(this);
 
         addButton.setButtonText("Add Voice");

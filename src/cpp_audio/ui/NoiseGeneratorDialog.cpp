@@ -188,45 +188,45 @@ public:
     NoiseGeneratorDialog()
     {
         fileEdit.setText("swept_notch_noise.wav");
-        addAndMakeVisible(fileEdit);
-        addAndMakeVisible(fileBrowse);
+        addAndMakeVisible(&fileEdit);
+        addAndMakeVisible(&fileBrowse);
         fileBrowse.setButtonText("Browse");
         fileBrowse.addListener(this);
 
         durationSlider.setRange(1.0, 100000.0, 0.1);
         durationSlider.setValue(60.0);
-        addAndMakeVisible(durationSlider);
+        addAndMakeVisible(&durationSlider);
 
         sampleRateSlider.setRange(8000, 192000, 1);
         sampleRateSlider.setValue(44100);
-        addAndMakeVisible(sampleRateSlider);
+        addAndMakeVisible(&sampleRateSlider);
 
         noiseType.addItem("Pink", 1);
         noiseType.addItem("Brown", 2);
         noiseType.setSelectedId(1);
-        addAndMakeVisible(noiseType);
+        addAndMakeVisible(&noiseType);
 
         transitionToggle.setButtonText("Enable Transition");
-        addAndMakeVisible(transitionToggle);
+        addAndMakeVisible(&transitionToggle);
 
         lfoWaveform.addItem("Sine", 1);
         lfoWaveform.addItem("Triangle", 2);
         lfoWaveform.setSelectedId(1);
-        addAndMakeVisible(lfoWaveform);
+        addAndMakeVisible(&lfoWaveform);
 
         lfoStart.setRange(0.001, 10.0, 0.0001);
         lfoStart.setValue(1.0 / 12.0);
         lfoStart.addListener(this);
-        addAndMakeVisible(lfoStart);
+        addAndMakeVisible(&lfoStart);
 
         lfoEnd.setRange(0.001, 10.0, 0.0001);
         lfoEnd.setValue(1.0 / 12.0);
-        addAndMakeVisible(lfoEnd);
+        addAndMakeVisible(&lfoEnd);
 
         numSweeps.setRange(1, 3, 1);
         numSweeps.setValue(1);
         numSweeps.addListener(this);
-        addAndMakeVisible(numSweeps);
+        addAndMakeVisible(&numSweeps);
 
         for (int i = 0; i < 3; ++i)
         {
@@ -243,38 +243,38 @@ public:
             sc.endQ.setRange(1, 1000, 1); sc.endQ.setValue(25);
             sc.startCasc.setRange(1, 20, 1); sc.startCasc.setValue(10);
             sc.endCasc.setRange(1, 20, 1); sc.endCasc.setValue(10);
-            addAndMakeVisible(sc.startMin); addAndMakeVisible(sc.endMin);
-            addAndMakeVisible(sc.startMax); addAndMakeVisible(sc.endMax);
-            addAndMakeVisible(sc.startQ); addAndMakeVisible(sc.endQ);
-            addAndMakeVisible(sc.startCasc); addAndMakeVisible(sc.endCasc);
+            addAndMakeVisible(&sc.startMin); addAndMakeVisible(&sc.endMin);
+            addAndMakeVisible(&sc.startMax); addAndMakeVisible(&sc.endMax);
+            addAndMakeVisible(&sc.startQ); addAndMakeVisible(&sc.endQ);
+            addAndMakeVisible(&sc.startCasc); addAndMakeVisible(&sc.endCasc);
             sweepControls.add(sc);
         }
         updateSweepVisibility(1);
 
         lfoPhaseStart.setRange(0, 360, 1); lfoPhaseStart.setValue(0);
         lfoPhaseEnd.setRange(0, 360, 1); lfoPhaseEnd.setValue(0);
-        addAndMakeVisible(lfoPhaseStart);
-        addAndMakeVisible(lfoPhaseEnd);
+        addAndMakeVisible(&lfoPhaseStart);
+        addAndMakeVisible(&lfoPhaseEnd);
 
         intraPhaseStart.setRange(0, 360, 1); intraPhaseStart.setValue(0);
         intraPhaseEnd.setRange(0, 360, 1); intraPhaseEnd.setValue(0);
-        addAndMakeVisible(intraPhaseStart);
-        addAndMakeVisible(intraPhaseEnd);
+        addAndMakeVisible(&intraPhaseStart);
+        addAndMakeVisible(&intraPhaseEnd);
 
         initialOffset.setRange(0.0, 10000.0, 0.001); initialOffset.setValue(0.0);
         postOffset.setRange(0.0, 10000.0, 0.001); postOffset.setValue(0.0);
-        addAndMakeVisible(initialOffset);
-        addAndMakeVisible(postOffset);
+        addAndMakeVisible(&initialOffset);
+        addAndMakeVisible(&postOffset);
 
-        addAndMakeVisible(inputEdit);
-        addAndMakeVisible(inputBrowse);
+        addAndMakeVisible(&inputEdit);
+        addAndMakeVisible(&inputBrowse);
         inputBrowse.setButtonText("Browse");
         inputBrowse.addListener(this);
 
-        addAndMakeVisible(loadButton);
-        addAndMakeVisible(saveButton);
-        addAndMakeVisible(testButton);
-        addAndMakeVisible(generateButton);
+        addAndMakeVisible(&loadButton);
+        addAndMakeVisible(&saveButton);
+        addAndMakeVisible(&testButton);
+        addAndMakeVisible(&generateButton);
         loadButton.setButtonText("Load");
         saveButton.setButtonText("Save");
         testButton.setButtonText("Test");

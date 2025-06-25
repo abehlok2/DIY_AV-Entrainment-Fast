@@ -4,31 +4,31 @@ using namespace juce;
 
 GlobalSettingsComponent::GlobalSettingsComponent()
 {
-    addAndMakeVisible(srLabel);
+    addAndMakeVisible(&srLabel);
     srLabel.setText("Sample Rate:", dontSendNotification);
-    addAndMakeVisible(srEdit);
+    addAndMakeVisible(&srEdit);
     srEdit.setText("44100");
 
-    addAndMakeVisible(cfLabel);
+    addAndMakeVisible(&cfLabel);
     cfLabel.setText("Crossfade (s):", dontSendNotification);
-    addAndMakeVisible(cfEdit);
+    addAndMakeVisible(&cfEdit);
     cfEdit.setText("1.0");
 
-    addAndMakeVisible(outFileLabel);
+    addAndMakeVisible(&outFileLabel);
     outFileLabel.setText("Output File:", dontSendNotification);
-    addAndMakeVisible(outFileEdit);
-    addAndMakeVisible(browseOutButton);
+    addAndMakeVisible(&outFileEdit);
+    addAndMakeVisible(&browseOutButton);
     browseOutButton.addListener(this);
 
-    addAndMakeVisible(noiseFileLabel);
+    addAndMakeVisible(&noiseFileLabel);
     noiseFileLabel.setText("Noise Preset:", dontSendNotification);
-    addAndMakeVisible(noiseFileEdit);
-    addAndMakeVisible(browseNoiseButton);
+    addAndMakeVisible(&noiseFileEdit);
+    addAndMakeVisible(&browseNoiseButton);
     browseNoiseButton.addListener(this);
 
-    addAndMakeVisible(noiseAmpLabel);
+    addAndMakeVisible(&noiseAmpLabel);
     noiseAmpLabel.setText("Noise Amp:", dontSendNotification);
-    addAndMakeVisible(noiseAmpEdit);
+    addAndMakeVisible(&noiseAmpEdit);
     noiseAmpEdit.setText("0.0");
 }
 

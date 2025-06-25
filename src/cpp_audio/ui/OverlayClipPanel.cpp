@@ -4,7 +4,7 @@
 
 OverlayClipPanel::OverlayClipPanel()
 {
-    addAndMakeVisible(clipList);
+    addAndMakeVisible(&clipList);
     clipList.setModel(this);
 
     for (auto* b : { &addButton, &editButton, &removeButton, &playButton })
