@@ -9,6 +9,7 @@ juce_add_gui_app(diy_av_ui_cpp
     BUNDLE_ID com.example.diyavcpp.ui
     VERSION 0.1
     SOURCES
+        main.cpp
         Simulator.cpp
         StepConfigPanel.cpp
         StepListPanel.cpp
