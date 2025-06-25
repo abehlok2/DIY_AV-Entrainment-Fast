@@ -1,5 +1,11 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
+#include <memory>
+
+#include "DefaultVoiceDialog.h"
+
+// Forward declaration of theme helper implemented in Themes.cpp
+extern void applyTheme (juce::LookAndFeel_V4&, const juce::String&);
 
 using namespace juce;
 
@@ -7,19 +13,127 @@ using namespace juce;
 class StepListPanel;
 class StepConfigPanel;
 
-class MainComponent : public Component
+namespace
+{
+    enum MenuIDs
+    {
+        menuNew = 1,
+        menuOpen,
+        menuSave,
+        menuPreferences,
+        menuDefaults,
+        themeDark,
+        themeGreen,
+        themeBlue,
+        themeMaterial
+    };
+}
+
+class MainComponent : public Component,
+                      private MenuBarModel
 {
 public:
     MainComponent()
     {
         setSize (800, 600);
+
+        menuBar.reset (new MenuBarComponent (this));
+        addAndMakeVisible (menuBar.get());
+
+        setLookAndFeel (&lookAndFeel);
+        applyTheme (lookAndFeel, currentTheme);
+
         // TODO: create and add child components once implemented
+    }
+
+    ~MainComponent() override
+    {
+        menuBar->setModel (nullptr);
+        setLookAndFeel (nullptr);
     }
 
     void resized() override
     {
-        // TODO: layout child components
+        auto area = getLocalBounds();
+        menuBar->setBounds (area.removeFromTop (24));
+        // TODO: layout child components with remaining area
     }
+
+    StringArray getMenuBarNames() override
+    {
+        return { "File" };
+    }
+
+    PopupMenu getMenuForIndex (int, const String& menuName) override
+    {
+        PopupMenu menu;
+        if (menuName == "File")
+        {
+            menu.addItem (menuNew, "New");
+            menu.addItem (menuOpen, "Open...");
+            menu.addItem (menuSave, "Save");
+            menu.addSeparator();
+            menu.addItem (menuPreferences, "Preferences...");
+            menu.addItem (menuDefaults, "Configure Defaults...");
+
+            PopupMenu theme;
+            theme.addItem (themeDark, "Dark", true, currentTheme == "Dark");
+            theme.addItem (themeGreen, "Green", true, currentTheme == "Green");
+            theme.addItem (themeBlue, "light-blue", true, currentTheme == "light-blue");
+            theme.addItem (themeMaterial, "Material", true, currentTheme == "Material");
+            menu.addSubMenu ("Theme", theme);
+        }
+        return menu;
+    }
+
+    void menuItemSelected (int menuItemID, int) override
+    {
+        switch (menuItemID)
+        {
+            case menuNew:
+                AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
+                                                   "New", "New file action");
+                break;
+            case menuOpen:
+                AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
+                                                   "Open", "Open not implemented");
+                break;
+            case menuSave:
+                AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
+                                                   "Save", "Save not implemented");
+                break;
+            case menuPreferences:
+                AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
+                                                   "Preferences",
+                                                   "Preferences dialog not available");
+                break;
+            case menuDefaults:
+            {
+                DefaultVoiceDialog dlg (prefs);
+                dlg.runModalLoop();
+                prefs.defaultVoice = dlg.getDefaultVoice();
+                break;
+            }
+            case themeDark:     setTheme ("Dark"); break;
+            case themeGreen:    setTheme ("Green"); break;
+            case themeBlue:     setTheme ("light-blue"); break;
+            case themeMaterial: setTheme ("Material"); break;
+            default: break;
+        }
+    }
+
+private:
+    void setTheme (const String& name)
+    {
+        currentTheme = name;
+        applyTheme (lookAndFeel, name);
+        repaint();
+    }
+
+    std::unique_ptr<MenuBarComponent> menuBar;
+    LookAndFeel_V4 lookAndFeel;
+    Preferences prefs;
+    String currentTheme { "Dark" };
 };
 
 class MainWindow : public DocumentWindow
