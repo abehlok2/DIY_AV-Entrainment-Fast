@@ -2,7 +2,7 @@
 
 This document describes how to build the audio components of the project on
 **Windows 11** and **Linux**. The repository contains Python scripts and a small
-C++ implementation located in `src/cpp_audio` which uses JUCE.
+C++ implementation located in `cpp_audio` which uses JUCE.
 
 The visual portion and ESP32 firmware are not covered here.
 
@@ -34,7 +34,7 @@ packages.
 
 ## Building the C++ Audio Application
 
-The C++ implementation in `src/cpp_audio` provides a minimal console program that
+The C++ implementation in `cpp_audio` provides a minimal console program that
 renders audio from JSON definitions. The root `CMakeLists.txt` builds this target.
 
 1. Create a build directory and invoke CMake:
@@ -45,7 +45,7 @@ cmake --build build --config Release
 ```
 
 2. The resulting executable `diy_av_audio_cpp` (or `diy_av_audio_cpp.exe` on
-   Windows) will be located in `build/src/cpp_audio/Release` if using the default
+   Windows) will be located in `build/cpp_audio/Release` if using the default
    generator.
 
 ### CMake Presets
