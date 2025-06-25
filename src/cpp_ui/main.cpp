@@ -4,6 +4,7 @@
 #include "NoiseGeneratorDialog.h"
 #include "FrequencyTesterDialog.h"
 #include "../cpp_audio/Track.h"
+#include "StepPreviewComponent.h"
 
 #include <memory>
 
@@ -69,6 +70,7 @@ public:
         // TODO: create and add child components once implemented
 
         addAndMakeVisible(overlayPanel);
+        addAndMakeVisible(stepPreview);
         addAndMakeVisible(subliminalButton);
         subliminalButton.addListener(this);
         subliminalButton.setButtonText("Add Subliminal Voice");
@@ -91,12 +93,16 @@ public:
         area.removeFromTop(10);
         freqButton.setBounds(area.removeFromTop(30));
 
-        overlayPanel.setBounds(getLocalBounds().reduced(8));
+        auto previewArea = area.removeFromBottom(110);
+        stepPreview.setBounds(previewArea.reduced(0, 4));
+
+        overlayPanel.setBounds(area.reduced(0, 4));
         subliminalButton.setBounds(10, 10, 160, 30);
     }
 
 private:
     TextButton noiseButton, freqButton;
+    StepPreviewComponent stepPreview {deviceManager};
     AudioDeviceManager deviceManager;
     Track currentTrack;
     juce::File currentFile;
@@ -144,6 +150,7 @@ private:
     {
         currentTrack = createDefaultTrack();
         currentFile = {};
+        stepPreview.reset();
     }
 
     void openTrack()
@@ -156,6 +163,10 @@ private:
             AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
                                             "Open",
                                             "Loaded track from\n" + currentFile.getFullPathName());
+            if (! currentTrack.steps.empty())
+                stepPreview.loadStep(currentTrack.steps.front(), currentTrack.settings, 10.0);
+            else
+                stepPreview.reset();
         }
     }
 
