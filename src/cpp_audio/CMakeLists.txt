@@ -24,6 +24,10 @@ juce_add_console_app(diy_av_audio_cpp
         synths/SpatialAngleModulation.cpp
         synths/NoiseFlanger.cpp
         synths/Subliminals.cpp
+        presets/VoicePreset.h
+        presets/VoicePreset.cpp
+        presets/NoiseParams.h
+        presets/NoiseParams.cpp
         models/StepModel.h
         models/StepModel.cpp
         models/VoiceModel.h
