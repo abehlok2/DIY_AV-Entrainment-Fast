@@ -181,7 +181,8 @@ void StepListPanel::loadExternalSteps()
                 if (auto* sobj = s.getDynamicObject())
                 {
 
-                    double dur = sobj->getProperty("duration", 0.0);
+                    double dur =
+                        sobj->getProperty("duration").withDefault(0.0);
                     if (dur <= 0.0)
                         continue;
                     String desc = sobj->getProperty("description").toString();
