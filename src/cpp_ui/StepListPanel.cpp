@@ -6,6 +6,7 @@
 // logic without requiring the full application framework.
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_core/juce_core.h>
 
 using namespace juce;
 
@@ -20,6 +21,7 @@ public:
         stepList.setModel(this);
 
         addButton.setButtonText("Add Step");
+        loadButton.setButtonText("Load Steps");
         dupButton.setButtonText("Duplicate Step");
         removeButton.setButtonText("Remove Step");
         editDurationButton.setButtonText("Edit Duration");
@@ -29,7 +31,7 @@ public:
         undoButton.setButtonText("Undo");
         redoButton.setButtonText("Redo");
 
-        for (auto* b : { &addButton, &dupButton, &removeButton, &editDurationButton,
+        for (auto* b : { &addButton, &loadButton, &dupButton, &removeButton, &editDurationButton,
                           &editDescriptionButton, &upButton, &downButton,
                           &undoButton, &redoButton })
         {
@@ -49,7 +51,7 @@ public:
 
     ~StepListPanel() override
     {
-        for (auto* b : { &addButton, &dupButton, &removeButton, &editDurationButton,
+        for (auto* b : { &addButton, &loadButton, &dupButton, &removeButton, &editDurationButton,
                         &editDescriptionButton, &upButton, &downButton,
                         &undoButton, &redoButton })
             b->removeListener(this);
@@ -87,8 +89,9 @@ public:
         stepList.setBounds(area.removeFromTop(getHeight() - 80));
 
         auto buttons = area.removeFromTop(48);
-        auto each = buttons.getWidth() / 9;
+        auto each = buttons.getWidth() / 10;
         addButton.setBounds(buttons.removeFromLeft(each));
+        loadButton.setBounds(buttons.removeFromLeft(each));
         dupButton.setBounds(buttons.removeFromLeft(each));
         removeButton.setBounds(buttons.removeFromLeft(each));
         editDurationButton.setBounds(buttons.removeFromLeft(each));
@@ -101,7 +104,7 @@ public:
 
 private:
     ListBox stepList;
-    TextButton addButton, dupButton, removeButton, editDurationButton,
+    TextButton addButton, loadButton, dupButton, removeButton, editDurationButton,
               editDescriptionButton, upButton, downButton,
               undoButton, redoButton;
     Label totalDuration;
@@ -121,6 +124,8 @@ private:
     {
         if (b == &addButton)
             addStep();
+        else if (b == &loadButton)
+            loadExternalSteps();
         else if (b == &dupButton)
             duplicateStep();
         else if (b == &removeButton)
@@ -151,6 +156,41 @@ private:
         steps.add(s);
         stepList.selectRow(steps.size() - 1);
         pushHistory();
+    }
+
+    void loadExternalSteps()
+    {
+        FileChooser chooser("Load External Steps from JSON", {}, "*.json");
+        if (! chooser.browseForFileToOpen())
+            return;
+
+        auto file = chooser.getResult();
+        std::unique_ptr<FileInputStream> stream(file.createInputStream());
+        if (! stream || ! stream->openedOk())
+            return;
+
+        var parsed = JSON::parse(stream->readEntireStreamAsString());
+        if (auto* obj = parsed.getDynamicObject())
+        {
+            if (auto* stepsVar = obj->getProperty("steps").getArray())
+            {
+                for (const auto& s : *stepsVar)
+                {
+                    if (auto* sobj = s.getDynamicObject())
+                    {
+                        double dur = sobj->getProperty("duration", 0.0);
+                        if (dur <= 0.0)
+                            continue;
+                        String desc = sobj->getProperty("description").toString();
+                        StepData sd;
+                        sd.duration = dur;
+                        sd.description = desc.isNotEmpty() ? desc : String("Step ") + String(steps.size()+1);
+                        steps.add(sd);
+                    }
+                }
+                pushHistory();
+            }
+        }
     }
 
     void duplicateStep()

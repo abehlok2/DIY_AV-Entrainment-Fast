@@ -78,7 +78,7 @@ A minimal C++ implementation using JUCE lives in `src/cpp_audio`. Build it with 
 
 The JUCE port now provides a `StepPreviewComponent` that mirrors the Python UI's play/pause/stop controls and time slider for auditioning a single step. It also includes a **Reset** button and labels the currently loaded step alongside the playback time.
 
-An additional helper `loadExternalStepsFromJson` can append steps from another JSON file to an existing `Track`. The JSON must contain a top-level `steps` list, mirroring the "Load External Step" action in the Python editor.
+An additional helper `loadExternalStepsFromJson` can append steps from another JSON file to an existing `Track`. The JSON must contain a top-level `steps` list, mirroring the "Load External Step" action in the Python editor. The JUCE `StepListPanel` component now exposes a **Load Steps** button to import such files directly into the list.
 
 The console application `diy_av_audio_cpp` now accepts an optional third argument to load such an external step file when generating audio:
 
