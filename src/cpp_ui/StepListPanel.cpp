@@ -1,18 +1,9 @@
-// Basic StepListPanel implementation using JUCE widgets.  This panel mimics the
-// functionality provided by the original PyQt version found in
-// ``src/ui/step_list_panel.py``.  It maintains a list of steps and exposes
-// controls for adding, duplicating, removing and reordering them.  The panel is
-// intentionally simple and is suitable for unit testing of the underlying C++
-// logic without requiring the full application framework.
 
-#include <juce_gui_basics/juce_gui_basics.h>
-#include <juce_core/juce_core.h>
+#include "StepListPanel.h"
 
 using namespace juce;
 
-class StepListPanel  : public Component,
-                       private ListBoxModel,
-                       private Button::Listener
+StepListPanel::StepListPanel()
 {
 public:
     StepListPanel()
@@ -55,27 +46,12 @@ public:
                         &editDescriptionButton, &upButton, &downButton,
                         &undoButton, &redoButton })
             b->removeListener(this);
+
     }
 
-    //=========================================================================
-    // ListBoxModel overrides
-    int getNumRows() override
-    {
-        return steps.size();
-    }
+    setWantsKeyboardFocus(true);
 
-    void paintListBoxItem(int row, Graphics& g, int width, int height, bool rowIsSelected) override
-    {
-        if (rowIsSelected)
-            g.fillAll(Colours::lightblue);
-
-        if (isPositiveAndBelow(row, steps.size()))
-        {
-            g.setColour(Colours::black);
-            g.drawText(steps[row].description, 4, 0, width - 4, height,
-                       Justification::centredLeft);
-        }
-    }
+    pushHistory();
 
     //=========================================================================
     // Component layout
@@ -109,19 +85,20 @@ private:
               undoButton, redoButton;
     Label totalDuration;
 
-    struct StepData
-    {
-        String description { "New Step" };
-        double duration { 10.0 };
-    };
 
-    Array<StepData> steps;
-    Array<Array<StepData>> history;
-    int historyIndex { -1 };
+int StepListPanel::getNumRows()
+{
+    return steps.size();
+}
 
-    //=========================================================================
-    void buttonClicked(Button* b) override
+void StepListPanel::paintListBoxItem(int row, Graphics& g, int width, int height, bool rowIsSelected)
+{
+    if (rowIsSelected)
+        g.fillAll(Colours::lightblue);
+
+    if (isPositiveAndBelow(row, steps.size()))
     {
+
         if (b == &addButton)
             addStep();
         else if (b == &loadButton)
@@ -146,17 +123,81 @@ private:
         stepList.updateContent();
         stepList.repaint();
         updateDuration();
-    }
 
-    void addStep()
+    }
+}
+
+void StepListPanel::resized()
+{
+    auto area = getLocalBounds().reduced(4);
+    auto top = area.removeFromTop(24);
+    totalDuration.setBounds(top);
+
+    area.removeFromTop(4);
+    stepList.setBounds(area.removeFromTop(getHeight() - 80));
+
+    auto buttons = area.removeFromTop(48);
+    auto each = buttons.getWidth() / 9;
+    addButton.setBounds(buttons.removeFromLeft(each));
+    dupButton.setBounds(buttons.removeFromLeft(each));
+    removeButton.setBounds(buttons.removeFromLeft(each));
+    editDurationButton.setBounds(buttons.removeFromLeft(each));
+    editDescriptionButton.setBounds(buttons.removeFromLeft(each));
+    upButton.setBounds(buttons.removeFromLeft(each));
+    downButton.setBounds(buttons.removeFromLeft(each));
+    undoButton.setBounds(buttons.removeFromLeft(each));
+    redoButton.setBounds(buttons);
+}
+
+void StepListPanel::buttonClicked(Button* b)
+{
+    if (b == &addButton)
+        addStep();
+    else if (b == &dupButton)
+        duplicateStep();
+    else if (b == &removeButton)
+        removeStep();
+    else if (b == &editDurationButton)
+        editStepDuration();
+    else if (b == &editDescriptionButton)
+        editStepDescription();
+    else if (b == &upButton)
+        moveStep(-1);
+    else if (b == &downButton)
+        moveStep(1);
+    else if (b == &undoButton)
+        undo();
+    else if (b == &redoButton)
+        redo();
+
+    stepList.updateContent();
+    stepList.repaint();
+    updateDuration();
+}
+
+void StepListPanel::addStep()
+{
+    StepData s;
+    s.description = "New Step " + String(steps.size() + 1);
+    s.duration = 10.0;
+    steps.add(s);
+    stepList.selectRow(steps.size() - 1);
+    pushHistory();
+}
+
+void StepListPanel::duplicateStep()
+{
+    int row = stepList.getSelectedRow();
+    if (isPositiveAndBelow(row, steps.size()))
     {
-        StepData s;
-        s.description = "New Step " + String(steps.size() + 1);
-        s.duration = 10.0;
-        steps.add(s);
-        stepList.selectRow(steps.size() - 1);
+        StepData copy = steps[row];
+        copy.description += " (Copy)";
+        steps.insert(row + 1, copy);
+        stepList.selectRow(row + 1);
         pushHistory();
     }
+}
+
 
     void loadExternalSteps()
     {
@@ -194,152 +235,144 @@ private:
     }
 
     void duplicateStep()
+
     {
-        int row = stepList.getSelectedRow();
-        if (isPositiveAndBelow(row, steps.size()))
+        steps.remove(row);
+        if (row > 0)
+            stepList.selectRow(row - 1);
+        pushHistory();
+    }
+}
+
+void StepListPanel::moveStep(int delta)
+{
+    int row = stepList.getSelectedRow();
+    int target = row + delta;
+    if (isPositiveAndBelow(row, steps.size()) && isPositiveAndBelow(target, steps.size()))
+    {
+        steps.move(row, target);
+        stepList.selectRow(target);
+        pushHistory();
+    }
+}
+
+void StepListPanel::editStepDuration()
+{
+    int row = stepList.getSelectedRow();
+    if (!isPositiveAndBelow(row, steps.size()))
+        return;
+
+    AlertWindow w("Edit Duration", "Enter new duration (seconds):", AlertWindow::NoIcon);
+    w.addTextEditor("dur", String(steps[row].duration, 3));
+    w.addButton("OK", 1, KeyPress(KeyPress::returnKey));
+    w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey));
+    if (w.runModalLoop() == 1)
+    {
+        double val = w.getTextEditor("dur")->getText().trim().getDoubleValue();
+        if (val > 0.0)
         {
-            StepData copy = steps[row];
-            copy.description += " (Copy)";
-            steps.insert(row + 1, copy);
-            stepList.selectRow(row + 1);
+            steps.getReference(row).duration = val;
             pushHistory();
         }
     }
+    updateDuration();
+}
 
-    void removeStep()
+void StepListPanel::editStepDescription()
+{
+    int row = stepList.getSelectedRow();
+    if (!isPositiveAndBelow(row, steps.size()))
+        return;
+
+    AlertWindow w("Edit Description", "Enter new description:", AlertWindow::NoIcon);
+    w.addTextEditor("desc", steps[row].description);
+    w.addButton("OK", 1, KeyPress(KeyPress::returnKey));
+    w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey));
+    if (w.runModalLoop() == 1)
     {
-        int row = stepList.getSelectedRow();
-        if (isPositiveAndBelow(row, steps.size()))
-        {
-            steps.remove(row);
-            if (row > 0)
-                stepList.selectRow(row - 1);
-            pushHistory();
-        }
+        steps.getReference(row).description = w.getTextEditor("desc")->getText();
+        pushHistory();
     }
+    stepList.updateContent();
+    stepList.repaint();
+}
 
-    void moveStep(int delta)
+void StepListPanel::updateDuration()
+{
+    double totalSecs = 0.0;
+    for (const auto& s : steps)
+        totalSecs += s.duration;
+    int mins = static_cast<int>(totalSecs) / 60;
+    int secs = static_cast<int>(totalSecs) % 60;
+    totalDuration.setText("Total Duration: " + String(mins).paddedLeft('0',2)
+                          + ":" + String(secs).paddedLeft('0',2), dontSendNotification);
+}
+
+void StepListPanel::pushHistory()
+{
+    if (historyIndex < history.size() - 1)
+        history.removeRange(historyIndex + 1, history.size() - historyIndex - 1);
+    history.add(steps);
+    historyIndex = history.size() - 1;
+    updateUndoRedoButtons();
+}
+
+void StepListPanel::undo()
+{
+    if (historyIndex > 0)
     {
-        int row = stepList.getSelectedRow();
-        int target = row + delta;
-        if (isPositiveAndBelow(row, steps.size()) && isPositiveAndBelow(target, steps.size()))
-        {
-            steps.move(row, target);
-            stepList.selectRow(target);
-            pushHistory();
-        }
-    }
-
-    void editStepDuration()
-    {
-        int row = stepList.getSelectedRow();
-        if (!isPositiveAndBelow(row, steps.size()))
-            return;
-
-        AlertWindow w("Edit Duration", "Enter new duration (seconds):", AlertWindow::NoIcon);
-        w.addTextEditor("dur", String(steps[row].duration, 3));
-        w.addButton("OK", 1, KeyPress(KeyPress::returnKey));
-        w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey));
-        if (w.runModalLoop() == 1)
-        {
-            double val = w.getTextEditor("dur")->getText().trim().getDoubleValue();
-            if (val > 0.0)
-            {
-                steps.getReference(row).duration = val;
-                pushHistory();
-            }
-        }
-        updateDuration();
-    }
-
-    void editStepDescription()
-    {
-        int row = stepList.getSelectedRow();
-        if (!isPositiveAndBelow(row, steps.size()))
-            return;
-
-        AlertWindow w("Edit Description", "Enter new description:", AlertWindow::NoIcon);
-        w.addTextEditor("desc", steps[row].description);
-        w.addButton("OK", 1, KeyPress(KeyPress::returnKey));
-        w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey));
-        if (w.runModalLoop() == 1)
-        {
-            steps.getReference(row).description = w.getTextEditor("desc")->getText();
-            pushHistory();
-        }
+        --historyIndex;
+        steps = history[historyIndex];
+        stepList.selectRow(juce::jlimit(0, steps.size() - 1, stepList.getSelectedRow()));
         stepList.updateContent();
         stepList.repaint();
+        updateDuration();
     }
+    updateUndoRedoButtons();
+}
 
-    void updateDuration()
+void StepListPanel::redo()
+{
+    if (historyIndex < history.size() - 1)
     {
-        double totalSecs = 0.0;
-        for (const auto& s : steps)
-            totalSecs += s.duration;
-        int mins = static_cast<int>(totalSecs) / 60;
-        int secs = static_cast<int>(totalSecs) % 60;
-        totalDuration.setText("Total Duration: " + String(mins).paddedLeft('0',2)
-                              + ":" + String(secs).paddedLeft('0',2), dontSendNotification);
+        ++historyIndex;
+        steps = history[historyIndex];
+        stepList.selectRow(juce::jlimit(0, steps.size() - 1, stepList.getSelectedRow()));
+        stepList.updateContent();
+        stepList.repaint();
+        updateDuration();
     }
+    updateUndoRedoButtons();
+}
 
-    //==========================================================================
-    void pushHistory()
+bool StepListPanel::canUndo() const
+{
+    return historyIndex > 0;
+}
+
+bool StepListPanel::canRedo() const
+{
+    return historyIndex < history.size() - 1;
+}
+
+void StepListPanel::updateUndoRedoButtons()
+{
+    undoButton.setEnabled(canUndo());
+    redoButton.setEnabled(canRedo());
+}
+
+bool StepListPanel::keyPressed(const KeyPress& key)
+{
+    if (key == KeyPress('z', ModifierKeys::commandModifier, 0))
     {
-        if (historyIndex < history.size() - 1)
-            history.removeRange(historyIndex + 1, history.size() - historyIndex - 1);
-        history.add(steps);
-        historyIndex = history.size() - 1;
-        updateUndoRedoButtons();
+        undo();
+        return true;
     }
-
-    void undo()
+    if (key == KeyPress('z', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
     {
-        if (historyIndex > 0)
-        {
-            --historyIndex;
-            steps = history[historyIndex];
-            stepList.selectRow(juce::jlimit(0, steps.size() - 1, stepList.getSelectedRow()));
-            stepList.updateContent();
-            stepList.repaint();
-            updateDuration();
-        }
-        updateUndoRedoButtons();
+        redo();
+        return true;
     }
-
-    void redo()
-    {
-        if (historyIndex < history.size() - 1)
-        {
-            ++historyIndex;
-            steps = history[historyIndex];
-            stepList.selectRow(juce::jlimit(0, steps.size() - 1, stepList.getSelectedRow()));
-            stepList.updateContent();
-            stepList.repaint();
-            updateDuration();
-        }
-        updateUndoRedoButtons();
-    }
-
-    void updateUndoRedoButtons()
-    {
-        undoButton.setEnabled(historyIndex > 0);
-        redoButton.setEnabled(historyIndex < history.size() - 1);
-    }
-
-    bool keyPressed(const KeyPress& key) override
-    {
-        if (key == KeyPress('z', ModifierKeys::commandModifier, 0))
-        {
-            undo();
-            return true;
-        }
-        if (key == KeyPress('z', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
-        {
-            redo();
-            return true;
-        }
-        return false;
-    }
-};
-
+    return false;
+}
 

@@ -4,6 +4,11 @@
 #include "NoiseGeneratorDialog.h"
 #include "FrequencyTesterDialog.h"
 #include "../cpp_audio/Track.h"
+
+#include "StepListPanel.h"
+
+#include "GlobalSettingsComponent.h"
+
 #include "StepPreviewComponent.h"
 
 #include <memory>
@@ -18,8 +23,7 @@ extern void applyTheme (juce::LookAndFeel_V4&, const juce::String&);
 
 using namespace juce;
 
-// Forward declarations for UI components that will be implemented later.
-class StepListPanel;
+// Forward declaration for StepConfigPanel (not yet implemented)
 class StepConfigPanel;
 #include "OverlayClipPanel.h"
 
@@ -31,6 +35,8 @@ namespace
         menuNew = 1,
         menuOpen,
         menuSave,
+        menuUndo,
+        menuRedo,
         menuPreferences,
         menuDefaults,
         themeDark,
@@ -61,6 +67,8 @@ public:
         freqButton.setButtonText("Frequency Tester");
         freqButton.addListener(this);
 
+        addAndMakeVisible(globals);
+
         menuBar.reset (new MenuBarComponent (this));
         addAndMakeVisible (menuBar.get());
 
@@ -69,6 +77,8 @@ public:
 
         // TODO: create and add child components once implemented
 
+        addAndMakeVisible(stepListPanel);
+        stepListPanel.grabKeyboardFocus();
         addAndMakeVisible(overlayPanel);
         addAndMakeVisible(stepPreview);
         addAndMakeVisible(subliminalButton);
@@ -92,20 +102,32 @@ public:
         noiseButton.setBounds(area.removeFromTop(30));
         area.removeFromTop(10);
         freqButton.setBounds(area.removeFromTop(30));
+        area.removeFromTop(10);
+
+        auto left = area.removeFromLeft(250);
+        stepListPanel.setBounds(left);
+        overlayPanel.setBounds(area);
+
+        globals.setBounds(area.removeFromTop(120));
+
 
         auto previewArea = area.removeFromBottom(110);
         stepPreview.setBounds(previewArea.reduced(0, 4));
 
         overlayPanel.setBounds(area.reduced(0, 4));
+
         subliminalButton.setBounds(10, 10, 160, 30);
     }
 
 private:
     TextButton noiseButton, freqButton;
-    StepPreviewComponent stepPreview {deviceManager};
+
+    GlobalSettingsComponent globals;
+
     AudioDeviceManager deviceManager;
     Track currentTrack;
     juce::File currentFile;
+    StepListPanel stepListPanel;
 
     void buttonClicked(Button* b)
     {
@@ -143,6 +165,9 @@ private:
         t.settings.sampleRate = 44100.0;
         t.settings.crossfadeDuration = 1.0;
         t.settings.crossfadeCurve = "linear";
+        t.settings.outputFilename = "my_track.wav";
+        t.backgroundNoise.filePath = "";
+        t.backgroundNoise.amp = 0.0;
         return t;
     }
 
@@ -150,7 +175,9 @@ private:
     {
         currentTrack = createDefaultTrack();
         currentFile = {};
-        stepPreview.reset();
+
+        loadSettingsToUi();
+
     }
 
     void openTrack()
@@ -160,6 +187,7 @@ private:
         {
             currentFile = chooser.getResult();
             currentTrack = loadTrackFromJson(currentFile);
+            loadSettingsToUi();
             AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
                                             "Open",
                                             "Loaded track from\n" + currentFile.getFullPathName());
@@ -179,6 +207,7 @@ private:
                 return;
             currentFile = chooser.getResult();
         }
+        applyUiToSettings();
         if (saveTrackToJson(currentTrack, currentFile))
             AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
                                             "Save",
@@ -191,7 +220,7 @@ private:
 
     StringArray getMenuBarNames() override
     {
-        return { "File" };
+        return { "File", "Edit" };
     }
 
     PopupMenu getMenuForIndex (int, const String& menuName) override
@@ -213,6 +242,11 @@ private:
             theme.addItem (themeMaterial, "Material", true, currentTheme == "Material");
             menu.addSubMenu ("Theme", theme);
         }
+        else if (menuName == "Edit")
+        {
+            menu.addItem(menuUndo, "Undo", stepListPanel.canUndo());
+            menu.addItem(menuRedo, "Redo", stepListPanel.canRedo());
+        }
         return menu;
     }
 
@@ -230,6 +264,12 @@ private:
                 break;
             case menuSave:
                 saveTrack(false);
+                break;
+            case menuUndo:
+                stepListPanel.undo();
+                break;
+            case menuRedo:
+                stepListPanel.redo();
                 break;
             case menuPreferences:
                 AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
@@ -257,6 +297,27 @@ private:
         currentTheme = name;
         applyTheme (lookAndFeel, name);
         repaint();
+    }
+
+    void loadSettingsToUi()
+    {
+        GlobalSettingsComponent::Settings s;
+        s.sampleRate = currentTrack.settings.sampleRate;
+        s.crossfadeSeconds = currentTrack.settings.crossfadeDuration;
+        s.outputFile = currentTrack.settings.outputFilename;
+        s.noiseFile = currentTrack.backgroundNoise.filePath;
+        s.noiseAmp = currentTrack.backgroundNoise.amp;
+        globals.setSettings(s);
+    }
+
+    void applyUiToSettings()
+    {
+        auto s = globals.getSettings();
+        currentTrack.settings.sampleRate = s.sampleRate;
+        currentTrack.settings.crossfadeDuration = s.crossfadeSeconds;
+        currentTrack.settings.outputFilename = s.outputFile;
+        currentTrack.backgroundNoise.filePath = s.noiseFile;
+        currentTrack.backgroundNoise.amp = s.noiseAmp;
     }
 
     std::unique_ptr<MenuBarComponent> menuBar;
