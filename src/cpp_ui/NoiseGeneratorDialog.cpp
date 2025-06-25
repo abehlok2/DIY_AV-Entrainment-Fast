@@ -505,4 +505,9 @@ private:
     }
 };
 
+std::unique_ptr<juce::Component> createNoiseGeneratorDialog()
+{
+    return std::make_unique<NoiseGeneratorDialog>();
+}
+
 
