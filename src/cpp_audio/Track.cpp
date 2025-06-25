@@ -94,6 +94,7 @@ Track loadTrackFromJson(const juce::File& file)
             track.settings.sampleRate = gs->getProperty("sample_rate", 44100.0);
             track.settings.crossfadeDuration = gs->getProperty("crossfade_duration", 1.0);
             track.settings.crossfadeCurve = gs->getProperty("crossfade_curve").toString();
+            track.settings.outputFilename = gs->getProperty("output_filename", "my_track.wav").toString();
         }
 
         if (auto* bg = obj->getProperty("background_noise").getDynamicObject())
@@ -193,6 +194,7 @@ bool saveTrackToJson(const Track& track, const juce::File& file)
         gs->setProperty("sample_rate", track.settings.sampleRate);
         gs->setProperty("crossfade_duration", track.settings.crossfadeDuration);
         gs->setProperty("crossfade_curve", track.settings.crossfadeCurve);
+        gs->setProperty("output_filename", track.settings.outputFilename);
         obj->setProperty("global_settings", juce::var(gs));
     }
 

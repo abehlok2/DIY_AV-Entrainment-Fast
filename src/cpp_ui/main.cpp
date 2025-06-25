@@ -4,7 +4,11 @@
 #include "NoiseGeneratorDialog.h"
 #include "FrequencyTesterDialog.h"
 #include "../cpp_audio/Track.h"
+
+#include "GlobalSettingsComponent.h"
+
 #include "StepPreviewComponent.h"
+
 
 #include <memory>
 
@@ -61,6 +65,8 @@ public:
         freqButton.setButtonText("Frequency Tester");
         freqButton.addListener(this);
 
+        addAndMakeVisible(globals);
+
         menuBar.reset (new MenuBarComponent (this));
         addAndMakeVisible (menuBar.get());
 
@@ -92,17 +98,27 @@ public:
         noiseButton.setBounds(area.removeFromTop(30));
         area.removeFromTop(10);
         freqButton.setBounds(area.removeFromTop(30));
+        area.removeFromTop(10);
+        globals.setBounds(area.removeFromTop(120));
+
+
+        overlayPanel.setBounds(area);
 
         auto previewArea = area.removeFromBottom(110);
         stepPreview.setBounds(previewArea.reduced(0, 4));
 
         overlayPanel.setBounds(area.reduced(0, 4));
+
         subliminalButton.setBounds(10, 10, 160, 30);
     }
 
 private:
     TextButton noiseButton, freqButton;
+
+    GlobalSettingsComponent globals;
+
     StepPreviewComponent stepPreview {deviceManager};
+
     AudioDeviceManager deviceManager;
     Track currentTrack;
     juce::File currentFile;
@@ -143,6 +159,9 @@ private:
         t.settings.sampleRate = 44100.0;
         t.settings.crossfadeDuration = 1.0;
         t.settings.crossfadeCurve = "linear";
+        t.settings.outputFilename = "my_track.wav";
+        t.backgroundNoise.filePath = "";
+        t.backgroundNoise.amp = 0.0;
         return t;
     }
 
@@ -150,7 +169,11 @@ private:
     {
         currentTrack = createDefaultTrack();
         currentFile = {};
+
+        loadSettingsToUi();
+
         stepPreview.reset();
+
     }
 
     void openTrack()
@@ -160,6 +183,7 @@ private:
         {
             currentFile = chooser.getResult();
             currentTrack = loadTrackFromJson(currentFile);
+            loadSettingsToUi();
             AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
                                             "Open",
                                             "Loaded track from\n" + currentFile.getFullPathName());
@@ -179,6 +203,7 @@ private:
                 return;
             currentFile = chooser.getResult();
         }
+        applyUiToSettings();
         if (saveTrackToJson(currentTrack, currentFile))
             AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
                                             "Save",
@@ -257,6 +282,27 @@ private:
         currentTheme = name;
         applyTheme (lookAndFeel, name);
         repaint();
+    }
+
+    void loadSettingsToUi()
+    {
+        GlobalSettingsComponent::Settings s;
+        s.sampleRate = currentTrack.settings.sampleRate;
+        s.crossfadeSeconds = currentTrack.settings.crossfadeDuration;
+        s.outputFile = currentTrack.settings.outputFilename;
+        s.noiseFile = currentTrack.backgroundNoise.filePath;
+        s.noiseAmp = currentTrack.backgroundNoise.amp;
+        globals.setSettings(s);
+    }
+
+    void applyUiToSettings()
+    {
+        auto s = globals.getSettings();
+        currentTrack.settings.sampleRate = s.sampleRate;
+        currentTrack.settings.crossfadeDuration = s.crossfadeSeconds;
+        currentTrack.settings.outputFilename = s.outputFile;
+        currentTrack.backgroundNoise.filePath = s.noiseFile;
+        currentTrack.backgroundNoise.amp = s.noiseAmp;
     }
 
     std::unique_ptr<MenuBarComponent> menuBar;

@@ -7,15 +7,19 @@ int main (int argc, char* argv[])
 {
     juce::ConsoleApplication app (argc, argv);
 
-    if (argc < 3 || argc > 4)
+    if (argc < 2 || argc > 4)
     {
-        juce::Logger::writeToLog("Usage: diy_av_audio_cpp <input.json> <output.wav> [extra_steps.json]");
+        juce::Logger::writeToLog("Usage: diy_av_audio_cpp <input.json> [output.wav] [extra_steps.json]");
         return 1;
     }
 
     juce::File inFile(argv[1]);
-    juce::File outFile(argv[2]);
     Track track = loadTrackFromJson(inFile);
+    juce::File outFile;
+    if (argc >= 3)
+        outFile = juce::File(argv[2]);
+    else
+        outFile = juce::File(track.settings.outputFilename);
 
     if (argc == 4)
     {
