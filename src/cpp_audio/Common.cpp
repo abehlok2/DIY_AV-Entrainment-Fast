@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <numeric>
 #include <random>
+#include <array>
 
 std::vector<double> sineWave(double freq, const std::vector<double>& t, double phase)
 {
