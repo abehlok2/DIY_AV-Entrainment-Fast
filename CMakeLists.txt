@@ -14,18 +14,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(AUDIO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/cpp_audio)
 
 #--------------------------------------------------
-# Disable JUCE extras/examples/tests
+# Disable JUCE components we don’t need
 #--------------------------------------------------
-set(JUCE_BUILD_EXTRAS    OFF CACHE BOOL "Disable JUCE extras" FORCE)
-set(JUCE_BUILD_EXAMPLES OFF CACHE BOOL "Disable JUCE examples" FORCE)
-set(JUCE_BUILD_TESTS    OFF CACHE BOOL "Disable JUCE tests" FORCE)
+set(JUCE_BUILD_EXTRAS    OFF CACHE BOOL "Disable JUCE extras"   FORCE)
+set(JUCE_BUILD_EXAMPLES  OFF CACHE BOOL "Disable JUCE examples" FORCE)
+set(JUCE_BUILD_TESTS     OFF CACHE BOOL "Disable JUCE tests"    FORCE)
+set(JUCE_BUILD_TOOLS     OFF CACHE BOOL "Disable JUCE tools"    FORCE)
 
 #--------------------------------------------------
-# 1) Bring in JUCE as a subproject
+# Bring in JUCE as a subproject
 #--------------------------------------------------
-add_subdirectory(${AUDIO_DIR}/JUCE juce-build)
-
-#--------------------------------------------------
+# Place JUCE’s build artifacts under the main build directory
+add_subdirectory(
+    "${AUDIO_DIR}/JUCE"
+    "${CMAKE_BINARY_DIR}/juce-build"
+    EXCLUDE_FROM_ALL
+)#--------------------------------------------------
 # 2) List all your .cpp source files
 #--------------------------------------------------
 set(SOURCES
