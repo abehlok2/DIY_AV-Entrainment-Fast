@@ -22,6 +22,8 @@ juce_add_gui_app(diy_av_ui_cpp
         SubliminalDialog.cpp
         VoiceEditorDialog.cpp
         Themes.cpp
+        StepPreviewComponent.h
+        StepPreviewComponent.cpp
 )
 
 juce_generate_juce_header(diy_av_ui_cpp)
