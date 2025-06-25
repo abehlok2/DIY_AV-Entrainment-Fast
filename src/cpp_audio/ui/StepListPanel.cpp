@@ -1,5 +1,9 @@
 #include "StepListPanel.h"
+
 #include <juce_core/juce_core.h>
+
+#include "../VarUtils.h"
+
 
 using namespace juce;
 
@@ -23,8 +27,41 @@ StepListPanel::StepListPanel()
                      &editDurationButton, &editDescriptionButton,
                      &upButton, &downButton, &undoButton, &redoButton })
     {
+
         addAndMakeVisible(b);
         b->addListener(this);
+      
+        addAndMakeVisible(&stepList);
+        stepList.setModel(this);
+
+        addButton.setButtonText("Add Step");
+        loadButton.setButtonText("Load Steps");
+        dupButton.setButtonText("Duplicate Step");
+        removeButton.setButtonText("Remove Step");
+        editDurationButton.setButtonText("Edit Duration");
+        editDescriptionButton.setButtonText("Edit Description");
+        upButton.setButtonText("Move Up");
+        downButton.setButtonText("Move Down");
+        undoButton.setButtonText("Undo");
+        redoButton.setButtonText("Redo");
+
+        for (auto* b : { &addButton, &loadButton, &dupButton, &removeButton, &editDurationButton,
+                          &editDescriptionButton, &upButton, &downButton,
+                          &undoButton, &redoButton })
+        {
+            addAndMakeVisible(b);
+            b->addListener(this);
+        }
+
+        setWantsKeyboardFocus(true);
+
+        pushHistory();
+
+        addAndMakeVisible(&totalDuration);
+        totalDuration.setJustificationType(Justification::centredLeft);
+
+        // start with an empty step list
+      
     }
 
     addAndMakeVisible(totalDuration);
@@ -143,6 +180,7 @@ void StepListPanel::loadExternalSteps()
             {
                 if (auto* sobj = s.getDynamicObject())
                 {
+
                     double dur = sobj->getProperty("duration", 0.0);
                     if (dur <= 0.0)
                         continue;
