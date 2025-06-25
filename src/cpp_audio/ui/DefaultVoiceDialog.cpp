@@ -2,6 +2,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_data_structures/juce_data_structures.h>
 #include <juce_events/juce_events.h>
+#include "../VarUtils.h"
 
 using namespace juce;
 
@@ -13,31 +14,31 @@ DefaultVoiceDialog::DefaultVoiceDialog(Preferences& prefs)
     setUsingNativeTitleBar(true);
     setResizable(true, false);
 
-    addAndMakeVisible(synthLabel);
+    addAndMakeVisible(&synthLabel);
     synthLabel.setText("Synth Function", dontSendNotification);
 
-    addAndMakeVisible(synthEditor);
+    addAndMakeVisible(&synthEditor);
 
-    addAndMakeVisible(transitionToggle);
+    addAndMakeVisible(&transitionToggle);
     transitionToggle.setButtonText("Is Transition");
 
-    addAndMakeVisible(paramsLabel);
+    addAndMakeVisible(&paramsLabel);
     paramsLabel.setText("Parameters (JSON)", dontSendNotification);
-    addAndMakeVisible(paramsEditor);
+    addAndMakeVisible(&paramsEditor);
     paramsEditor.setMultiLine(true);
     paramsEditor.setReturnKeyStartsNewLine(true);
 
-    addAndMakeVisible(envelopeLabel);
+    addAndMakeVisible(&envelopeLabel);
     envelopeLabel.setText("Volume Envelope (JSON)", dontSendNotification);
-    addAndMakeVisible(envelopeEditor);
+    addAndMakeVisible(&envelopeEditor);
     envelopeEditor.setMultiLine(true);
     envelopeEditor.setReturnKeyStartsNewLine(true);
 
-    addAndMakeVisible(saveButton);
+    addAndMakeVisible(&saveButton);
     saveButton.setButtonText("Save Defaults");
     saveButton.addListener(this);
 
-    addAndMakeVisible(cancelButton);
+    addAndMakeVisible(&cancelButton);
     cancelButton.setButtonText("Cancel");
     cancelButton.addListener(this);
 
@@ -45,7 +46,7 @@ DefaultVoiceDialog::DefaultVoiceDialog(Preferences& prefs)
     if (auto* obj = preferences.defaultVoice.getDynamicObject())
     {
         synthEditor.setText(obj->getProperty("synth_function_name").toString());
-        transitionToggle.setToggleState(obj->getProperty("is_transition", false), dontSendNotification);
+        transitionToggle.setToggleState(getPropertyWithDefault(obj, "is_transition", false), dontSendNotification);
         if (auto* p = obj->getProperty("params").getDynamicObject())
             paramsEditor.setText(JSON::toString(var(p)));
         if (auto* e = obj->getProperty("volume_envelope").getDynamicObject())

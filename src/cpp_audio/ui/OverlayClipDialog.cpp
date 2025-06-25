@@ -63,32 +63,32 @@ struct OverlayClipDialogWindow  : public juce::Component,
         : amplitudeInDb(ampInDb)
     {
         setSize(400, 260);
-        addAndMakeVisible(fileLabel);
-        addAndMakeVisible(fileEdit);
-        addAndMakeVisible(browseButton);
+        addAndMakeVisible(&fileLabel);
+        addAndMakeVisible(&fileEdit);
+        addAndMakeVisible(&browseButton);
         browseButton.addListener(this);
 
-        addAndMakeVisible(descLabel);
-        addAndMakeVisible(descEdit);
+        addAndMakeVisible(&descLabel);
+        addAndMakeVisible(&descEdit);
 
-        addAndMakeVisible(startLabel);
-        addAndMakeVisible(startEdit);
+        addAndMakeVisible(&startLabel);
+        addAndMakeVisible(&startEdit);
 
-        addAndMakeVisible(ampLabel);
-        addAndMakeVisible(ampEdit);
+        addAndMakeVisible(&ampLabel);
+        addAndMakeVisible(&ampEdit);
 
-        addAndMakeVisible(panLabel);
-        addAndMakeVisible(panEdit);
+        addAndMakeVisible(&panLabel);
+        addAndMakeVisible(&panEdit);
 
-        addAndMakeVisible(fadeInLabel);
-        addAndMakeVisible(fadeInEdit);
+        addAndMakeVisible(&fadeInLabel);
+        addAndMakeVisible(&fadeInEdit);
 
-        addAndMakeVisible(fadeOutLabel);
-        addAndMakeVisible(fadeOutEdit);
+        addAndMakeVisible(&fadeOutLabel);
+        addAndMakeVisible(&fadeOutEdit);
 
-        addAndMakeVisible(okButton);
-        addAndMakeVisible(cancelButton);
-        addAndMakeVisible(playButton);
+        addAndMakeVisible(&okButton);
+        addAndMakeVisible(&cancelButton);
+        addAndMakeVisible(&playButton);
         okButton.addListener(this);
         cancelButton.addListener(this);
         playButton.addListener(this);

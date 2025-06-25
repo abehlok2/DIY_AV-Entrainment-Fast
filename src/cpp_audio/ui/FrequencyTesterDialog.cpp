@@ -94,23 +94,23 @@ public:
         {
             auto* vc = voiceControls.add (new VoiceControl());
             vc->enable.setButtonText ("Voice " + String (i + 1));
-            addAndMakeVisible (vc->enable);
+            addAndMakeVisible (&vc->enable);
 
-            addAndMakeVisible (vc->baseLabel);
+            addAndMakeVisible (&vc->baseLabel);
             vc->baseLabel.setText ("Base Freq", dontSendNotification);
-            addAndMakeVisible (vc->base);
+            addAndMakeVisible (&vc->base);
             vc->base.setRange (20.0, 20000.0, 0.01);
             vc->base.setValue (200.0);
 
-            addAndMakeVisible (vc->beatLabel);
+            addAndMakeVisible (&vc->beatLabel);
             vc->beatLabel.setText ("Beat Freq", dontSendNotification);
-            addAndMakeVisible (vc->beat);
+            addAndMakeVisible (&vc->beat);
             vc->beat.setRange (0.0, 40.0, 0.01);
             vc->beat.setValue (4.0);
 
-            addAndMakeVisible (vc->ampLabel);
+            addAndMakeVisible (&vc->ampLabel);
             vc->ampLabel.setText ("Amp", dontSendNotification);
-            addAndMakeVisible (vc->amp);
+            addAndMakeVisible (&vc->amp);
 
             if (prefs.amplitudeDisplayMode == "dB")
             {
@@ -127,8 +127,8 @@ public:
         startButton.setButtonText ("Start");
         stopButton.setButtonText ("Stop");
         stopButton.setEnabled (false);
-        addAndMakeVisible (startButton);
-        addAndMakeVisible (stopButton);
+        addAndMakeVisible (&startButton);
+        addAndMakeVisible (&stopButton);
         startButton.addListener (this);
         stopButton.addListener (this);
     }
