@@ -401,5 +401,7 @@ private:
     std::unique_ptr<MainWindow> mainWindow;
 };
 
+#ifndef DIY_AV_UI_NO_MAIN
 START_JUCE_APPLICATION (DiyAvApplication)
+#endif
 
