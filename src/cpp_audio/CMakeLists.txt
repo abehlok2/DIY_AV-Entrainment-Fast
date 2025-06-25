@@ -69,16 +69,20 @@ target_include_directories(AudioApp
 target_link_libraries(AudioApp
     PRIVATE
         juce::juce_core
-				juce::juce_audio_basics
-				juce::juce_audio_formats
-				juce::juce_audio_devices
+                                juce::juce_audio_basics
+                                juce::juce_audio_formats
+                                juce::juce_audio_devices
         juce::juce_audio_utils
-				juce::juce_data_structures
-				juce::juce_gui_basics
-				juce::juce_gui_extra
-				juce::juce_dsp
-				juce::juce_events
+                                juce::juce_data_structures
+                                juce::juce_gui_basics
+                                juce::juce_gui_extra
+                                juce::juce_dsp
+                                juce::juce_events
         # add other juce::<module> targets as needed
 )
+
+# Ensure modal loop APIs like runModal and runModalLoop are available
+# for our dialogs when building this standalone target.
+target_compile_definitions(AudioApp PRIVATE JUCE_MODAL_LOOPS_PERMITTED=1)
 
 
