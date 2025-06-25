@@ -14,6 +14,7 @@ OverlayClipPanel::OverlayClipPanel()
     }
 
     formatManager.registerBasicFormats();
+    sourcePlayer.setSource(&transport);
 }
 
 OverlayClipPanel::~OverlayClipPanel()
@@ -21,6 +22,7 @@ OverlayClipPanel::~OverlayClipPanel()
     for (auto* b : { &addButton, &editButton, &removeButton, &playButton })
         b->removeListener(this);
     stopPlayback();
+    deviceManager.removeAudioCallback(&sourcePlayer);
 }
 
 int OverlayClipPanel::getNumRows()
@@ -122,7 +124,7 @@ void OverlayClipPanel::startPlayback()
 
     readerSource.reset(new juce::AudioFormatReaderSource(reader.release(), true));
     transport.setSource(readerSource.get(), 0, nullptr, readerSource->sampleRate);
-    deviceManager.addAudioCallback(&transport);
+    deviceManager.addAudioCallback(&sourcePlayer);
     transport.start();
     playButton.setButtonText("Stop Clip");
 }
@@ -133,6 +135,6 @@ void OverlayClipPanel::stopPlayback()
     transport.setSource(nullptr);
     if (readerSource)
         readerSource.reset();
-    deviceManager.removeAudioCallback(&transport);
+    deviceManager.removeAudioCallback(&sourcePlayer);
     playButton.setButtonText("Start Clip");
 }

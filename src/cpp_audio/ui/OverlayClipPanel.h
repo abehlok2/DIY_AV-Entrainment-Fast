@@ -34,6 +34,7 @@ private:
     juce::AudioDeviceManager deviceManager;
     juce::AudioFormatManager formatManager;
     juce::AudioTransportSource transport;
+    juce::AudioSourcePlayer sourcePlayer;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
 
     std::vector<OverlayClipDialog::ClipData> clips;
