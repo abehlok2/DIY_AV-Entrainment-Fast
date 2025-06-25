@@ -5,6 +5,7 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
 #include "../cpp_audio/SynthFunctions.h"
+#include "Preferences.h"
 
 using namespace juce;
 
@@ -23,11 +24,6 @@ inline double dbToAmplitude (double db)
     return db <= MIN_DB ? 0.0 : std::pow (10.0, db / 20.0);
 }
 
-struct Preferences
-{
-    int sampleRate = 44100;
-    String amplitudeDisplayMode { "absolute" }; // or "dB"
-};
 
 class BufferAudioSource : public AudioSource
 {

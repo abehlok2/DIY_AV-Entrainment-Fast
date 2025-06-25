@@ -3,21 +3,29 @@
 
 #include "NoiseGeneratorDialog.h"
 #include "FrequencyTesterDialog.h"
+#include "../cpp_audio/Track.h"
+
+#include "StepListPanel.h"
+
+#include "GlobalSettingsComponent.h"
+
+#include "StepPreviewComponent.h"
 
 #include <memory>
 
 #include "DefaultVoiceDialog.h"
+#include "Preferences.h"
 
 // Forward declaration of theme helper implemented in Themes.cpp
 extern void applyTheme (juce::LookAndFeel_V4&, const juce::String&);
 
 // include dialog implementations that currently only exist as .cpp files
 #include "SubliminalDialog.cpp"
+#include "PreferencesDialog.cpp"
 
 using namespace juce;
 
-// Forward declarations for UI components that will be implemented later.
-class StepListPanel;
+// Forward declaration for StepConfigPanel (not yet implemented)
 class StepConfigPanel;
 #include "OverlayClipPanel.h"
 
@@ -29,6 +37,8 @@ namespace
         menuNew = 1,
         menuOpen,
         menuSave,
+        menuUndo,
+        menuRedo,
         menuPreferences,
         menuDefaults,
         themeDark,
@@ -59,6 +69,8 @@ public:
         freqButton.setButtonText("Frequency Tester");
         freqButton.addListener(this);
 
+        addAndMakeVisible(globals);
+
         menuBar.reset (new MenuBarComponent (this));
         addAndMakeVisible (menuBar.get());
 
@@ -67,11 +79,15 @@ public:
 
         // TODO: create and add child components once implemented
 
+        addAndMakeVisible(stepListPanel);
+        stepListPanel.grabKeyboardFocus();
         addAndMakeVisible(overlayPanel);
+        addAndMakeVisible(stepPreview);
         addAndMakeVisible(subliminalButton);
         subliminalButton.addListener(this);
         subliminalButton.setButtonText("Add Subliminal Voice");
 
+        newTrack();
 
     }
 
@@ -88,11 +104,32 @@ public:
         noiseButton.setBounds(area.removeFromTop(30));
         area.removeFromTop(10);
         freqButton.setBounds(area.removeFromTop(30));
+        area.removeFromTop(10);
+
+        auto left = area.removeFromLeft(250);
+        stepListPanel.setBounds(left);
+        overlayPanel.setBounds(area);
+
+        globals.setBounds(area.removeFromTop(120));
+
+
+        auto previewArea = area.removeFromBottom(110);
+        stepPreview.setBounds(previewArea.reduced(0, 4));
+
+        overlayPanel.setBounds(area.reduced(0, 4));
+
+        subliminalButton.setBounds(10, 10, 160, 30);
     }
 
 private:
     TextButton noiseButton, freqButton;
+
+    GlobalSettingsComponent globals;
+
     AudioDeviceManager deviceManager;
+    Track currentTrack;
+    juce::File currentFile;
+    StepListPanel stepListPanel;
 
     void buttonClicked(Button* b)
     {
@@ -124,9 +161,68 @@ private:
         // TODO: layout child components with remaining area
     }
 
+    Track createDefaultTrack()
+    {
+        Track t;
+        t.settings.sampleRate = 44100.0;
+        t.settings.crossfadeDuration = 1.0;
+        t.settings.crossfadeCurve = "linear";
+        t.settings.outputFilename = "my_track.wav";
+        t.backgroundNoise.filePath = "";
+        t.backgroundNoise.amp = 0.0;
+        return t;
+    }
+
+    void newTrack()
+    {
+        currentTrack = createDefaultTrack();
+        currentFile = {};
+
+        loadSettingsToUi();
+
+    }
+
+    void openTrack()
+    {
+        FileChooser chooser("Open Track JSON", {}, "*.json");
+        if (chooser.browseForFileToOpen())
+        {
+            currentFile = chooser.getResult();
+            currentTrack = loadTrackFromJson(currentFile);
+            loadSettingsToUi();
+            AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
+                                            "Open",
+                                            "Loaded track from\n" + currentFile.getFullPathName());
+            if (! currentTrack.steps.empty())
+                stepPreview.loadStep(currentTrack.steps.front(), currentTrack.settings, 10.0);
+            else
+                stepPreview.reset();
+        }
+    }
+
+    void saveTrack(bool saveAs)
+    {
+        if (saveAs || ! currentFile.existsAsFile())
+        {
+            FileChooser chooser("Save Track JSON", currentFile, "*.json");
+            if (! chooser.browseForFileToSave(true))
+                return;
+            currentFile = chooser.getResult();
+        }
+        applyUiToSettings();
+        if (saveTrackToJson(currentTrack, currentFile))
+            AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
+                                            "Save",
+                                            "Track saved to\n" + currentFile.getFullPathName());
+        else
+            AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
+                                            "Save",
+                                            "Failed to save track");
+    }
+
     StringArray getMenuBarNames() override
     {
-        return { "File" };
+        return { "File", "Edit" };
     }
 
     PopupMenu getMenuForIndex (int, const String& menuName) override
@@ -148,6 +244,11 @@ private:
             theme.addItem (themeMaterial, "Material", true, currentTheme == "Material");
             menu.addSubMenu ("Theme", theme);
         }
+        else if (menuName == "Edit")
+        {
+            menu.addItem(menuUndo, "Undo", stepListPanel.canUndo());
+            menu.addItem(menuRedo, "Redo", stepListPanel.canRedo());
+        }
         return menu;
     }
 
@@ -156,22 +257,27 @@ private:
         switch (menuItemID)
         {
             case menuNew:
+                newTrack();
                 AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
-                                                   "New", "New file action");
+                                                   "New", "Created new track");
                 break;
             case menuOpen:
-                AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
-                                                   "Open", "Open not implemented");
+                openTrack();
                 break;
             case menuSave:
-                AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
-                                                   "Save", "Save not implemented");
+                saveTrack(false);
+                break;
+            case menuUndo:
+                stepListPanel.undo();
+                break;
+            case menuRedo:
+                stepListPanel.redo();
                 break;
             case menuPreferences:
-                AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
-                                                   "Preferences",
-                                                   "Preferences dialog not available");
+            {
+                showPreferencesDialog (prefs);
                 break;
+            }
             case menuDefaults:
             {
                 DefaultVoiceDialog dlg (prefs);
@@ -195,16 +301,33 @@ private:
         repaint();
     }
 
+    void loadSettingsToUi()
+    {
+        GlobalSettingsComponent::Settings s;
+        s.sampleRate = currentTrack.settings.sampleRate;
+        s.crossfadeSeconds = currentTrack.settings.crossfadeDuration;
+        s.outputFile = currentTrack.settings.outputFilename;
+        s.noiseFile = currentTrack.backgroundNoise.filePath;
+        s.noiseAmp = currentTrack.backgroundNoise.amp;
+        globals.setSettings(s);
+    }
+
+    void applyUiToSettings()
+    {
+        auto s = globals.getSettings();
+        currentTrack.settings.sampleRate = s.sampleRate;
+        currentTrack.settings.crossfadeDuration = s.crossfadeSeconds;
+        currentTrack.settings.outputFilename = s.outputFile;
+        currentTrack.backgroundNoise.filePath = s.noiseFile;
+        currentTrack.backgroundNoise.amp = s.noiseAmp;
+    }
+
     std::unique_ptr<MenuBarComponent> menuBar;
     LookAndFeel_V4 lookAndFeel;
     Preferences prefs;
     String currentTheme { "Dark" };
+
     
-        overlayPanel.setBounds(getLocalBounds().reduced(8));
-
-        subliminalButton.setBounds(10, 10, 160, 30);
-    }
-
 private:
     TextButton subliminalButton;
 

@@ -25,6 +25,7 @@ struct GlobalSettings
     double sampleRate { 44100.0 };
     double crossfadeDuration { 1.0 };
     juce::String crossfadeCurve { "linear" };
+    juce::String outputFilename { "my_track.wav" };
 };
 
 struct BackgroundNoise
@@ -59,6 +60,10 @@ struct Track
 };
 
 Track loadTrackFromJson(const juce::File& file);
+/** Saves the given track structure to a JSON file. The file extension will
+    be forced to ".json" if not already present.
+    @return true on success. */
+bool saveTrackToJson(const Track& track, const juce::File& file);
 bool writeWavFile(const juce::File& file, const juce::AudioBuffer<float>& buffer, double sampleRate);
 juce::AudioBuffer<float> assembleTrack(const Track& track);
 /** Loads steps from a JSON file containing a top-level "steps" array and
