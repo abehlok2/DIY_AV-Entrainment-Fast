@@ -12,6 +12,7 @@ static std::map<juce::String, SynthFunc> synthMap{
     { "binaural_beat", binauralBeat },
     { "binaural_beat_transition", binauralBeatTransition },
     { "isochronic_tone", isochronicTone },
+    { "isochronic_tone_transition", isochronicToneTransition },
     { "rhythmic_waveshaping", rhythmicWaveshaping },
     { "rhythmic_waveshaping_transition", rhythmicWaveshapingTransition },
     { "stereo_am_independent", stereoAMIndependent },
