@@ -40,7 +40,10 @@ double getClipDuration(const juce::File& file)
 }
 }
 
-struct OverlayClipDialog  : public juce::Component,
+// Implementation component used by showOverlayClipEditor.
+// Renamed to avoid conflicting with the struct declared in the
+// header which only exposes the ClipData type.
+struct OverlayClipDialogWindow  : public juce::Component,
                             private juce::Button::Listener,
                             private juce::Timer
 {
@@ -56,7 +59,7 @@ struct OverlayClipDialog  : public juce::Component,
         juce::String description;
     };
 
-    OverlayClipDialog(bool ampInDb = false, const ClipData* existing = nullptr)
+    OverlayClipDialogWindow(bool ampInDb = false, const ClipData* existing = nullptr)
         : amplitudeInDb(ampInDb)
     {
         setSize(400, 260);
@@ -123,7 +126,7 @@ struct OverlayClipDialog  : public juce::Component,
             populateFromData(*existing);
     }
 
-    ~OverlayClipDialog() override
+    ~OverlayClipDialogWindow() override
     {
         stopPlayback();
         transport.releaseResources();
@@ -304,7 +307,7 @@ OverlayClipDialog::ClipData showOverlayClipEditor(bool amplitudeInDb,
                                                   const OverlayClipDialog::ClipData* existing,
                                                   bool* success)
 {
-    OverlayClipDialog dialog(amplitudeInDb, existing);
+    OverlayClipDialogWindow dialog(amplitudeInDb, existing);
     juce::DialogWindow::LaunchOptions opts;
     opts.content.setOwned(&dialog);
     opts.dialogTitle = "Overlay Clip";
