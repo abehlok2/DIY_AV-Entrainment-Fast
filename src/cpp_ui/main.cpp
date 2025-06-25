@@ -3,6 +3,7 @@
 
 #include "NoiseGeneratorDialog.h"
 #include "FrequencyTesterDialog.h"
+#include "../cpp_audio/Track.h"
 
 #include <memory>
 
@@ -72,6 +73,7 @@ public:
         subliminalButton.addListener(this);
         subliminalButton.setButtonText("Add Subliminal Voice");
 
+        newTrack();
 
     }
 
@@ -88,11 +90,16 @@ public:
         noiseButton.setBounds(area.removeFromTop(30));
         area.removeFromTop(10);
         freqButton.setBounds(area.removeFromTop(30));
+
+        overlayPanel.setBounds(getLocalBounds().reduced(8));
+        subliminalButton.setBounds(10, 10, 160, 30);
     }
 
 private:
     TextButton noiseButton, freqButton;
     AudioDeviceManager deviceManager;
+    Track currentTrack;
+    juce::File currentFile;
 
     void buttonClicked(Button* b)
     {
@@ -122,6 +129,53 @@ private:
         auto area = getLocalBounds();
         menuBar->setBounds (area.removeFromTop (24));
         // TODO: layout child components with remaining area
+    }
+
+    Track createDefaultTrack()
+    {
+        Track t;
+        t.settings.sampleRate = 44100.0;
+        t.settings.crossfadeDuration = 1.0;
+        t.settings.crossfadeCurve = "linear";
+        return t;
+    }
+
+    void newTrack()
+    {
+        currentTrack = createDefaultTrack();
+        currentFile = {};
+    }
+
+    void openTrack()
+    {
+        FileChooser chooser("Open Track JSON", {}, "*.json");
+        if (chooser.browseForFileToOpen())
+        {
+            currentFile = chooser.getResult();
+            currentTrack = loadTrackFromJson(currentFile);
+            AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
+                                            "Open",
+                                            "Loaded track from\n" + currentFile.getFullPathName());
+        }
+    }
+
+    void saveTrack(bool saveAs)
+    {
+        if (saveAs || ! currentFile.existsAsFile())
+        {
+            FileChooser chooser("Save Track JSON", currentFile, "*.json");
+            if (! chooser.browseForFileToSave(true))
+                return;
+            currentFile = chooser.getResult();
+        }
+        if (saveTrackToJson(currentTrack, currentFile))
+            AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
+                                            "Save",
+                                            "Track saved to\n" + currentFile.getFullPathName());
+        else
+            AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
+                                            "Save",
+                                            "Failed to save track");
     }
 
     StringArray getMenuBarNames() override
@@ -156,16 +210,15 @@ private:
         switch (menuItemID)
         {
             case menuNew:
+                newTrack();
                 AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
-                                                   "New", "New file action");
+                                                   "New", "Created new track");
                 break;
             case menuOpen:
-                AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
-                                                   "Open", "Open not implemented");
+                openTrack();
                 break;
             case menuSave:
-                AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
-                                                   "Save", "Save not implemented");
+                saveTrack(false);
                 break;
             case menuPreferences:
                 AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
@@ -199,12 +252,8 @@ private:
     LookAndFeel_V4 lookAndFeel;
     Preferences prefs;
     String currentTheme { "Dark" };
+
     
-        overlayPanel.setBounds(getLocalBounds().reduced(8));
-
-        subliminalButton.setBounds(10, 10, 160, 30);
-    }
-
 private:
     TextButton subliminalButton;
 
