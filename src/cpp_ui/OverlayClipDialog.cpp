@@ -3,6 +3,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_formats/juce_audio_formats.h>
+#include <juce_audio_utils/juce_audio_utils.h>
 #include <cmath>
 #include <optional>
 
@@ -39,7 +40,8 @@ double getClipDuration(const juce::File& file)
 }
 
 struct OverlayClipDialog  : public juce::Component,
-                            private juce::Button::Listener
+                            private juce::Button::Listener,
+                            private juce::Timer
 {
     struct ClipData
     {
@@ -82,8 +84,14 @@ struct OverlayClipDialog  : public juce::Component,
 
         addAndMakeVisible(okButton);
         addAndMakeVisible(cancelButton);
+        addAndMakeVisible(playButton);
         okButton.addListener(this);
         cancelButton.addListener(this);
+        playButton.addListener(this);
+
+        deviceManager.initialise(0, 2, nullptr, true);
+        formatManager.registerBasicFormats();
+        startTimer(100);
 
         fileLabel.setText("Audio File:", juce::dontSendNotification);
         descLabel.setText("Description:", juce::dontSendNotification);
@@ -112,6 +120,12 @@ struct OverlayClipDialog  : public juce::Component,
 
         if (existing)
             populateFromData(*existing);
+    }
+
+    ~OverlayClipDialog() override
+    {
+        stopPlayback();
+        transport.releaseResources();
     }
 
     bool wasAccepted() const { return accepted; }
@@ -155,6 +169,7 @@ struct OverlayClipDialog  : public juce::Component,
         row = area.removeFromTop(30);
         okButton.setBounds(row.removeFromRight(80));
         cancelButton.setBounds(row.removeFromRight(80));
+        playButton.setBounds(row.removeFromLeft(100));
     }
 
 private:
@@ -164,7 +179,12 @@ private:
 
     juce::Label fileLabel, descLabel, startLabel, ampLabel, panLabel, fadeInLabel, fadeOutLabel;
     juce::TextEditor fileEdit, descEdit, startEdit, ampEdit, panEdit, fadeInEdit, fadeOutEdit;
-    juce::TextButton browseButton { "Browse" }, okButton { "OK" }, cancelButton { "Cancel" };
+    juce::TextButton browseButton { "Browse" }, okButton { "OK" }, cancelButton { "Cancel" }, playButton { "Start Clip" };
+
+    juce::AudioDeviceManager deviceManager;
+    juce::AudioFormatManager formatManager;
+    juce::AudioTransportSource transport;
+    std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
 
     void buttonClicked(juce::Button* b) override
     {
@@ -175,6 +195,11 @@ private:
         else if (b == &cancelButton)
             if (auto* dw = findParentComponentOfClass<juce::DialogWindow>())
                 dw->exitModalState(0);
+        else if (b == &playButton)
+            if (transport.isPlaying())
+                stopPlayback();
+            else
+                startPlayback();
     }
 
     void populateFromData(const ClipData& d)
@@ -225,6 +250,44 @@ private:
         return true;
     }
 
+    void startPlayback()
+    {
+        juce::File f(fileEdit.getText().trim());
+        if (!f.existsAsFile())
+        {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                                   "Play Clip",
+                                                   "Please select a valid audio file.");
+            return;
+        }
+        std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(f));
+        if (!reader)
+        {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                                   "Play Clip",
+                                                   "Could not read audio file.");
+            return;
+        }
+        readerSource.reset(new juce::AudioFormatReaderSource(reader.release(), true));
+        transport.setSource(readerSource.get(), 0, nullptr, readerSource->sampleRate);
+        transport.start();
+        playButton.setButtonText("Stop Clip");
+    }
+
+    void stopPlayback()
+    {
+        transport.stop();
+        transport.setSource(nullptr);
+        readerSource.reset();
+        playButton.setButtonText("Start Clip");
+    }
+
+    void timerCallback() override
+    {
+        if (transport.isPlaying() && transport.hasStreamFinished())
+            stopPlayback();
+    }
+
     void onAccept()
     {
         if (collectData())
@@ -236,4 +299,21 @@ private:
     }
 };
 
+OverlayClipDialog::ClipData showOverlayClipEditor(bool amplitudeInDb,
+                                                  const OverlayClipDialog::ClipData* existing,
+                                                  bool* success)
+{
+    OverlayClipDialog dialog(amplitudeInDb, existing);
+    juce::DialogWindow::LaunchOptions opts;
+    opts.content.setOwned(&dialog);
+    opts.dialogTitle = "Overlay Clip";
+    opts.dialogBackgroundColour = juce::Colours::lightgrey;
+    opts.escapeKeyTriggersCloseButton = true;
+    opts.useNativeTitleBar = true;
+    opts.resizable = false;
+    int result = opts.runModal();
+    if (success)
+        *success = (result != 0 && dialog.wasAccepted());
+    return dialog.getClipData();
+}
 
