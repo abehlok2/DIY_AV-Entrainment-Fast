@@ -2,7 +2,28 @@ cmake_minimum_required(VERSION 3.14)
 
 project(DIY_AV_Audio_CPP)
 
-find_package(JUCE CONFIG REQUIRED)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/JUCE" juce-build)
+add_executable(AudioApp
+    main.cpp
+    AudioUtils.cpp
+    Common.cpp
+    StepPreviewer.cpp
+    Track.cpp
+    BinauralBeat.cpp
+    HybridQamMonauralBeat.cpp
+    IsochronicTone.cpp
+    MonauralBeatStereoAmps.cpp
+    NoiseFlanger.cpp
+    QamBeat.cpp
+    RhythmicWaveshaping.cpp
+    StereoAMIndependent.cpp
+    Subliminals.cpp
+    WaveShapeStereoAm.cpp
+    NoiseParams.cpp
+    VoicePreset.cpp
+    StepModel.cpp
+    VoiceModel.cpp
+)
 
 juce_add_console_app(diy_av_audio_cpp
     PRODUCT_NAME "DIY AV Audio CPP"
@@ -46,6 +67,12 @@ juce_generate_juce_header(diy_av_audio_cpp)
 target_link_libraries(diy_av_audio_cpp
     PRIVATE
         juce::juce_audio_utils
+        juce::juce_core
+        juce::juce_events
         juce::juce_dsp
         juce::juce_audio_formats
+        juce::juce_gui_basics
+        juce::juce_gui_extra
+        juce::juce_osc
+        juce::juce_graphics
 )
