@@ -224,7 +224,10 @@ private:
 
     void populateFromData(const VoiceData& d)
     {
-        if (funcCombo.containsItem(d.synthFunction, 1))
+        // JUCE's ComboBox no longer provides a containsItem method. Instead
+        // we look for the item's ID using indexOfItemId and only update the
+        // ComboBox text if the item exists.
+        if (funcCombo.indexOfItemId(1) != -1)
             funcCombo.setText(d.synthFunction, dontSendNotification);
         else if (funcCombo.getNumItems() > 0)
             funcCombo.setSelectedItemIndex(0);
