@@ -1,28 +1,44 @@
-// Minimal JUCE GUI application that demonstrates the C++ audio widgets.
+// Entry point for the JUCE based audio GUI.
+// This file creates a minimal editor window that hosts
+// the C++ audio widgets translated from the Python version.
+
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_devices/juce_audio_devices.h>
 
 #include "ui/GlobalSettingsComponent.h"
 #include "ui/StepListPanel.h"
+#include "ui/StepPreviewComponent.h"
 
 class MainComponent : public juce::Component
 {
 public:
     MainComponent()
+        : preview(deviceManager)
     {
+        deviceManager.initialise(0, 2, nullptr, true);
         addAndMakeVisible(settings);
+        addAndMakeVisible(preview);
         addAndMakeVisible(stepList);
-        setSize (600, 400);
+        setSize (800, 600);
+    }
+
+    ~MainComponent() override
+    {
+        deviceManager.closeAudioDevice();
     }
 
     void resized() override
     {
         auto area = getLocalBounds().reduced (8);
         settings.setBounds (area.removeFromTop (120));
+        preview.setBounds(area.removeFromTop(80));
         stepList.setBounds (area);
     }
 
 private:
+    juce::AudioDeviceManager deviceManager;
     GlobalSettingsComponent settings;
+    StepPreviewComponent preview;
     StepListPanel stepList;
 };
 
