@@ -9,12 +9,14 @@
 #include <memory>
 
 #include "DefaultVoiceDialog.h"
+#include "Preferences.h"
 
 // Forward declaration of theme helper implemented in Themes.cpp
 extern void applyTheme (juce::LookAndFeel_V4&, const juce::String&);
 
 // include dialog implementations that currently only exist as .cpp files
 #include "SubliminalDialog.cpp"
+#include "PreferencesDialog.cpp"
 
 using namespace juce;
 
@@ -232,10 +234,10 @@ private:
                 saveTrack(false);
                 break;
             case menuPreferences:
-                AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
-                                                   "Preferences",
-                                                   "Preferences dialog not available");
+            {
+                showPreferencesDialog (prefs);
                 break;
+            }
             case menuDefaults:
             {
                 DefaultVoiceDialog dlg (prefs);

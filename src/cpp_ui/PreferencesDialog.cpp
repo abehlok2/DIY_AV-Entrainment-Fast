@@ -1,6 +1,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
 #include <cmath>
+#include "Preferences.h"
 
 using namespace juce;
 
@@ -18,21 +19,6 @@ static double dbToAmplitude (double db)
 }
 }
 
-struct Preferences
-{
-    String fontFamily;
-    int fontSize { 10 };
-    String theme { "Dark" };
-    String exportDir;
-    int sampleRate { 44100 };
-    double testStepDuration { 30.0 };
-    bool trackMetadata { false };
-    double targetOutputAmplitude { 0.25 };
-    String crossfadeCurve { "linear" };
-    String amplitudeDisplayMode { "absolute" }; // or "dB"
-    bool applyTargetAmplitude { true };
-    var defaultVoice;
-};
 
 class PreferencesDialog  : public Component,
                            private Button::Listener,
@@ -285,4 +271,23 @@ private:
         targetAmpSlider.setValue (value, dontSendNotification);
     }
 };
+
+bool showPreferencesDialog (Preferences& prefs)
+{
+    PreferencesDialog dialog (prefs);
+    DialogWindow::LaunchOptions opts;
+    opts.content.setOwned (&dialog);
+    opts.dialogTitle = "Preferences";
+    opts.dialogBackgroundColour = Colours::lightgrey;
+    opts.escapeKeyTriggersCloseButton = true;
+    opts.useNativeTitleBar = true;
+    opts.resizable = false;
+    int result = opts.runModal();
+    if (result != 0 && dialog.wasAccepted())
+    {
+        prefs = dialog.getPreferences();
+        return true;
+    }
+    return false;
+}
 
