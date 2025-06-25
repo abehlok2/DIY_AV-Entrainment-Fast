@@ -125,7 +125,7 @@ void OverlayClipPanel::startPlayback()
     double sr = reader->sampleRate;
     readerSource.reset(new juce::AudioFormatReaderSource(reader.release(), true));
 
-    transport.setSource(readerSource.get(), 0, nullptr, readerSource->sampleRate);
+    transport.setSource(readerSource.get(), 0, nullptr, sr);
     deviceManager.addAudioCallback(&sourcePlayer);
 
     transport.start();
