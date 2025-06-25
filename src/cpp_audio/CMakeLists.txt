@@ -61,3 +61,43 @@ target_link_libraries(diy_av_audio_cpp
     PRIVATE
         diy_av_audio
 )
+
+# ---- GUI Application -------------------------------------------------------
+
+set(UI_SOURCES
+    ui/main.cpp
+    ui/Simulator.cpp
+    ui/StepConfigPanel.cpp
+    ui/StepListPanel.cpp
+    ui/CollapsibleBox.cpp
+    ui/DefaultVoiceDialog.cpp
+    ui/FrequencyTesterDialog.cpp
+    ui/NoiseGeneratorDialog.cpp
+    ui/OverlayClipDialog.cpp
+    ui/OverlayClipPanel.h
+    ui/OverlayClipPanel.cpp
+    ui/PreferencesDialog.cpp
+    ui/SubliminalDialog.cpp
+    ui/VoiceEditorDialog.cpp
+    ui/Themes.cpp
+    ui/GlobalSettingsComponent.h
+    ui/GlobalSettingsComponent.cpp
+    ui/StepPreviewComponent.h
+    ui/StepPreviewComponent.cpp
+)
+
+juce_add_gui_app(diy_av_ui_cpp
+    PRODUCT_NAME "DIY AV UI CPP"
+    BUNDLE_ID com.example.diyavcpp.ui
+    VERSION 0.1
+    SOURCES ${UI_SOURCES}
+)
+
+juce_generate_juce_header(diy_av_ui_cpp)
+
+target_link_libraries(diy_av_ui_cpp
+    PRIVATE
+        juce::juce_gui_basics
+        juce::juce_gui_extra
+        diy_av_audio
+)
