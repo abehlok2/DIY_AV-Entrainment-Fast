@@ -8,6 +8,7 @@
 #include "ui/GlobalSettingsComponent.h"
 #include "ui/StepListPanel.h"
 #include "ui/StepPreviewComponent.h"
+#include "Track.h"
 
 class MainComponent : public juce::Component
 {
@@ -19,6 +20,28 @@ public:
         addAndMakeVisible(settings);
         addAndMakeVisible(preview);
         addAndMakeVisible(stepList);
+        stepList.onStepSelected = [this](int index)
+        {
+            const auto& steps = stepList.getSteps();
+            if (juce::isPositiveAndBelow(index, steps.size()))
+            {
+                Step step;
+                step.durationSeconds = steps[index].duration;
+                step.description = steps[index].description;
+                auto gsRaw = settings.getSettings();
+                GlobalSettings gs;
+                gs.sampleRate = gsRaw.sampleRate;
+                gs.crossfadeDuration = gsRaw.crossfadeSeconds;
+                gs.outputFilename = gsRaw.outputFile;
+                gs.crossfadeCurve = "linear";
+                double previewDur = step.durationSeconds < 180.0 ? step.durationSeconds : 60.0;
+                preview.loadStep(step, gs, previewDur);
+            }
+            else
+            {
+                preview.reset();
+            }
+        };
         setSize (800, 600);
     }
 

@@ -3,6 +3,7 @@
 #include <juce_core/juce_core.h>
 
 #include "../VarUtils.h"
+#include <functional>
 
 
 using namespace juce;
@@ -11,6 +12,7 @@ StepListPanel::StepListPanel()
 {
     addAndMakeVisible(stepList);
     stepList.setModel(this);
+    stepList.addListener(this);
 
     addButton.setButtonText("Add Step");
     loadButton.setButtonText("Load Steps");
@@ -77,6 +79,7 @@ StepListPanel::~StepListPanel()
                      &editDurationButton, &editDescriptionButton,
                      &upButton, &downButton, &undoButton, &redoButton })
         b->removeListener(this);
+    stepList.removeListener(this);
 }
 
 int StepListPanel::getNumRows()
@@ -353,5 +356,11 @@ bool StepListPanel::keyPressed(const KeyPress& key)
         return true;
     }
     return false;
+}
+
+void StepListPanel::selectedRowsChanged(int lastRowSelected)
+{
+    if (onStepSelected)
+        onStepSelected(lastRowSelected);
 }
 
