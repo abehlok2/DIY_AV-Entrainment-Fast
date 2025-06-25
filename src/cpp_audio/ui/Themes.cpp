@@ -11,19 +11,17 @@ struct Theme
 
 static LookAndFeel_V4::ColourScheme createDarkScheme()
 {
-    LookAndFeel_V4::ColourScheme s;
-    using UI = LookAndFeel_V4::ColourScheme::UIColour;
-
-    s.setUIColour(UI::windowBackground, Colour::fromRGB(53, 53, 53));
-    s.setUIColour(UI::widgetBackground, Colour::fromRGB(53, 53, 53));
-    s.setUIColour(UI::menuBackground,   Colour::fromRGB(25, 25, 25));
-    s.setUIColour(UI::outline,          Colour::fromRGB(80, 80, 80));
-    s.setUIColour(UI::defaultText,      Colour::fromRGB(255, 255, 255));
-    s.setUIColour(UI::defaultFill,      Colour::fromRGB(53, 53, 53));
-    s.setUIColour(UI::highlightedText,  Colour::fromRGB(0, 0, 0));
-    s.setUIColour(UI::highlightedFill,  Colour::fromRGB(42, 130, 218));
-    s.setUIColour(UI::menuText,         Colour::fromRGB(255, 255, 255));
-    return s;
+    return LookAndFeel_V4::ColourScheme{
+        Colour::fromRGB(53, 53, 53),  // windowBackground
+        Colour::fromRGB(53, 53, 53),  // widgetBackground
+        Colour::fromRGB(25, 25, 25),  // menuBackground
+        Colour::fromRGB(80, 80, 80),  // outline
+        Colour::fromRGB(255, 255, 255), // defaultText
+        Colour::fromRGB(53, 53, 53),  // defaultFill
+        Colour::fromRGB(0, 0, 0),     // highlightedText
+        Colour::fromRGB(42, 130, 218),// highlightedFill
+        Colour::fromRGB(255, 255, 255) // menuText
+    };
 }
 
 static const char* darkStyle = R"(
@@ -34,19 +32,17 @@ QTreeWidget {
 
 static LookAndFeel_V4::ColourScheme createGreenScheme()
 {
-    using UI = LookAndFeel_V4::ColourScheme::UIColour;
-
-    LookAndFeel_V4::ColourScheme s;
-    s.setUIColour(UI::windowBackground, Colour::fromRGB(0x0a, 0x0a, 0x0a));
-    s.setUIColour(UI::widgetBackground, Colour::fromRGB(0x1a, 0x1a, 0x1a));
-    s.setUIColour(UI::menuBackground,   Colour::fromRGB(0x15, 0x20, 0x15));
-    s.setUIColour(UI::outline,          Colour::fromRGBA(0x00, 0xff, 0x88, 0x60));
-    s.setUIColour(UI::defaultText,      Colour::fromRGB(0x00, 0xff, 0xaa));
-    s.setUIColour(UI::defaultFill,      Colour::fromRGBA(0x00, 0x88, 0x44, 0x60));
-    s.setUIColour(UI::highlightedText,  Colour::fromRGB(0xff, 0xff, 0xff));
-    s.setUIColour(UI::highlightedFill,  Colour::fromRGBA(0x00, 0xff, 0x88, 0xaa));
-    s.setUIColour(UI::menuText,         Colour::fromRGB(0x00, 0xff, 0xcc));
-    return s;
+    return LookAndFeel_V4::ColourScheme{
+        Colour::fromRGB(0x0a, 0x0a, 0x0a),             // windowBackground
+        Colour::fromRGB(0x1a, 0x1a, 0x1a),             // widgetBackground
+        Colour::fromRGB(0x15, 0x20, 0x15),             // menuBackground
+        Colour::fromRGBA(0x00, 0xff, 0x88, 0x60),      // outline
+        Colour::fromRGB(0x00, 0xff, 0xaa),             // defaultText
+        Colour::fromRGBA(0x00, 0x88, 0x44, 0x60),      // defaultFill
+        Colour::fromRGB(0xff, 0xff, 0xff),             // highlightedText
+        Colour::fromRGBA(0x00, 0xff, 0x88, 0xaa),      // highlightedFill
+        Colour::fromRGB(0x00, 0xff, 0xcc)              // menuText
+    };
 }
 
 static const char* greenStyle = R"(
@@ -116,19 +112,17 @@ QLineEdit, QComboBox, QSlider {
 
 static LookAndFeel_V4::ColourScheme createLightBlueScheme()
 {
-    using UI = LookAndFeel_V4::ColourScheme::UIColour;
-
-    LookAndFeel_V4::ColourScheme s;
-    s.setUIColour(UI::windowBackground, Colour::fromRGB(240, 248, 255));
-    s.setUIColour(UI::widgetBackground, Colour::fromRGB(255, 255, 255));
-    s.setUIColour(UI::menuBackground,   Colour::fromRGB(230, 240, 250));
-    s.setUIColour(UI::outline,          Colour::fromRGB(160, 160, 160));
-    s.setUIColour(UI::defaultText,      Colour::fromRGB(0, 0, 0));
-    s.setUIColour(UI::defaultFill,      Colour::fromRGB(225, 238, 255));
-    s.setUIColour(UI::highlightedText,  Colour::fromRGB(255, 255, 255));
-    s.setUIColour(UI::highlightedFill,  Colour::fromRGB(0, 120, 215));
-    s.setUIColour(UI::menuText,         Colour::fromRGB(0, 0, 0));
-    return s;
+    return LookAndFeel_V4::ColourScheme{
+        Colour::fromRGB(240, 248, 255), // windowBackground
+        Colour::fromRGB(255, 255, 255), // widgetBackground
+        Colour::fromRGB(230, 240, 250), // menuBackground
+        Colour::fromRGB(160, 160, 160), // outline
+        Colour::fromRGB(0, 0, 0),       // defaultText
+        Colour::fromRGB(225, 238, 255), // defaultFill
+        Colour::fromRGB(255, 255, 255), // highlightedText
+        Colour::fromRGB(0, 120, 215),   // highlightedFill
+        Colour::fromRGB(0, 0, 0)        // menuText
+    };
 }
 
 static const char* lightBlueStyle = R"(
@@ -144,19 +138,17 @@ QLineEdit, QComboBox, QSlider {
 
 static LookAndFeel_V4::ColourScheme createMaterialScheme()
 {
-    using UI = LookAndFeel_V4::ColourScheme::UIColour;
-
-    LookAndFeel_V4::ColourScheme s;
-    s.setUIColour(UI::windowBackground, Colour::fromRGB(250, 250, 250));
-    s.setUIColour(UI::widgetBackground, Colour::fromRGB(255, 255, 255));
-    s.setUIColour(UI::menuBackground,   Colour::fromRGB(245, 245, 245));
-    s.setUIColour(UI::outline,          Colour::fromRGB(208, 208, 208));
-    s.setUIColour(UI::defaultText,      Colour::fromRGB(33, 33, 33));
-    s.setUIColour(UI::defaultFill,      Colour::fromRGB(238, 238, 238));
-    s.setUIColour(UI::highlightedText,  Colour::fromRGB(255, 255, 255));
-    s.setUIColour(UI::highlightedFill,  Colour::fromRGB(255, 87, 34));
-    s.setUIColour(UI::menuText,         Colour::fromRGB(33, 33, 33));
-    return s;
+    return LookAndFeel_V4::ColourScheme{
+        Colour::fromRGB(250, 250, 250), // windowBackground
+        Colour::fromRGB(255, 255, 255), // widgetBackground
+        Colour::fromRGB(245, 245, 245), // menuBackground
+        Colour::fromRGB(208, 208, 208), // outline
+        Colour::fromRGB(33, 33, 33),    // defaultText
+        Colour::fromRGB(238, 238, 238), // defaultFill
+        Colour::fromRGB(255, 255, 255), // highlightedText
+        Colour::fromRGB(255, 87, 34),   // highlightedFill
+        Colour::fromRGB(33, 33, 33)     // menuText
+    };
 }
 
 static const char* materialStyle = R"(
