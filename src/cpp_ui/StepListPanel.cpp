@@ -22,12 +22,16 @@ public:
         addButton.setButtonText("Add Step");
         dupButton.setButtonText("Duplicate Step");
         removeButton.setButtonText("Remove Step");
+        editDurationButton.setButtonText("Edit Duration");
+        editDescriptionButton.setButtonText("Edit Description");
         upButton.setButtonText("Move Up");
         downButton.setButtonText("Move Down");
         undoButton.setButtonText("Undo");
         redoButton.setButtonText("Redo");
 
-        for (auto* b : { &addButton, &dupButton, &removeButton, &upButton, &downButton, &undoButton, &redoButton })
+        for (auto* b : { &addButton, &dupButton, &removeButton, &editDurationButton,
+                          &editDescriptionButton, &upButton, &downButton,
+                          &undoButton, &redoButton })
         {
             addAndMakeVisible(b);
             b->addListener(this);
@@ -45,7 +49,9 @@ public:
 
     ~StepListPanel() override
     {
-        for (auto* b : { &addButton, &dupButton, &removeButton, &upButton, &downButton, &undoButton, &redoButton })
+        for (auto* b : { &addButton, &dupButton, &removeButton, &editDurationButton,
+                        &editDescriptionButton, &upButton, &downButton,
+                        &undoButton, &redoButton })
             b->removeListener(this);
     }
 
@@ -64,7 +70,8 @@ public:
         if (isPositiveAndBelow(row, steps.size()))
         {
             g.setColour(Colours::black);
-            g.drawText(steps[row], 4, 0, width - 4, height, Justification::centredLeft);
+            g.drawText(steps[row].description, 4, 0, width - 4, height,
+                       Justification::centredLeft);
         }
     }
 
@@ -80,10 +87,12 @@ public:
         stepList.setBounds(area.removeFromTop(getHeight() - 80));
 
         auto buttons = area.removeFromTop(48);
-        auto each = buttons.getWidth() / 7;
+        auto each = buttons.getWidth() / 9;
         addButton.setBounds(buttons.removeFromLeft(each));
         dupButton.setBounds(buttons.removeFromLeft(each));
         removeButton.setBounds(buttons.removeFromLeft(each));
+        editDurationButton.setBounds(buttons.removeFromLeft(each));
+        editDescriptionButton.setBounds(buttons.removeFromLeft(each));
         upButton.setBounds(buttons.removeFromLeft(each));
         downButton.setBounds(buttons.removeFromLeft(each));
         undoButton.setBounds(buttons.removeFromLeft(each));
@@ -92,11 +101,19 @@ public:
 
 private:
     ListBox stepList;
-    TextButton addButton, dupButton, removeButton, upButton, downButton,
+    TextButton addButton, dupButton, removeButton, editDurationButton,
+              editDescriptionButton, upButton, downButton,
               undoButton, redoButton;
     Label totalDuration;
-    StringArray steps;
-    Array<StringArray> history;
+
+    struct StepData
+    {
+        String description { "New Step" };
+        double duration { 10.0 };
+    };
+
+    Array<StepData> steps;
+    Array<Array<StepData>> history;
     int historyIndex { -1 };
 
     //=========================================================================
@@ -108,6 +125,10 @@ private:
             duplicateStep();
         else if (b == &removeButton)
             removeStep();
+        else if (b == &editDurationButton)
+            editStepDuration();
+        else if (b == &editDescriptionButton)
+            editStepDescription();
         else if (b == &upButton)
             moveStep(-1);
         else if (b == &downButton)
@@ -124,7 +145,10 @@ private:
 
     void addStep()
     {
-        steps.add("New Step " + String(steps.size() + 1));
+        StepData s;
+        s.description = "New Step " + String(steps.size() + 1);
+        s.duration = 10.0;
+        steps.add(s);
         stepList.selectRow(steps.size() - 1);
         pushHistory();
     }
@@ -134,7 +158,9 @@ private:
         int row = stepList.getSelectedRow();
         if (isPositiveAndBelow(row, steps.size()))
         {
-            steps.insert(row + 1, steps[row] + " (Copy)");
+            StepData copy = steps[row];
+            copy.description += " (Copy)";
+            steps.insert(row + 1, copy);
             stepList.selectRow(row + 1);
             pushHistory();
         }
@@ -164,11 +190,54 @@ private:
         }
     }
 
+    void editStepDuration()
+    {
+        int row = stepList.getSelectedRow();
+        if (!isPositiveAndBelow(row, steps.size()))
+            return;
+
+        AlertWindow w("Edit Duration", "Enter new duration (seconds):", AlertWindow::NoIcon);
+        w.addTextEditor("dur", String(steps[row].duration, 3));
+        w.addButton("OK", 1, KeyPress(KeyPress::returnKey));
+        w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey));
+        if (w.runModalLoop() == 1)
+        {
+            double val = w.getTextEditor("dur")->getText().trim().getDoubleValue();
+            if (val > 0.0)
+            {
+                steps.getReference(row).duration = val;
+                pushHistory();
+            }
+        }
+        updateDuration();
+    }
+
+    void editStepDescription()
+    {
+        int row = stepList.getSelectedRow();
+        if (!isPositiveAndBelow(row, steps.size()))
+            return;
+
+        AlertWindow w("Edit Description", "Enter new description:", AlertWindow::NoIcon);
+        w.addTextEditor("desc", steps[row].description);
+        w.addButton("OK", 1, KeyPress(KeyPress::returnKey));
+        w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey));
+        if (w.runModalLoop() == 1)
+        {
+            steps.getReference(row).description = w.getTextEditor("desc")->getText();
+            pushHistory();
+        }
+        stepList.updateContent();
+        stepList.repaint();
+    }
+
     void updateDuration()
     {
-        int totalSecs = steps.size() * 30; // placeholder constant duration
-        int mins = totalSecs / 60;
-        int secs = totalSecs % 60;
+        double totalSecs = 0.0;
+        for (const auto& s : steps)
+            totalSecs += s.duration;
+        int mins = static_cast<int>(totalSecs) / 60;
+        int secs = static_cast<int>(totalSecs) % 60;
         totalDuration.setText("Total Duration: " + String(mins).paddedLeft('0',2)
                               + ":" + String(secs).paddedLeft('0',2), dontSendNotification);
     }
