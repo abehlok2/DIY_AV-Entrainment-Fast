@@ -37,4 +37,5 @@ target_link_libraries(diy_av_ui_cpp
     PRIVATE
         juce::juce_gui_basics
         juce::juce_gui_extra
+        diy_av_audio
 )

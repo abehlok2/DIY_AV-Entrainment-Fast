@@ -6,6 +6,11 @@
 #include "../cpp_audio/Track.h"
 #include "GlobalSettingsComponent.h"
 
+#include "GlobalSettingsComponent.h"
+
+#include "StepPreviewComponent.h"
+
+
 #include <memory>
 
 #include "DefaultVoiceDialog.h"
@@ -72,6 +77,7 @@ public:
         // TODO: create and add child components once implemented
 
         addAndMakeVisible(overlayPanel);
+        addAndMakeVisible(stepPreview);
         addAndMakeVisible(subliminalButton);
         subliminalButton.addListener(this);
         subliminalButton.setButtonText("Add Subliminal Voice");
@@ -97,12 +103,20 @@ public:
         globals.setBounds(area.removeFromTop(120));
 
         overlayPanel.setBounds(area);
+
+        auto previewArea = area.removeFromBottom(110);
+        stepPreview.setBounds(previewArea.reduced(0, 4));
+
+        overlayPanel.setBounds(area.reduced(0, 4));
+
         subliminalButton.setBounds(10, 10, 160, 30);
     }
 
 private:
     TextButton noiseButton, freqButton;
+
     GlobalSettingsComponent globals;
+
     AudioDeviceManager deviceManager;
     Track currentTrack;
     juce::File currentFile;
@@ -153,7 +167,9 @@ private:
     {
         currentTrack = createDefaultTrack();
         currentFile = {};
+
         loadSettingsToUi();
+
     }
 
     void openTrack()
@@ -167,6 +183,10 @@ private:
             AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
                                             "Open",
                                             "Loaded track from\n" + currentFile.getFullPathName());
+            if (! currentTrack.steps.empty())
+                stepPreview.loadStep(currentTrack.steps.front(), currentTrack.settings, 10.0);
+            else
+                stepPreview.reset();
         }
     }
 
