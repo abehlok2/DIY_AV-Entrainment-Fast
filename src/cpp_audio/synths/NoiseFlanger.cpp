@@ -1,4 +1,4 @@
-#include "SynthFunctions.h"
+#include "NoiseFlanger.h"
 #include "AudioUtils.h"
 #include "../VarUtils.h"
 #include <juce_dsp/juce_dsp.h>

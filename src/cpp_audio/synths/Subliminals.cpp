@@ -1,4 +1,4 @@
-#include "SynthFunctions.h"
+#include "Subliminals.h"
 #include "AudioUtils.h"
 
 using namespace juce;

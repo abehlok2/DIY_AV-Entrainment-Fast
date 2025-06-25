@@ -1,4 +1,4 @@
-#include "SynthFunctions.h"
+#include "BinauralBeat.h"
 #include "AudioUtils.h"
 #include <vector>
 #include <cmath>

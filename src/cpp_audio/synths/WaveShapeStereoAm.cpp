@@ -1,4 +1,4 @@
-#include "SynthFunctions.h"
+#include "WaveShapeStereoAm.h"
 #include "AudioUtils.h"
 #include <cmath>
 
