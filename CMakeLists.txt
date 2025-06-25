@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(DIY_AV_Entrainment_Fast VERSION 1.0 LANGUAGES CXX)
+project(DIY_AV_Entrainment_Fast VERSION 1.0 LANGUAGES CXX)s
 
 #--------------------------------------------------
 # C++ standard
@@ -98,17 +98,20 @@ target_link_libraries(AudioApp
       juce::juce_core
       juce::juce_events
       juce::juce_audio_utils
-      juce::juce_audio_basics
-      juce::juce_audio_processors
-      juce::juce_audio_device
-      juce::juce_gui_basics
-      juce::juce_dsp
-      juce::juce_events
+                        juce::juce_audio_basics
+                        juce::juce_audio_processors
+                        juce::juce_audio_devices
+                        juce::juce_gui_basics
+                        juce::juce_dsp
+                        juce::juce_events
       # add additional juce::<module> as needed
 )
 
-# Enable modal loops so that runModal, runModalLoop and the synchronous
-# FileChooser helpers are available for our dialogs.
+# Enable modal loops for JUCE dialogs so that runModal and runModalLoop
+# are available for our UI components like OverlayClipDialog and
+# PreferencesDialog.
+# Enable modal loops so that the traditional synchronous FileChooser
+# convenience methods (browseForFileToOpen, etc.) are available.
 target_compile_definitions(AudioApp PRIVATE JUCE_MODAL_LOOPS_PERMITTED=1)
 
 # (Optional) Set output directory for the binary
