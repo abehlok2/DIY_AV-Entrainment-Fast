@@ -1,14 +1,37 @@
-
 #include "StepListPanel.h"
+
+#include <juce_core/juce_core.h>
+
+#include "../VarUtils.h"
+
 
 using namespace juce;
 
 StepListPanel::StepListPanel()
 {
-public:
-    StepListPanel()
+    addAndMakeVisible(stepList);
+    stepList.setModel(this);
+
+    addButton.setButtonText("Add Step");
+    loadButton.setButtonText("Load Steps");
+    dupButton.setButtonText("Duplicate Step");
+    removeButton.setButtonText("Remove Step");
+    editDurationButton.setButtonText("Edit Duration");
+    editDescriptionButton.setButtonText("Edit Description");
+    upButton.setButtonText("Move Up");
+    downButton.setButtonText("Move Down");
+    undoButton.setButtonText("Undo");
+    redoButton.setButtonText("Redo");
+
+    for (auto* b : { &addButton, &loadButton, &dupButton, &removeButton,
+                     &editDurationButton, &editDescriptionButton,
+                     &upButton, &downButton, &undoButton, &redoButton })
     {
-        addAndMakeVisible(stepList);
+
+        addAndMakeVisible(b);
+        b->addListener(this);
+      
+        addAndMakeVisible(&stepList);
         stepList.setModel(this);
 
         addButton.setButtonText("Add Step");
@@ -34,96 +57,45 @@ public:
 
         pushHistory();
 
-        addAndMakeVisible(totalDuration);
+        addAndMakeVisible(&totalDuration);
         totalDuration.setJustificationType(Justification::centredLeft);
 
         // start with an empty step list
+      
     }
 
-    ~StepListPanel() override
-    {
-        for (auto* b : { &addButton, &loadButton, &dupButton, &removeButton, &editDurationButton,
-                        &editDescriptionButton, &upButton, &downButton,
-                        &undoButton, &redoButton })
-            b->removeListener(this);
-
-    }
+    addAndMakeVisible(totalDuration);
+    totalDuration.setJustificationType(Justification::centredLeft);
 
     setWantsKeyboardFocus(true);
-
     pushHistory();
+}
 
-    //=========================================================================
-    // Component layout
-    void resized() override
-    {
-        auto area = getLocalBounds().reduced(4);
-        auto top = area.removeFromTop(24);
-        totalDuration.setBounds(top);
-
-        area.removeFromTop(4);
-        stepList.setBounds(area.removeFromTop(getHeight() - 80));
-
-        auto buttons = area.removeFromTop(48);
-        auto each = buttons.getWidth() / 10;
-        addButton.setBounds(buttons.removeFromLeft(each));
-        loadButton.setBounds(buttons.removeFromLeft(each));
-        dupButton.setBounds(buttons.removeFromLeft(each));
-        removeButton.setBounds(buttons.removeFromLeft(each));
-        editDurationButton.setBounds(buttons.removeFromLeft(each));
-        editDescriptionButton.setBounds(buttons.removeFromLeft(each));
-        upButton.setBounds(buttons.removeFromLeft(each));
-        downButton.setBounds(buttons.removeFromLeft(each));
-        undoButton.setBounds(buttons.removeFromLeft(each));
-        redoButton.setBounds(buttons);
-    }
-
-private:
-    ListBox stepList;
-    TextButton addButton, loadButton, dupButton, removeButton, editDurationButton,
-              editDescriptionButton, upButton, downButton,
-              undoButton, redoButton;
-    Label totalDuration;
-
+StepListPanel::~StepListPanel()
+{
+    for (auto* b : { &addButton, &loadButton, &dupButton, &removeButton,
+                     &editDurationButton, &editDescriptionButton,
+                     &upButton, &downButton, &undoButton, &redoButton })
+        b->removeListener(this);
+}
 
 int StepListPanel::getNumRows()
 {
     return steps.size();
 }
 
-void StepListPanel::paintListBoxItem(int row, Graphics& g, int width, int height, bool rowIsSelected)
+void StepListPanel::paintListBoxItem(int row, Graphics& g, int width, int height,
+                                     bool rowIsSelected)
 {
     if (rowIsSelected)
         g.fillAll(Colours::lightblue);
 
     if (isPositiveAndBelow(row, steps.size()))
     {
-
-        if (b == &addButton)
-            addStep();
-        else if (b == &loadButton)
-            loadExternalSteps();
-        else if (b == &dupButton)
-            duplicateStep();
-        else if (b == &removeButton)
-            removeStep();
-        else if (b == &editDurationButton)
-            editStepDuration();
-        else if (b == &editDescriptionButton)
-            editStepDescription();
-        else if (b == &upButton)
-            moveStep(-1);
-        else if (b == &downButton)
-            moveStep(1);
-        else if (b == &undoButton)
-            undo();
-        else if (b == &redoButton)
-            redo();
-
-        stepList.updateContent();
-        stepList.repaint();
-        updateDuration();
-
+        const auto& s = steps[row];
+        String text = s.description + " (" + String(s.duration, 2) + "s)";
+        g.setColour(Colours::black);
+        g.drawText(text, 4, 0, width - 4, height, Justification::centredLeft);
     }
 }
 
@@ -137,8 +109,9 @@ void StepListPanel::resized()
     stepList.setBounds(area.removeFromTop(getHeight() - 80));
 
     auto buttons = area.removeFromTop(48);
-    auto each = buttons.getWidth() / 9;
+    auto each = buttons.getWidth() / 10;
     addButton.setBounds(buttons.removeFromLeft(each));
+    loadButton.setBounds(buttons.removeFromLeft(each));
     dupButton.setBounds(buttons.removeFromLeft(each));
     removeButton.setBounds(buttons.removeFromLeft(each));
     editDurationButton.setBounds(buttons.removeFromLeft(each));
@@ -153,6 +126,8 @@ void StepListPanel::buttonClicked(Button* b)
 {
     if (b == &addButton)
         addStep();
+    else if (b == &loadButton)
+        loadExternalSteps();
     else if (b == &dupButton)
         duplicateStep();
     else if (b == &removeButton)
@@ -185,6 +160,43 @@ void StepListPanel::addStep()
     pushHistory();
 }
 
+void StepListPanel::loadExternalSteps()
+{
+    FileChooser chooser("Load External Steps from JSON", {}, "*.json");
+    if (!chooser.browseForFileToOpen())
+        return;
+
+    auto file = chooser.getResult();
+    std::unique_ptr<FileInputStream> stream(file.createInputStream());
+    if (!stream || !stream->openedOk())
+        return;
+
+    var parsed = JSON::parse(stream->readEntireStreamAsString());
+    if (auto* obj = parsed.getDynamicObject())
+    {
+        if (auto* stepsVar = obj->getProperty("steps").getArray())
+        {
+            for (const auto& s : *stepsVar)
+            {
+                if (auto* sobj = s.getDynamicObject())
+                {
+
+                    double dur = sobj->getProperty("duration", 0.0);
+                    if (dur <= 0.0)
+                        continue;
+                    String desc = sobj->getProperty("description").toString();
+                    StepData sd;
+                    sd.duration = dur;
+                    sd.description = desc.isNotEmpty() ? desc
+                                                       : String("Step ") + String(steps.size() + 1);
+                    steps.add(sd);
+                }
+            }
+            pushHistory();
+        }
+    }
+}
+
 void StepListPanel::duplicateStep()
 {
     int row = stepList.getSelectedRow();
@@ -198,44 +210,10 @@ void StepListPanel::duplicateStep()
     }
 }
 
-
-    void loadExternalSteps()
-    {
-        FileChooser chooser("Load External Steps from JSON", {}, "*.json");
-        if (! chooser.browseForFileToOpen())
-            return;
-
-        auto file = chooser.getResult();
-        std::unique_ptr<FileInputStream> stream(file.createInputStream());
-        if (! stream || ! stream->openedOk())
-            return;
-
-        var parsed = JSON::parse(stream->readEntireStreamAsString());
-        if (auto* obj = parsed.getDynamicObject())
-        {
-            if (auto* stepsVar = obj->getProperty("steps").getArray())
-            {
-                for (const auto& s : *stepsVar)
-                {
-                    if (auto* sobj = s.getDynamicObject())
-                    {
-                        double dur = sobj->getProperty("duration", 0.0);
-                        if (dur <= 0.0)
-                            continue;
-                        String desc = sobj->getProperty("description").toString();
-                        StepData sd;
-                        sd.duration = dur;
-                        sd.description = desc.isNotEmpty() ? desc : String("Step ") + String(steps.size()+1);
-                        steps.add(sd);
-                    }
-                }
-                pushHistory();
-            }
-        }
-    }
-
-    void duplicateStep()
-
+void StepListPanel::removeStep()
+{
+    int row = stepList.getSelectedRow();
+    if (isPositiveAndBelow(row, steps.size()))
     {
         steps.remove(row);
         if (row > 0)
@@ -323,7 +301,7 @@ void StepListPanel::undo()
     {
         --historyIndex;
         steps = history[historyIndex];
-        stepList.selectRow(juce::jlimit(0, steps.size() - 1, stepList.getSelectedRow()));
+        stepList.selectRow(jlimit(0, steps.size() - 1, stepList.getSelectedRow()));
         stepList.updateContent();
         stepList.repaint();
         updateDuration();
@@ -337,7 +315,7 @@ void StepListPanel::redo()
     {
         ++historyIndex;
         steps = history[historyIndex];
-        stepList.selectRow(juce::jlimit(0, steps.size() - 1, stepList.getSelectedRow()));
+        stepList.selectRow(jlimit(0, steps.size() - 1, stepList.getSelectedRow()));
         stepList.updateContent();
         stepList.repaint();
         updateDuration();

@@ -29,22 +29,22 @@ struct SubliminalDialog  : public Component,
     {
         setSize (400, 160);
 
-        addAndMakeVisible (fileLabel);
-        addAndMakeVisible (fileEdit);
-        addAndMakeVisible (browseButton);
+        addAndMakeVisible (&fileLabel);
+        addAndMakeVisible (&fileEdit);
+        addAndMakeVisible (&browseButton);
         browseButton.addListener (this);
 
-        addAndMakeVisible (freqLabel);
-        addAndMakeVisible (freqSlider);
+        addAndMakeVisible (&freqLabel);
+        addAndMakeVisible (&freqSlider);
 
-        addAndMakeVisible (ampLabel);
-        addAndMakeVisible (ampSlider);
+        addAndMakeVisible (&ampLabel);
+        addAndMakeVisible (&ampSlider);
 
-        addAndMakeVisible (modeLabel);
-        addAndMakeVisible (modeBox);
+        addAndMakeVisible (&modeLabel);
+        addAndMakeVisible (&modeBox);
 
-        addAndMakeVisible (addButton);
-        addAndMakeVisible (cancelButton);
+        addAndMakeVisible (&addButton);
+        addAndMakeVisible (&cancelButton);
         addButton.addListener (this);
         cancelButton.addListener (this);
 

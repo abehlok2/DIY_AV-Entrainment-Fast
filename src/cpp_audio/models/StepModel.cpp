@@ -1,7 +1,7 @@
 #include "StepModel.h"
 
-StepModel::StepModel(std::vector<Step>* stepsIn)
-    : steps(stepsIn) {}
+StepModel::StepModel(std::vector<Step>* stepsIn, juce::TableListBox* ownerIn)
+    : steps(stepsIn), owner(ownerIn) {}
 
 int StepModel::getNumRows()
 {

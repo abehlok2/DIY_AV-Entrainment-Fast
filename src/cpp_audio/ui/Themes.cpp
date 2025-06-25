@@ -12,15 +12,17 @@ struct Theme
 static LookAndFeel_V4::ColourScheme createDarkScheme()
 {
     LookAndFeel_V4::ColourScheme s;
-    s.setUIColour(LookAndFeel_V4::ColourScheme::windowBackground, Colour(53,53,53));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::widgetBackground, Colour(53,53,53));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::menuBackground,   Colour(25,25,25));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::outline,          Colour(80,80,80));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::defaultText,      Colour(255,255,255));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::defaultFill,      Colour(53,53,53));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::highlightedText,  Colour(0,0,0));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::highlightedFill,  Colour(42,130,218));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::menuText,         Colour(255,255,255));
+    using UI = LookAndFeel_V4::ColourScheme::UIColour;
+
+    s.setUIColour(UI::windowBackground, Colour::fromRGB(53, 53, 53));
+    s.setUIColour(UI::widgetBackground, Colour::fromRGB(53, 53, 53));
+    s.setUIColour(UI::menuBackground,   Colour::fromRGB(25, 25, 25));
+    s.setUIColour(UI::outline,          Colour::fromRGB(80, 80, 80));
+    s.setUIColour(UI::defaultText,      Colour::fromRGB(255, 255, 255));
+    s.setUIColour(UI::defaultFill,      Colour::fromRGB(53, 53, 53));
+    s.setUIColour(UI::highlightedText,  Colour::fromRGB(0, 0, 0));
+    s.setUIColour(UI::highlightedFill,  Colour::fromRGB(42, 130, 218));
+    s.setUIColour(UI::menuText,         Colour::fromRGB(255, 255, 255));
     return s;
 }
 
@@ -32,16 +34,18 @@ QTreeWidget {
 
 static LookAndFeel_V4::ColourScheme createGreenScheme()
 {
+    using UI = LookAndFeel_V4::ColourScheme::UIColour;
+
     LookAndFeel_V4::ColourScheme s;
-    s.setUIColour(LookAndFeel_V4::ColourScheme::windowBackground, Colour(0x0a,0x0a,0x0a));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::widgetBackground, Colour(0x1a,0x1a,0x1a));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::menuBackground,   Colour(0x15,0x20,0x15));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::outline,          Colour(0x00,0xff,0x88,0x60));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::defaultText,      Colour(0x00,0xff,0xaa));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::defaultFill,      Colour(0x00,0x88,0x44,0x60));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::highlightedText,  Colour(0xff,0xff,0xff));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::highlightedFill,  Colour(0x00,0xff,0x88,0xaa));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::menuText,         Colour(0x00,0xff,0xcc));
+    s.setUIColour(UI::windowBackground, Colour::fromRGB(0x0a, 0x0a, 0x0a));
+    s.setUIColour(UI::widgetBackground, Colour::fromRGB(0x1a, 0x1a, 0x1a));
+    s.setUIColour(UI::menuBackground,   Colour::fromRGB(0x15, 0x20, 0x15));
+    s.setUIColour(UI::outline,          Colour::fromRGBA(0x00, 0xff, 0x88, 0x60));
+    s.setUIColour(UI::defaultText,      Colour::fromRGB(0x00, 0xff, 0xaa));
+    s.setUIColour(UI::defaultFill,      Colour::fromRGBA(0x00, 0x88, 0x44, 0x60));
+    s.setUIColour(UI::highlightedText,  Colour::fromRGB(0xff, 0xff, 0xff));
+    s.setUIColour(UI::highlightedFill,  Colour::fromRGBA(0x00, 0xff, 0x88, 0xaa));
+    s.setUIColour(UI::menuText,         Colour::fromRGB(0x00, 0xff, 0xcc));
     return s;
 }
 
@@ -112,16 +116,18 @@ QLineEdit, QComboBox, QSlider {
 
 static LookAndFeel_V4::ColourScheme createLightBlueScheme()
 {
+    using UI = LookAndFeel_V4::ColourScheme::UIColour;
+
     LookAndFeel_V4::ColourScheme s;
-    s.setUIColour(LookAndFeel_V4::ColourScheme::windowBackground, Colour(240,248,255));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::widgetBackground, Colour(255,255,255));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::menuBackground,   Colour(230,240,250));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::outline,          Colour(160,160,160));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::defaultText,      Colour(0,0,0));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::defaultFill,      Colour(225,238,255));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::highlightedText,  Colour(255,255,255));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::highlightedFill,  Colour(0,120,215));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::menuText,         Colour(0,0,0));
+    s.setUIColour(UI::windowBackground, Colour::fromRGB(240, 248, 255));
+    s.setUIColour(UI::widgetBackground, Colour::fromRGB(255, 255, 255));
+    s.setUIColour(UI::menuBackground,   Colour::fromRGB(230, 240, 250));
+    s.setUIColour(UI::outline,          Colour::fromRGB(160, 160, 160));
+    s.setUIColour(UI::defaultText,      Colour::fromRGB(0, 0, 0));
+    s.setUIColour(UI::defaultFill,      Colour::fromRGB(225, 238, 255));
+    s.setUIColour(UI::highlightedText,  Colour::fromRGB(255, 255, 255));
+    s.setUIColour(UI::highlightedFill,  Colour::fromRGB(0, 120, 215));
+    s.setUIColour(UI::menuText,         Colour::fromRGB(0, 0, 0));
     return s;
 }
 
@@ -138,16 +144,18 @@ QLineEdit, QComboBox, QSlider {
 
 static LookAndFeel_V4::ColourScheme createMaterialScheme()
 {
+    using UI = LookAndFeel_V4::ColourScheme::UIColour;
+
     LookAndFeel_V4::ColourScheme s;
-    s.setUIColour(LookAndFeel_V4::ColourScheme::windowBackground, Colour(250,250,250));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::widgetBackground, Colour(255,255,255));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::menuBackground,   Colour(245,245,245));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::outline,          Colour(208,208,208));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::defaultText,      Colour(33,33,33));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::defaultFill,      Colour(238,238,238));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::highlightedText,  Colour(255,255,255));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::highlightedFill,  Colour(255,87,34));
-    s.setUIColour(LookAndFeel_V4::ColourScheme::menuText,         Colour(33,33,33));
+    s.setUIColour(UI::windowBackground, Colour::fromRGB(250, 250, 250));
+    s.setUIColour(UI::widgetBackground, Colour::fromRGB(255, 255, 255));
+    s.setUIColour(UI::menuBackground,   Colour::fromRGB(245, 245, 245));
+    s.setUIColour(UI::outline,          Colour::fromRGB(208, 208, 208));
+    s.setUIColour(UI::defaultText,      Colour::fromRGB(33, 33, 33));
+    s.setUIColour(UI::defaultFill,      Colour::fromRGB(238, 238, 238));
+    s.setUIColour(UI::highlightedText,  Colour::fromRGB(255, 255, 255));
+    s.setUIColour(UI::highlightedFill,  Colour::fromRGB(255, 87, 34));
+    s.setUIColour(UI::menuText,         Colour::fromRGB(33, 33, 33));
     return s;
 }
 
