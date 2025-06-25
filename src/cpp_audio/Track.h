@@ -35,4 +35,5 @@ struct Track
 
 Track loadTrackFromJson(const juce::File& file);
 bool writeWavFile(const juce::File& file, const juce::AudioBuffer<float>& buffer, double sampleRate);
+juce::AudioBuffer<float> assembleTrack(const Track& track);
 
