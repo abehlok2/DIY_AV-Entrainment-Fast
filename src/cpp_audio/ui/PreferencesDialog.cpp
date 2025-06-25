@@ -52,8 +52,18 @@ public:
         themeCombo.addItem ("Green", 2);
         themeCombo.addItem ("light-blue", 3);
         themeCombo.addItem ("Material", 4);
-        if (auto* item = themeCombo.getItemID (themeCombo.indexOfItemText (prefs.theme)))
-            themeCombo.setText (prefs.theme, dontSendNotification);
+        int foundId = 0;
+        for (int i = 0; i < themeCombo.getNumItems(); ++i)
+        {
+            if (themeCombo.getItemText (i) == prefs.theme)
+            {
+                foundId = themeCombo.getItemId (i);
+                break;
+            }
+        }
+
+        if (foundId != 0)
+            themeCombo.setSelectedId (foundId);
         else
             themeCombo.setSelectedId (1);
 
