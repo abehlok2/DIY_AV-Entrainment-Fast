@@ -33,7 +33,7 @@ public:
         addAndMakeVisible (&fontFamilyLabel);
         fontFamilyLabel.setText ("Font Family:", dontSendNotification);
         addAndMakeVisible (&fontCombo);
-        fontCombo.addItemList (Font::getAvailableFontNames(), 1);
+        fontCombo.addItemList (Font::getAvailableTypefaces(), 1);
         if (prefs.fontFamily.isNotEmpty())
             fontCombo.setText (prefs.fontFamily, dontSendNotification);
 
