@@ -285,7 +285,8 @@ int loadExternalStepsFromJson(const juce::File &file,
                 voice.synthFunction = vobj->getProperty("synth_function_name")
                                           .toString()
                                           .toStdString();
-                voice.isTransition = vobj->getProperty("is_transition", false);
+                voice.isTransition =
+                    vobj->getProperty("is_transition").withDefault(false);
                 if (auto *paramsObj =
                         vobj->getProperty("params").getDynamicObject())
                   voice.params = paramsObj->getProperties();
