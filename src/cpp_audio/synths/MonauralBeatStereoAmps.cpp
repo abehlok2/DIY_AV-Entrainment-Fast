@@ -1,5 +1,7 @@
 #include "SynthFunctions.h"
 #include "AudioUtils.h"
+#include <cmath>
+#include <algorithm>
 
 using namespace juce;
 
