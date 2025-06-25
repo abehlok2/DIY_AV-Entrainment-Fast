@@ -3,6 +3,7 @@
 #include "SynthFunctions.h"
 #include <juce_data_structures/juce_data_structures.h>
 #include <juce_audio_formats/juce_audio_formats.h>
+#include <juce_dsp/juce_dsp.h>
 #include <map>
 
 using SynthFunc = juce::AudioBuffer<float>(*)(double, double, const juce::NamedValueSet&);
@@ -32,6 +33,51 @@ static std::map<juce::String, SynthFunc> synthMap{
     { "subliminal_encode", subliminalEncode }
 };
 
+static juce::AudioBuffer<float> resampleBuffer(const juce::AudioBuffer<float>& in,
+                                               double srcRate,
+                                               double dstRate)
+{
+    if (std::abs(srcRate - dstRate) < 1e-6)
+        return in;
+
+    int destSamples = static_cast<int>(in.getNumSamples() * dstRate / srcRate);
+    juce::AudioBuffer<float> out(in.getNumChannels(), destSamples);
+    for (int ch = 0; ch < in.getNumChannels(); ++ch)
+    {
+        juce::LagrangeInterpolator interp;
+        interp.reset();
+        interp.process(srcRate / dstRate,
+                       in.getReadPointer(ch),
+                       out.getWritePointer(ch),
+                       destSamples);
+    }
+    return out;
+}
+
+static juce::AudioBuffer<float> loadAudioFile(const juce::File& file,
+                                              double sampleRate)
+{
+    juce::AudioFormatManager fm;
+    fm.registerBasicFormats();
+    std::unique_ptr<juce::AudioFormatReader> reader(fm.createReaderFor(file));
+    if (! reader)
+        return {};
+
+    juce::AudioBuffer<float> buf(reader->numChannels,
+                                 static_cast<int>(reader->lengthInSamples));
+    reader->read(&buf, 0, buf.getNumSamples(), 0, true, true);
+
+    if (reader->sampleRate != sampleRate && reader->sampleRate > 0)
+        buf = resampleBuffer(buf, reader->sampleRate, sampleRate);
+
+    if (buf.getNumChannels() == 1)
+    {
+        buf.setSize(2, buf.getNumSamples(), true, true, true);
+        buf.copyFrom(1, 0, buf, 0, 0, buf.getNumSamples());
+    }
+    return buf;
+}
+
 Track loadTrackFromJson(const juce::File& file)
 {
     Track track;
@@ -47,6 +93,48 @@ Track loadTrackFromJson(const juce::File& file)
             track.settings.sampleRate = gs->getProperty("sample_rate", 44100.0);
             track.settings.crossfadeDuration = gs->getProperty("crossfade_duration", 1.0);
             track.settings.crossfadeCurve = gs->getProperty("crossfade_curve").toString();
+        }
+
+        if (auto* bg = obj->getProperty("background_noise").getDynamicObject())
+        {
+            track.backgroundNoise.filePath = bg->getProperty("file_path").toString();
+            track.backgroundNoise.amp = bg->getProperty("amp", 0.0);
+            track.backgroundNoise.pan = bg->getProperty("pan", 0.0);
+            track.backgroundNoise.startTime = bg->getProperty("start_time", 0.0);
+            track.backgroundNoise.fadeIn = bg->getProperty("fade_in", 0.0);
+            track.backgroundNoise.fadeOut = bg->getProperty("fade_out", 0.0);
+            if (auto* envArr = bg->getProperty("amp_envelope").getArray())
+            {
+                for (const auto& p : *envArr)
+                {
+                    if (auto* pair = p.getArray())
+                    {
+                        if (pair->size() >= 2)
+                            track.backgroundNoise.ampEnvelope.emplace_back(
+                                (*pair)[0], (*pair)[1]);
+                    }
+                }
+            }
+        }
+
+        if (auto* clipsArr = obj->getProperty("clips").getArray())
+        {
+            for (const auto& c : *clipsArr)
+            {
+                Clip clip;
+                if (auto* cobj = c.getDynamicObject())
+                {
+                    clip.filePath = cobj->getProperty("file_path").toString();
+                    clip.description = cobj->getProperty("description").toString();
+                    clip.start = cobj->getProperty("start", cobj->getProperty("start_time", 0.0));
+                    clip.duration = cobj->getProperty("duration", 0.0);
+                    clip.amp = cobj->getProperty("amp", cobj->getProperty("gain", 1.0));
+                    clip.pan = cobj->getProperty("pan", 0.0);
+                    clip.fadeIn = cobj->getProperty("fade_in", 0.0);
+                    clip.fadeOut = cobj->getProperty("fade_out", 0.0);
+                }
+                track.clips.push_back(std::move(clip));
+            }
         }
 
         if (auto* stepsVar = obj->getProperty("steps").getArray())
@@ -197,6 +285,90 @@ juce::AudioBuffer<float> assembleTrack(const Track& track)
         finalBuf.copyFrom(0, 0, buffer, 0, 0, lastStepEnd);
         finalBuf.copyFrom(1, 0, buffer, 1, 0, lastStepEnd);
     }
+
+    // Background noise
+    if (track.backgroundNoise.filePath.isNotEmpty())
+    {
+        juce::AudioBuffer<float> noise =
+            loadAudioFile(juce::File(track.backgroundNoise.filePath), sampleRate);
+        int len = noise.getNumSamples();
+        if (len > 0)
+        {
+            float leftGain, rightGain;
+            std::tie(leftGain, rightGain) = getPanGains(track.backgroundNoise.pan);
+            float amp = static_cast<float>(track.backgroundNoise.amp);
+            noise.applyGain(0, 0, len, amp * leftGain);
+            noise.applyGain(1, 0, len, amp * rightGain);
+
+            if (track.backgroundNoise.fadeIn > 0.0)
+            {
+                int n = std::min(len,
+                                 (int)(track.backgroundNoise.fadeIn * sampleRate));
+                noise.applyGainRamp(0, 0, n, 0.0f, amp * leftGain);
+                noise.applyGainRamp(1, 0, n, 0.0f, amp * rightGain);
+            }
+            if (track.backgroundNoise.fadeOut > 0.0)
+            {
+                int n = std::min(len,
+                                 (int)(track.backgroundNoise.fadeOut * sampleRate));
+                noise.applyGainRamp(0, len - n, n, amp * leftGain, 0.0f);
+                noise.applyGainRamp(1, len - n, n, amp * rightGain, 0.0f);
+            }
+
+            int start = static_cast<int>(track.backgroundNoise.startTime * sampleRate);
+            int end = start + len;
+            if (end > finalBuf.getNumSamples())
+                finalBuf.setSize(2, end, true, true, true);
+
+            finalBuf.addFrom(0, start, noise, 0, 0, len);
+            finalBuf.addFrom(1, start, noise, 1, 0, len);
+            lastStepEnd = std::max(lastStepEnd, end);
+        }
+    }
+
+    // Overlay clips
+    for (const auto& clip : track.clips)
+    {
+        if (clip.filePath.isEmpty())
+            continue;
+
+        juce::AudioBuffer<float> clipBuf = loadAudioFile(juce::File(clip.filePath), sampleRate);
+        int len = clipBuf.getNumSamples();
+        if (len <= 0)
+            continue;
+
+        float leftGain, rightGain;
+        std::tie(leftGain, rightGain) = getPanGains(clip.pan);
+        float amp = static_cast<float>(clip.amp);
+        clipBuf.applyGain(0, 0, len, amp * leftGain);
+        clipBuf.applyGain(1, 0, len, amp * rightGain);
+
+        if (clip.fadeIn > 0.0)
+        {
+            int n = std::min(len, (int)(clip.fadeIn * sampleRate));
+            clipBuf.applyGainRamp(0, 0, n, 0.0f, amp * leftGain);
+            clipBuf.applyGainRamp(1, 0, n, 0.0f, amp * rightGain);
+        }
+        if (clip.fadeOut > 0.0)
+        {
+            int n = std::min(len, (int)(clip.fadeOut * sampleRate));
+            clipBuf.applyGainRamp(0, len - n, n, amp * leftGain, 0.0f);
+            clipBuf.applyGainRamp(1, len - n, n, amp * rightGain, 0.0f);
+        }
+
+        int start = static_cast<int>(clip.start * sampleRate);
+        int end = start + len;
+        if (end > finalBuf.getNumSamples())
+            finalBuf.setSize(2, end, true, true, true);
+
+        finalBuf.addFrom(0, start, clipBuf, 0, 0, len);
+        finalBuf.addFrom(1, start, clipBuf, 1, 0, len);
+        lastStepEnd = std::max(lastStepEnd, end);
+    }
+
+    if (lastStepEnd < finalBuf.getNumSamples())
+        finalBuf.setSize(2, lastStepEnd, true, true, true);
+
     return finalBuf;
 }
 
