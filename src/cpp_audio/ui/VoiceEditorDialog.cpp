@@ -2,6 +2,7 @@
 #include <juce_data_structures/juce_data_structures.h>
 #include <vector>
 
+#include "VoiceEditorDialog.h"
 using namespace juce;
 
 // Simple UI row with a label and a text editor used for both synth parameters

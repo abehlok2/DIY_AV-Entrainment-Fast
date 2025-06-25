@@ -2,6 +2,7 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include <cmath>
 #include "Preferences.h"
+#include "PreferencesDialog.h"
 
 using namespace juce;
 
