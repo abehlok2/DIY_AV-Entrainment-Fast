@@ -1,6 +1,7 @@
 #include "Track.h"
 #include "AudioUtils.h"
 #include "SynthFunctions.h"
+#include "VarUtils.h"
 #include <juce_data_structures/juce_data_structures.h>
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_dsp/juce_dsp.h>
@@ -91,20 +92,20 @@ Track loadTrackFromJson(const juce::File& file)
     {
         if (auto* gs = obj->getProperty("global_settings").getDynamicObject())
         {
-            track.settings.sampleRate = gs->getProperty("sample_rate", 44100.0);
-            track.settings.crossfadeDuration = gs->getProperty("crossfade_duration", 1.0);
+            track.settings.sampleRate = getPropertyWithDefault(gs, "sample_rate", 44100.0);
+            track.settings.crossfadeDuration = getPropertyWithDefault(gs, "crossfade_duration", 1.0);
             track.settings.crossfadeCurve = gs->getProperty("crossfade_curve").toString();
-            track.settings.outputFilename = gs->getProperty("output_filename", "my_track.wav").toString();
+            track.settings.outputFilename = getPropertyWithDefault(gs, "output_filename", juce::String("my_track.wav")).toString();
         }
 
         if (auto* bg = obj->getProperty("background_noise").getDynamicObject())
         {
             track.backgroundNoise.filePath = bg->getProperty("file_path").toString();
-            track.backgroundNoise.amp = bg->getProperty("amp", 0.0);
-            track.backgroundNoise.pan = bg->getProperty("pan", 0.0);
-            track.backgroundNoise.startTime = bg->getProperty("start_time", 0.0);
-            track.backgroundNoise.fadeIn = bg->getProperty("fade_in", 0.0);
-            track.backgroundNoise.fadeOut = bg->getProperty("fade_out", 0.0);
+            track.backgroundNoise.amp = getPropertyWithDefault(bg, "amp", 0.0);
+            track.backgroundNoise.pan = getPropertyWithDefault(bg, "pan", 0.0);
+            track.backgroundNoise.startTime = getPropertyWithDefault(bg, "start_time", 0.0);
+            track.backgroundNoise.fadeIn = getPropertyWithDefault(bg, "fade_in", 0.0);
+            track.backgroundNoise.fadeOut = getPropertyWithDefault(bg, "fade_out", 0.0);
             if (auto* envArr = bg->getProperty("amp_envelope").getArray())
             {
                 for (const auto& p : *envArr)
@@ -128,12 +129,12 @@ Track loadTrackFromJson(const juce::File& file)
                 {
                     clip.filePath = cobj->getProperty("file_path").toString();
                     clip.description = cobj->getProperty("description").toString();
-                    clip.start = cobj->getProperty("start", cobj->getProperty("start_time", 0.0));
-                    clip.duration = cobj->getProperty("duration", 0.0);
-                    clip.amp = cobj->getProperty("amp", cobj->getProperty("gain", 1.0));
-                    clip.pan = cobj->getProperty("pan", 0.0);
-                    clip.fadeIn = cobj->getProperty("fade_in", 0.0);
-                    clip.fadeOut = cobj->getProperty("fade_out", 0.0);
+                    clip.start = getPropertyWithDefault(cobj, "start", getPropertyWithDefault(cobj, "start_time", 0.0));
+                    clip.duration = getPropertyWithDefault(cobj, "duration", 0.0);
+                    clip.amp = getPropertyWithDefault(cobj, "amp", getPropertyWithDefault(cobj, "gain", 1.0));
+                    clip.pan = getPropertyWithDefault(cobj, "pan", 0.0);
+                    clip.fadeIn = getPropertyWithDefault(cobj, "fade_in", 0.0);
+                    clip.fadeOut = getPropertyWithDefault(cobj, "fade_out", 0.0);
                 }
                 track.clips.push_back(std::move(clip));
             }
@@ -146,7 +147,7 @@ Track loadTrackFromJson(const juce::File& file)
                 Step step;
                 if (auto* sobj = s.getDynamicObject())
                 {
-                    step.durationSeconds = sobj->getProperty("duration", 0.0);
+                    step.durationSeconds = getPropertyWithDefault(sobj, "duration", 0.0);
                     step.description = sobj->getProperty("description").toString();
                     if (auto* voicesVar = sobj->getProperty("voices").getArray())
                     {
@@ -156,7 +157,7 @@ Track loadTrackFromJson(const juce::File& file)
                             if (auto* vobj = v.getDynamicObject())
                             {
                                 voice.synthFunction = vobj->getProperty("synth_function_name").toString().toStdString();
-                                voice.isTransition = vobj->getProperty("is_transition", false);
+                                voice.isTransition = getPropertyWithDefault(vobj, "is_transition", false);
                                 if (auto* paramsObj = vobj->getProperty("params").getDynamicObject())
                                     voice.params = *paramsObj;
                                 voice.description = vobj->getProperty("description").toString();
@@ -286,7 +287,7 @@ int loadExternalStepsFromJson(const juce::File& file, std::vector<Step>& steps)
                         continue;
 
                     Step step;
-                    step.durationSeconds = sobj->getProperty("duration", 0.0);
+                    step.durationSeconds = getPropertyWithDefault(sobj, "duration", 0.0);
                     step.description = sobj->getProperty("description").toString();
 
                     if (auto* voicesVar = sobj->getProperty("voices").getArray())
@@ -297,7 +298,7 @@ int loadExternalStepsFromJson(const juce::File& file, std::vector<Step>& steps)
                             if (auto* vobj = v.getDynamicObject())
                             {
                                 voice.synthFunction = vobj->getProperty("synth_function_name").toString().toStdString();
-                                voice.isTransition = vobj->getProperty("is_transition", false);
+                                voice.isTransition = getPropertyWithDefault(vobj, "is_transition", false);
                                 if (auto* paramsObj = vobj->getProperty("params").getDynamicObject())
                                     voice.params = *paramsObj;
                                 voice.description = vobj->getProperty("description").toString();

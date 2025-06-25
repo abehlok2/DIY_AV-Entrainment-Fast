@@ -1,5 +1,6 @@
 
 #include "StepListPanel.h"
+#include "../VarUtils.h"
 
 using namespace juce;
 
@@ -219,7 +220,7 @@ void StepListPanel::duplicateStep()
                 {
                     if (auto* sobj = s.getDynamicObject())
                     {
-                        double dur = sobj->getProperty("duration", 0.0);
+                        double dur = getPropertyWithDefault(sobj, "duration", 0.0);
                         if (dur <= 0.0)
                             continue;
                         String desc = sobj->getProperty("description").toString();

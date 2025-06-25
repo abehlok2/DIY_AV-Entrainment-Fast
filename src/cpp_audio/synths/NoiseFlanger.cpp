@@ -1,5 +1,6 @@
 #include "SynthFunctions.h"
 #include "AudioUtils.h"
+#include "../VarUtils.h"
 #include <juce_dsp/juce_dsp.h>
 #include <vector>
 #include <algorithm>
@@ -171,8 +172,8 @@ AudioBuffer<float> generateSweptNotchPinkSound(double duration,
                 }
                 else if (auto* obj = e.getDynamicObject())
                 {
-                    minFreq = obj->getProperty("start_min", obj->getProperty("min", minFreq));
-                    maxFreq = obj->getProperty("start_max", obj->getProperty("max", maxFreq));
+                    minFreq = getPropertyWithDefault(obj, "start_min", getPropertyWithDefault(obj, "min", minFreq));
+                    maxFreq = getPropertyWithDefault(obj, "start_max", getPropertyWithDefault(obj, "max", maxFreq));
                 }
             }
         }
@@ -284,8 +285,8 @@ AudioBuffer<float> generateSweptNotchPinkSoundTransition(double duration,
                 }
                 else if (auto* obj = e.getDynamicObject())
                 {
-                    minFreqStart = obj->getProperty("start_min", obj->getProperty("min", minFreqStart));
-                    maxFreqStart = obj->getProperty("start_max", obj->getProperty("max", maxFreqStart));
+                    minFreqStart = getPropertyWithDefault(obj, "start_min", getPropertyWithDefault(obj, "min", minFreqStart));
+                    maxFreqStart = getPropertyWithDefault(obj, "start_max", getPropertyWithDefault(obj, "max", maxFreqStart));
                 }
             }
         }
@@ -308,8 +309,8 @@ AudioBuffer<float> generateSweptNotchPinkSoundTransition(double duration,
                 }
                 else if (auto* obj = e.getDynamicObject())
                 {
-                    minFreqEnd = obj->getProperty("end_min", obj->getProperty("min", minFreqEnd));
-                    maxFreqEnd = obj->getProperty("end_max", obj->getProperty("max", maxFreqEnd));
+                    minFreqEnd = getPropertyWithDefault(obj, "end_min", getPropertyWithDefault(obj, "min", minFreqEnd));
+                    maxFreqEnd = getPropertyWithDefault(obj, "end_max", getPropertyWithDefault(obj, "max", maxFreqEnd));
                 }
             }
         }
