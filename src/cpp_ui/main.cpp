@@ -6,6 +6,7 @@ using namespace juce;
 // Forward declarations for UI components that will be implemented later.
 class StepListPanel;
 class StepConfigPanel;
+#include "OverlayClipPanel.h"
 
 class MainComponent : public Component
 {
@@ -13,13 +14,16 @@ public:
     MainComponent()
     {
         setSize (800, 600);
-        // TODO: create and add child components once implemented
+        addAndMakeVisible(overlayPanel);
     }
 
     void resized() override
     {
-        // TODO: layout child components
+        overlayPanel.setBounds(getLocalBounds().reduced(8));
     }
+
+private:
+    OverlayClipPanel overlayPanel;
 };
 
 class MainWindow : public DocumentWindow
