@@ -80,3 +80,9 @@ The JUCE port now provides a `StepPreviewComponent` that mirrors the Python UI's
 
 An additional helper `loadExternalStepsFromJson` can append steps from another JSON file to an existing `Track`. The JSON must contain a top-level `steps` list, mirroring the "Load External Step" action in the Python editor.
 
+The console application `diy_av_audio_cpp` now accepts an optional third argument to load such an external step file when generating audio:
+
+```bash
+diy_av_audio_cpp input.json output.wav extra_steps.json
+```
+
