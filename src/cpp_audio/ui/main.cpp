@@ -3,7 +3,7 @@
 
 #include "NoiseGeneratorDialog.h"
 #include "FrequencyTesterDialog.h"
-#include "../cpp_audio/Track.h"
+#include "../Track.h"
 
 #include "StepListPanel.h"
 

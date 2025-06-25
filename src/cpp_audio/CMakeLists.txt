@@ -61,3 +61,5 @@ target_link_libraries(diy_av_audio_cpp
     PRIVATE
         diy_av_audio
 )
+
+add_subdirectory(ui)
