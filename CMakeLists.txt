@@ -98,14 +98,18 @@ target_link_libraries(AudioApp
       juce::juce_core
       juce::juce_events
       juce::juce_audio_utils
-			juce::juce_audio_basics
-			juce::juce_audio_processors
-			juce::juce_audio_device
-			juce::juce_gui_basics
-			juce::juce_dsp
-			juce::juce_events
+                        juce::juce_audio_basics
+                        juce::juce_audio_processors
+                        juce::juce_audio_device
+                        juce::juce_gui_basics
+                        juce::juce_dsp
+                        juce::juce_events
       # add additional juce::<module> as needed
 )
+
+# Enable modal loops so that the traditional synchronous FileChooser
+# convenience methods (browseForFileToOpen, etc.) are available.
+target_compile_definitions(AudioApp PRIVATE JUCE_MODAL_LOOPS_PERMITTED=1)
 
 # (Optional) Set output directory for the binary
 # set_target_properties(AudioApp PROPERTIES
