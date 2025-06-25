@@ -25,6 +25,7 @@ struct GlobalSettings
     double sampleRate { 44100.0 };
     double crossfadeDuration { 1.0 };
     juce::String crossfadeCurve { "linear" };
+    juce::String outputFilename { "my_track.wav" };
 };
 
 struct BackgroundNoise
