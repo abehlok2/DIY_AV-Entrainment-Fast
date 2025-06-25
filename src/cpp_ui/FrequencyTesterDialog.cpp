@@ -272,4 +272,9 @@ private:
     }
 };
 
+std::unique_ptr<juce::Component> createFrequencyTesterDialog(juce::AudioDeviceManager& dm)
+{
+    return std::make_unique<FrequencyTesterDialog>(dm, nullptr);
+}
+
 
