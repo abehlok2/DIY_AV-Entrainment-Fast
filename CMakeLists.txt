@@ -107,8 +107,14 @@ target_link_libraries(AudioApp
       # add additional juce::<module> as needed
 )
 
+<<<<<<< abcd/fix-missing-runmodal-functions-in-juce-dialog-components
+# Enable modal loops for JUCE dialogs so that runModal and runModalLoop
+# are available for our UI components like OverlayClipDialog and
+# PreferencesDialog.
+=======
 # Enable modal loops so that the traditional synchronous FileChooser
 # convenience methods (browseForFileToOpen, etc.) are available.
+>>>>>>> main
 target_compile_definitions(AudioApp PRIVATE JUCE_MODAL_LOOPS_PERMITTED=1)
 
 # (Optional) Set output directory for the binary
