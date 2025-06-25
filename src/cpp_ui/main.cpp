@@ -7,11 +7,15 @@
 // Forward declaration of theme helper implemented in Themes.cpp
 extern void applyTheme (juce::LookAndFeel_V4&, const juce::String&);
 
+// include dialog implementations that currently only exist as .cpp files
+#include "SubliminalDialog.cpp"
+
 using namespace juce;
 
 // Forward declarations for UI components that will be implemented later.
 class StepListPanel;
 class StepConfigPanel;
+#include "OverlayClipPanel.h"
 
 namespace
 {
@@ -31,11 +35,15 @@ namespace
 
 class MainComponent : public Component,
                       private MenuBarModel
+
+class MainComponent : public Component,
+                      private Button::Listener
 {
 public:
     MainComponent()
     {
         setSize (800, 600);
+
 
         menuBar.reset (new MenuBarComponent (this));
         addAndMakeVisible (menuBar.get());
@@ -44,6 +52,13 @@ public:
         applyTheme (lookAndFeel, currentTheme);
 
         // TODO: create and add child components once implemented
+
+        addAndMakeVisible(overlayPanel);
+        addAndMakeVisible(subliminalButton);
+        subliminalButton.addListener(this);
+        subliminalButton.setButtonText("Add Subliminal Voice");
+
+
     }
 
     ~MainComponent() override
@@ -134,6 +149,40 @@ private:
     LookAndFeel_V4 lookAndFeel;
     Preferences prefs;
     String currentTheme { "Dark" };
+    
+        overlayPanel.setBounds(getLocalBounds().reduced(8));
+
+        subliminalButton.setBounds(10, 10, 160, 30);
+    }
+
+private:
+    TextButton subliminalButton;
+
+    void buttonClicked(Button* b) override
+    {
+        if (b == &subliminalButton)
+        {
+            SubliminalDialog dlg;
+            DialogWindow::LaunchOptions opts;
+            opts.content.setOwned(&dlg);
+            opts.dialogTitle = "Add Subliminal Voice";
+            opts.componentToCentreAround = this;
+            opts.useNativeTitleBar = true;
+            opts.resizable = false;
+            int result = opts.runModal();
+
+            if (result != 0 && dlg.wasAccepted())
+            {
+                auto voice = dlg.getVoice();
+                DBG("Subliminal voice added: " << voice.description);
+            }
+        }
+
+    }
+
+private:
+    OverlayClipPanel overlayPanel;
+
 };
 
 class MainWindow : public DocumentWindow

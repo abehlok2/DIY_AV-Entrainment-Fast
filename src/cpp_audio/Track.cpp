@@ -171,6 +171,56 @@ Track loadTrackFromJson(const juce::File& file)
     return track;
 }
 
+int loadExternalStepsFromJson(const juce::File& file, std::vector<Step>& steps)
+{
+    auto stream = file.createInputStream();
+    if (!stream)
+        return 0;
+
+    juce::var parsed = juce::JSON::parse(stream->readEntireStreamAsString());
+    if (auto* obj = parsed.getDynamicObject())
+    {
+        if (auto* stepsVar = obj->getProperty("steps").getArray())
+        {
+            int loaded = 0;
+            for (const auto& s : *stepsVar)
+            {
+                if (auto* sobj = s.getDynamicObject())
+                {
+                    if (!sobj->hasProperty("duration") || !sobj->hasProperty("voices"))
+                        continue;
+
+                    Step step;
+                    step.durationSeconds = sobj->getProperty("duration", 0.0);
+                    step.description = sobj->getProperty("description").toString();
+
+                    if (auto* voicesVar = sobj->getProperty("voices").getArray())
+                    {
+                        for (const auto& v : *voicesVar)
+                        {
+                            Voice voice;
+                            if (auto* vobj = v.getDynamicObject())
+                            {
+                                voice.synthFunction = vobj->getProperty("synth_function_name").toString().toStdString();
+                                voice.isTransition = vobj->getProperty("is_transition", false);
+                                if (auto* paramsObj = vobj->getProperty("params").getDynamicObject())
+                                    voice.params = *paramsObj;
+                                voice.description = vobj->getProperty("description").toString();
+                            }
+                            step.voices.push_back(std::move(voice));
+                        }
+                    }
+
+                    steps.push_back(std::move(step));
+                    ++loaded;
+                }
+            }
+            return loaded;
+        }
+    }
+    return 0;
+}
+
 bool writeWavFile(const juce::File& file, const juce::AudioBuffer<float>& buffer, double sampleRate)
 {
     juce::WavAudioFormat format;

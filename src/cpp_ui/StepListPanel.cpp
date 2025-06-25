@@ -24,12 +24,18 @@ public:
         removeButton.setButtonText("Remove Step");
         upButton.setButtonText("Move Up");
         downButton.setButtonText("Move Down");
+        undoButton.setButtonText("Undo");
+        redoButton.setButtonText("Redo");
 
-        for (auto* b : { &addButton, &dupButton, &removeButton, &upButton, &downButton })
+        for (auto* b : { &addButton, &dupButton, &removeButton, &upButton, &downButton, &undoButton, &redoButton })
         {
             addAndMakeVisible(b);
             b->addListener(this);
         }
+
+        setWantsKeyboardFocus(true);
+
+        pushHistory();
 
         addAndMakeVisible(totalDuration);
         totalDuration.setJustificationType(Justification::centredLeft);
@@ -39,7 +45,7 @@ public:
 
     ~StepListPanel() override
     {
-        for (auto* b : { &addButton, &dupButton, &removeButton, &upButton, &downButton })
+        for (auto* b : { &addButton, &dupButton, &removeButton, &upButton, &downButton, &undoButton, &redoButton })
             b->removeListener(this);
     }
 
@@ -74,19 +80,24 @@ public:
         stepList.setBounds(area.removeFromTop(getHeight() - 80));
 
         auto buttons = area.removeFromTop(48);
-        auto each = buttons.getWidth() / 5;
+        auto each = buttons.getWidth() / 7;
         addButton.setBounds(buttons.removeFromLeft(each));
         dupButton.setBounds(buttons.removeFromLeft(each));
         removeButton.setBounds(buttons.removeFromLeft(each));
         upButton.setBounds(buttons.removeFromLeft(each));
-        downButton.setBounds(buttons);
+        downButton.setBounds(buttons.removeFromLeft(each));
+        undoButton.setBounds(buttons.removeFromLeft(each));
+        redoButton.setBounds(buttons);
     }
 
 private:
     ListBox stepList;
-    TextButton addButton, dupButton, removeButton, upButton, downButton;
+    TextButton addButton, dupButton, removeButton, upButton, downButton,
+              undoButton, redoButton;
     Label totalDuration;
     StringArray steps;
+    Array<StringArray> history;
+    int historyIndex { -1 };
 
     //=========================================================================
     void buttonClicked(Button* b) override
@@ -101,6 +112,10 @@ private:
             moveStep(-1);
         else if (b == &downButton)
             moveStep(1);
+        else if (b == &undoButton)
+            undo();
+        else if (b == &redoButton)
+            redo();
 
         stepList.updateContent();
         stepList.repaint();
@@ -111,6 +126,7 @@ private:
     {
         steps.add("New Step " + String(steps.size() + 1));
         stepList.selectRow(steps.size() - 1);
+        pushHistory();
     }
 
     void duplicateStep()
@@ -120,6 +136,7 @@ private:
         {
             steps.insert(row + 1, steps[row] + " (Copy)");
             stepList.selectRow(row + 1);
+            pushHistory();
         }
     }
 
@@ -131,6 +148,7 @@ private:
             steps.remove(row);
             if (row > 0)
                 stepList.selectRow(row - 1);
+            pushHistory();
         }
     }
 
@@ -142,6 +160,7 @@ private:
         {
             steps.move(row, target);
             stepList.selectRow(target);
+            pushHistory();
         }
     }
 
@@ -152,6 +171,65 @@ private:
         int secs = totalSecs % 60;
         totalDuration.setText("Total Duration: " + String(mins).paddedLeft('0',2)
                               + ":" + String(secs).paddedLeft('0',2), dontSendNotification);
+    }
+
+    //==========================================================================
+    void pushHistory()
+    {
+        if (historyIndex < history.size() - 1)
+            history.removeRange(historyIndex + 1, history.size() - historyIndex - 1);
+        history.add(steps);
+        historyIndex = history.size() - 1;
+        updateUndoRedoButtons();
+    }
+
+    void undo()
+    {
+        if (historyIndex > 0)
+        {
+            --historyIndex;
+            steps = history[historyIndex];
+            stepList.selectRow(juce::jlimit(0, steps.size() - 1, stepList.getSelectedRow()));
+            stepList.updateContent();
+            stepList.repaint();
+            updateDuration();
+        }
+        updateUndoRedoButtons();
+    }
+
+    void redo()
+    {
+        if (historyIndex < history.size() - 1)
+        {
+            ++historyIndex;
+            steps = history[historyIndex];
+            stepList.selectRow(juce::jlimit(0, steps.size() - 1, stepList.getSelectedRow()));
+            stepList.updateContent();
+            stepList.repaint();
+            updateDuration();
+        }
+        updateUndoRedoButtons();
+    }
+
+    void updateUndoRedoButtons()
+    {
+        undoButton.setEnabled(historyIndex > 0);
+        redoButton.setEnabled(historyIndex < history.size() - 1);
+    }
+
+    bool keyPressed(const KeyPress& key) override
+    {
+        if (key == KeyPress('z', ModifierKeys::commandModifier, 0))
+        {
+            undo();
+            return true;
+        }
+        if (key == KeyPress('z', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
+        {
+            redo();
+            return true;
+        }
+        return false;
     }
 };
 
