@@ -4,12 +4,12 @@
 #include "NoiseGeneratorDialog.h"
 #include "FrequencyTesterDialog.h"
 #include "../cpp_audio/Track.h"
-#include "GlobalSettingsComponent.h"
+
+#include "StepListPanel.h"
 
 #include "GlobalSettingsComponent.h"
 
 #include "StepPreviewComponent.h"
-
 
 #include <memory>
 
@@ -23,8 +23,7 @@ extern void applyTheme (juce::LookAndFeel_V4&, const juce::String&);
 
 using namespace juce;
 
-// Forward declarations for UI components that will be implemented later.
-class StepListPanel;
+// Forward declaration for StepConfigPanel (not yet implemented)
 class StepConfigPanel;
 #include "OverlayClipPanel.h"
 
@@ -36,6 +35,8 @@ namespace
         menuNew = 1,
         menuOpen,
         menuSave,
+        menuUndo,
+        menuRedo,
         menuPreferences,
         menuDefaults,
         themeDark,
@@ -76,6 +77,8 @@ public:
 
         // TODO: create and add child components once implemented
 
+        addAndMakeVisible(stepListPanel);
+        stepListPanel.grabKeyboardFocus();
         addAndMakeVisible(overlayPanel);
         addAndMakeVisible(stepPreview);
         addAndMakeVisible(subliminalButton);
@@ -100,9 +103,13 @@ public:
         area.removeFromTop(10);
         freqButton.setBounds(area.removeFromTop(30));
         area.removeFromTop(10);
+
+        auto left = area.removeFromLeft(250);
+        stepListPanel.setBounds(left);
+        overlayPanel.setBounds(area);
+
         globals.setBounds(area.removeFromTop(120));
 
-        overlayPanel.setBounds(area);
 
         auto previewArea = area.removeFromBottom(110);
         stepPreview.setBounds(previewArea.reduced(0, 4));
@@ -120,6 +127,7 @@ private:
     AudioDeviceManager deviceManager;
     Track currentTrack;
     juce::File currentFile;
+    StepListPanel stepListPanel;
 
     void buttonClicked(Button* b)
     {
@@ -212,7 +220,7 @@ private:
 
     StringArray getMenuBarNames() override
     {
-        return { "File" };
+        return { "File", "Edit" };
     }
 
     PopupMenu getMenuForIndex (int, const String& menuName) override
@@ -234,6 +242,11 @@ private:
             theme.addItem (themeMaterial, "Material", true, currentTheme == "Material");
             menu.addSubMenu ("Theme", theme);
         }
+        else if (menuName == "Edit")
+        {
+            menu.addItem(menuUndo, "Undo", stepListPanel.canUndo());
+            menu.addItem(menuRedo, "Redo", stepListPanel.canRedo());
+        }
         return menu;
     }
 
@@ -251,6 +264,12 @@ private:
                 break;
             case menuSave:
                 saveTrack(false);
+                break;
+            case menuUndo:
+                stepListPanel.undo();
+                break;
+            case menuRedo:
+                stepListPanel.redo();
                 break;
             case menuPreferences:
                 AlertWindow::showMessageBoxAsync (AlertWindow::InfoIcon,
