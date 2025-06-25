@@ -10,12 +10,14 @@ struct Voice
     std::string synthFunction;
     juce::NamedValueSet params;
     bool isTransition { false };
+    juce::String description;
 };
 
 struct Step
 {
     double durationSeconds { 0.0 };
     std::vector<Voice> voices;
+    juce::String description;
 };
 
 struct GlobalSettings
