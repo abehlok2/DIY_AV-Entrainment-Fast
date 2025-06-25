@@ -16,8 +16,8 @@ AudioBuffer<float> monauralBeatStereoAmps(double duration, double sampleRate, co
     double ampUL = params.getWithDefault("amp_upper_L", 0.5);
     double ampLR = params.getWithDefault("amp_lower_R", 0.5);
     double ampUR = params.getWithDefault("amp_upper_R", 0.5);
-    double baseF = std::max(0.0, params.getWithDefault("baseFreq", 200.0));
-    double beatF = std::max(0.0, params.getWithDefault("beatFreq", 4.0));
+    double baseF = std::max(0.0, static_cast<double>(params.getWithDefault("baseFreq", 200.0)));
+    double beatF = std::max(0.0, static_cast<double>(params.getWithDefault("beatFreq", 4.0)));
     double startL = params.getWithDefault("startPhaseL", 0.0);
     double startU = params.getWithDefault("startPhaseR", 0.0);
     double phiF = params.getWithDefault("phaseOscFreq", 0.0);

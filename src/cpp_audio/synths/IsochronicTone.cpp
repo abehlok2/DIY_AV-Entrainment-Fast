@@ -33,8 +33,8 @@ AudioBuffer<float> isochronicTone(double duration, double sampleRate, const Name
         return buffer;
 
     double amp        = params.getWithDefault("amp", 0.5);
-    double baseFreq   = std::max(0.0, params.getWithDefault("baseFreq", 200.0));
-    double beatFreq   = std::max(0.0, params.getWithDefault("beatFreq", 4.0));
+    double baseFreq   = std::max(0.0, static_cast<double>(params.getWithDefault("baseFreq", 200.0)));
+    double beatFreq   = std::max(0.0, static_cast<double>(params.getWithDefault("beatFreq", 4.0)));
     double rampPct    = params.getWithDefault("rampPercent", 0.2);
     double gapPct     = params.getWithDefault("gapPercent", 0.15);
     double pan        = params.getWithDefault("pan", 0.0);

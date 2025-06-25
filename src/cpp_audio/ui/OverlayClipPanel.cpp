@@ -122,9 +122,12 @@ void OverlayClipPanel::startPlayback()
     if (!reader)
         return;
 
+    double sr = reader->sampleRate;
     readerSource.reset(new juce::AudioFormatReaderSource(reader.release(), true));
+
     transport.setSource(readerSource.get(), 0, nullptr, readerSource->sampleRate);
     deviceManager.addAudioCallback(&sourcePlayer);
+
     transport.start();
     playButton.setButtonText("Stop Clip");
 }
