@@ -1,4 +1,4 @@
-#include "SynthFunctions.h"
+#include "QamBeat.h"
 #include "AudioUtils.h"
 
 using namespace juce;

@@ -1,4 +1,4 @@
-#include "SynthFunctions.h"
+#include "SpatialAngleModulation.h"
 #include "AudioUtils.h"
 
 using namespace juce;

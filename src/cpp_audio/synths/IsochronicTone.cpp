@@ -1,4 +1,4 @@
-#include "SynthFunctions.h"
+#include "IsochronicTone.h"
 #include "AudioUtils.h"
 #include <cmath>
 #include <algorithm>
