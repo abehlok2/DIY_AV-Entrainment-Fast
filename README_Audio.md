@@ -77,3 +77,6 @@ steps can still be heard in full.
 A minimal C++ implementation using JUCE lives in `src/cpp_audio`. Build it with CMake and ensure JUCE is available on your system.
 
 The JUCE port now provides a `StepPreviewComponent` that mirrors the Python UI's play/pause/stop controls and time slider for auditioning a single step. It also includes a **Reset** button and labels the currently loaded step alongside the playback time.
+
+An additional helper `loadExternalStepsFromJson` can append steps from another JSON file to an existing `Track`. The JSON must contain a top-level `steps` list, mirroring the "Load External Step" action in the Python editor.
+

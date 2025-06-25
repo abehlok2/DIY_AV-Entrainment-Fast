@@ -1,0 +1,37 @@
+#pragma once
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "OverlayClipDialog.h"
+
+class OverlayClipPanel : public juce::Component,
+                         private juce::ListBoxModel,
+                         private juce::Button::Listener
+{
+public:
+    OverlayClipPanel();
+    ~OverlayClipPanel() override;
+
+    int getNumRows() override;
+    void paintListBoxItem(int row, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
+    void resized() override;
+
+private:
+    void buttonClicked(juce::Button*) override;
+    void addClip();
+    void editClip();
+    void removeClip();
+    void startPlayback();
+    void stopPlayback();
+
+    juce::ListBox clipList;
+    juce::TextButton addButton {"Add Clip"};
+    juce::TextButton editButton {"Edit Clip"};
+    juce::TextButton removeButton {"Remove Clip"};
+    juce::TextButton playButton {"Start Clip"};
+
+    juce::AudioDeviceManager deviceManager;
+    juce::AudioFormatManager formatManager;
+    juce::AudioTransportSource transport;
+    std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
+
+    std::vector<OverlayClipDialog::ClipData> clips;
+};
