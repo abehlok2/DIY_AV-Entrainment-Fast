@@ -41,23 +41,12 @@ double getClipDuration(const juce::File& file)
 }
 
 // Implementation component used by showOverlayClipEditor.
-// Renamed to avoid conflicting with the struct declared in the
-// header which only exposes the ClipData type.
+// Uses the ClipData struct defined in OverlayClipDialog.
 struct OverlayClipDialogWindow  : public juce::Component,
                             private juce::Button::Listener,
                             private juce::Timer
 {
-    struct ClipData
-    {
-        juce::String filePath;
-        double start  { 0.0 };
-        double duration { 0.0 };
-        double amp    { 1.0 };
-        double pan    { 0.0 };
-        double fadeIn { 0.0 };
-        double fadeOut{ 0.0 };
-        juce::String description;
-    };
+    using ClipData = OverlayClipDialog::ClipData;
 
     OverlayClipDialogWindow(bool ampInDb = false, const ClipData* existing = nullptr)
         : amplitudeInDb(ampInDb)
