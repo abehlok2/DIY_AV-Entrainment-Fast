@@ -4,6 +4,7 @@
 #include "NoiseGeneratorDialog.h"
 #include "FrequencyTesterDialog.h"
 #include "../cpp_audio/Track.h"
+#include "GlobalSettingsComponent.h"
 
 #include "GlobalSettingsComponent.h"
 
@@ -101,7 +102,6 @@ public:
         area.removeFromTop(10);
         globals.setBounds(area.removeFromTop(120));
 
-
         overlayPanel.setBounds(area);
 
         auto previewArea = area.removeFromBottom(110);
@@ -116,8 +116,6 @@ private:
     TextButton noiseButton, freqButton;
 
     GlobalSettingsComponent globals;
-
-    StepPreviewComponent stepPreview {deviceManager};
 
     AudioDeviceManager deviceManager;
     Track currentTrack;
@@ -171,8 +169,6 @@ private:
         currentFile = {};
 
         loadSettingsToUi();
-
-        stepPreview.reset();
 
     }
 
