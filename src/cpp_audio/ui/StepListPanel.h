@@ -23,9 +23,9 @@ public:
 private:
     // UI components
     juce::ListBox stepList;
-    juce::TextButton addButton, dupButton, removeButton, editDurationButton,
-                     editDescriptionButton, upButton, downButton,
-                     undoButton, redoButton;
+    juce::TextButton addButton, loadButton, dupButton, removeButton,
+                     editDurationButton, editDescriptionButton,
+                     upButton, downButton, undoButton, redoButton;
     juce::Label totalDuration;
 
     struct StepData
@@ -40,6 +40,7 @@ private:
 
     void buttonClicked(juce::Button*) override;
     void addStep();
+    void loadExternalSteps();
     void duplicateStep();
     void removeStep();
     void moveStep(int delta);
