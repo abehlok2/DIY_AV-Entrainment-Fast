@@ -171,6 +171,99 @@ Track loadTrackFromJson(const juce::File& file)
     return track;
 }
 
+static juce::var namedValueSetToVar(const juce::NamedValueSet& set)
+{
+    auto* obj = new juce::DynamicObject();
+    for (const auto& p : set)
+        obj->setProperty(p.name, p.value);
+    return juce::var(obj);
+}
+
+bool saveTrackToJson(const Track& track, const juce::File& file)
+{
+    juce::File target = file;
+    if (target.getFileExtension() != ".json")
+        target = target.withFileExtension(".json");
+
+    auto* obj = new juce::DynamicObject();
+
+    // Global settings
+    {
+        auto* gs = new juce::DynamicObject();
+        gs->setProperty("sample_rate", track.settings.sampleRate);
+        gs->setProperty("crossfade_duration", track.settings.crossfadeDuration);
+        gs->setProperty("crossfade_curve", track.settings.crossfadeCurve);
+        obj->setProperty("global_settings", juce::var(gs));
+    }
+
+    // Background noise
+    {
+        auto* bg = new juce::DynamicObject();
+        bg->setProperty("file_path", track.backgroundNoise.filePath);
+        bg->setProperty("amp", track.backgroundNoise.amp);
+        bg->setProperty("pan", track.backgroundNoise.pan);
+        bg->setProperty("start_time", track.backgroundNoise.startTime);
+        bg->setProperty("fade_in", track.backgroundNoise.fadeIn);
+        bg->setProperty("fade_out", track.backgroundNoise.fadeOut);
+        juce::Array<juce::var> env;
+        for (const auto& p : track.backgroundNoise.ampEnvelope)
+        {
+            juce::Array<juce::var> pair;
+            pair.add(p.first);
+            pair.add(p.second);
+            env.add(pair);
+        }
+        bg->setProperty("amp_envelope", env);
+        obj->setProperty("background_noise", juce::var(bg));
+    }
+
+    // Clips
+    {
+        juce::Array<juce::var> clipsVar;
+        for (const auto& clip : track.clips)
+        {
+            auto* cobj = new juce::DynamicObject();
+            cobj->setProperty("file_path", clip.filePath);
+            cobj->setProperty("description", clip.description);
+            cobj->setProperty("start", clip.start);
+            cobj->setProperty("duration", clip.duration);
+            cobj->setProperty("amp", clip.amp);
+            cobj->setProperty("pan", clip.pan);
+            cobj->setProperty("fade_in", clip.fadeIn);
+            cobj->setProperty("fade_out", clip.fadeOut);
+            clipsVar.add(juce::var(cobj));
+        }
+        obj->setProperty("clips", clipsVar);
+    }
+
+    // Steps
+    {
+        juce::Array<juce::var> stepsVar;
+        for (const auto& step : track.steps)
+        {
+            auto* sobj = new juce::DynamicObject();
+            sobj->setProperty("duration", step.durationSeconds);
+            sobj->setProperty("description", step.description);
+            juce::Array<juce::var> voicesVar;
+            for (const auto& voice : step.voices)
+            {
+                auto* vobj = new juce::DynamicObject();
+                vobj->setProperty("synth_function_name", voice.synthFunction);
+                vobj->setProperty("is_transition", voice.isTransition);
+                vobj->setProperty("params", namedValueSetToVar(voice.params));
+                vobj->setProperty("description", voice.description);
+                voicesVar.add(juce::var(vobj));
+            }
+            sobj->setProperty("voices", voicesVar);
+            stepsVar.add(juce::var(sobj));
+        }
+        obj->setProperty("steps", stepsVar);
+    }
+
+    juce::String jsonString = juce::JSON::toString(juce::var(obj), true);
+    return target.replaceWithText(jsonString);
+}
+
 int loadExternalStepsFromJson(const juce::File& file, std::vector<Step>& steps)
 {
     auto stream = file.createInputStream();
