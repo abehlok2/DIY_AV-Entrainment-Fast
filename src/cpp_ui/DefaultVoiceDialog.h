@@ -2,11 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_data_structures/juce_data_structures.h>
-
-struct Preferences
-{
-    juce::var defaultVoice; // stores DynamicObject with synth_function_name, is_transition, params, volume_envelope
-};
+#include "Preferences.h"
 
 class DefaultVoiceDialog  : public juce::DialogWindow,
                             private juce::Button::Listener
