@@ -1,45 +1,69 @@
-#include "Track.h"
-#include "AudioUtils.h"
-#include <juce_core/juce_core.h>
-#include <juce_audio_formats/juce_audio_formats.h>
+// Minimal JUCE GUI application that demonstrates the C++ audio widgets.
+#include <juce_gui_basics/juce_gui_basics.h>
 
-int main (int argc, char* argv[])
+#include "ui/GlobalSettingsComponent.h"
+#include "ui/StepListPanel.h"
+
+class MainComponent : public juce::Component
 {
-    juce::ConsoleApplication app;
-
-    if (argc < 2 || argc > 4)
+public:
+    MainComponent()
     {
-        juce::Logger::writeToLog("Usage: diy_av_audio_cpp <input.json> [output.wav] [extra_steps.json]");
-        return 1;
+        addAndMakeVisible(settings);
+        addAndMakeVisible(stepList);
+        setSize (600, 400);
     }
 
-    juce::File inFile(argv[1]);
-    Track track = loadTrackFromJson(inFile);
-    juce::File outFile;
-    if (argc >= 3)
-        outFile = juce::File(argv[2]);
-    else
-        outFile = juce::File(track.settings.outputFilename);
-
-    if (argc == 4)
+    void resized() override
     {
-        juce::File stepsFile(argv[3]);
-        int added = loadExternalStepsFromJson(stepsFile, track.steps);
-        juce::Logger::writeToLog(juce::String("Loaded ") + juce::String(added) + " external step(s)");
+        auto area = getLocalBounds().reduced (8);
+        settings.setBounds (area.removeFromTop (120));
+        stepList.setBounds (area);
     }
 
-    double sampleRate = track.settings.sampleRate;
+private:
+    GlobalSettingsComponent settings;
+    StepListPanel stepList;
+};
 
-    juce::AudioBuffer<float> trackBuffer = assembleTrack(track);
+class MainWindow : public juce::DocumentWindow
+{
+public:
+    explicit MainWindow(const juce::String& name)
+        : DocumentWindow(name,
+                          juce::Desktop::getInstance().getDefaultLookAndFeel()
+                              .findColour(juce::ResizableWindow::backgroundColourId),
+                          juce::DocumentWindow::allButtons)
+    {
+        setUsingNativeTitleBar(true);
+        setResizable(true, true);
+        setContentOwned(new MainComponent(), true);
+        centreWithSize(getWidth(), getHeight());
+        setVisible(true);
+    }
 
-    // Normalize final track to -12 dBFS (0.25)
-    float peak = 0.0f;
-    for (int ch = 0; ch < trackBuffer.getNumChannels(); ++ch)
-        peak = std::max(peak, trackBuffer.getMagnitude(ch, 0, trackBuffer.getNumSamples()));
-    if (peak > 0.0f)
-        trackBuffer.applyGain(0.25f / peak);
+    void closeButtonPressed() override
+    {
+        juce::JUCEApplication::getInstance()->systemRequestedQuit();
+    }
+};
 
-    writeWavFile(outFile, trackBuffer, sampleRate);
-    return 0;
-}
+class AudioApplication : public juce::JUCEApplication
+{
+public:
+    const juce::String getApplicationName() override       { return "DIY AV Audio"; }
+    const juce::String getApplicationVersion() override    { return "1.0"; }
+
+    void initialise (const juce::String&) override
+    {
+        mainWindow.reset(new MainWindow(getApplicationName()));
+    }
+
+    void shutdown() override { mainWindow = nullptr; }
+
+private:
+    std::unique_ptr<MainWindow> mainWindow;
+};
+
+START_JUCE_APPLICATION(AudioApplication)
 
