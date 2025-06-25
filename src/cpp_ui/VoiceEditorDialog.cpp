@@ -1,12 +1,43 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_data_structures/juce_data_structures.h>
+#include <vector>
 
 using namespace juce;
 
+// Simple UI row with a label and a text editor used for both synth parameters
+// and envelope parameters.  Values are edited as strings and converted when
+// collecting data.
+class ParameterRow : public Component
+{
+public:
+    ParameterRow(const String& name, const String& value)
+    {
+        addAndMakeVisible(nameLabel);
+        nameLabel.setText(name, dontSendNotification);
+        addAndMakeVisible(valueEditor);
+        valueEditor.setText(value);
+    }
+
+    void resized() override
+    {
+        auto area = getLocalBounds();
+        nameLabel.setBounds(area.removeFromLeft(120));
+        valueEditor.setBounds(area);
+    }
+
+    String getName() const { return nameLabel.getText(); }
+    String getValue() const { return valueEditor.getText(); }
+    void   setValue(const String& v) { valueEditor.setText(v); }
+
+private:
+    Label nameLabel;
+    TextEditor valueEditor;
+};
+
 //==============================================================================
-// Basic dialog for editing a Voice entry.  This is a minimal C++ adaptation of
-// the much more feature rich Python version.  Parameters and envelope data are
-// edited as JSON strings.
+// Dialog for editing a Voice entry.  This started as a very small JSON based
+// editor.  It now mirrors the much richer Python UI and exposes individual
+// parameter fields, reference voice selection and envelope controls.
 //==============================================================================
 
 class VoiceEditorDialog  : public DialogWindow,
@@ -23,8 +54,10 @@ public:
     };
 
     VoiceEditorDialog(const StringArray& synthNames,
-                      const VoiceData* existing = nullptr)
-        : DialogWindow("Edit Voice", Colours::lightgrey, true)
+                      const VoiceData* existing = nullptr,
+                      const std::vector<std::vector<VoiceData>>* refSteps = nullptr)
+        : DialogWindow("Edit Voice", Colours::lightgrey, true),
+          referenceSteps(refSteps ? *refSteps : std::vector<std::vector<VoiceData>>{})
     {
         setUsingNativeTitleBar(true);
         setResizable(true, false);
@@ -40,16 +73,28 @@ public:
         transitionToggle.setButtonText("Is Transition");
 
         addAndMakeVisible(paramsLabel);
-        paramsLabel.setText("Parameters (JSON)", dontSendNotification);
-        addAndMakeVisible(paramsEditor);
-        paramsEditor.setMultiLine(true);
-        paramsEditor.setReturnKeyStartsNewLine(true);
+        paramsLabel.setText("Parameters", dontSendNotification);
+        addAndMakeVisible(addParamButton);
+        addParamButton.setButtonText("Add Param");
+        addParamButton.addListener(this);
+        addAndMakeVisible(paramsViewport);
+        paramsViewport.setViewedComponent(&paramsContainer, false);
 
         addAndMakeVisible(envLabel);
-        envLabel.setText("Volume Envelope (JSON)", dontSendNotification);
-        addAndMakeVisible(envEditor);
-        envEditor.setMultiLine(true);
-        envEditor.setReturnKeyStartsNewLine(true);
+        envLabel.setText("Volume Envelope", dontSendNotification);
+        addAndMakeVisible(envTypeCombo);
+        envTypeCombo.addItem("None", 1);
+        envTypeCombo.addItem("linear_fade", 2);
+        envTypeCombo.onChange = [this] { rebuildEnvelopeUI(); };
+        addAndMakeVisible(envViewport);
+        envViewport.setViewedComponent(&envContainer, false);
+
+        addAndMakeVisible(refStepCombo);
+        addAndMakeVisible(refVoiceCombo);
+        addAndMakeVisible(refDetails);
+        refDetails.setMultiLine(true);
+        refDetails.setReadOnly(true);
+        refDetails.setScrollbarsShown(true);
 
         addAndMakeVisible(descLabel);
         descLabel.setText("Description", dontSendNotification);
@@ -75,6 +120,7 @@ public:
     {
         okButton.removeListener(this);
         cancelButton.removeListener(this);
+        addParamButton.removeListener(this);
     }
 
     bool wasAccepted() const { return accepted; }
@@ -98,6 +144,13 @@ public:
         {
             closeButtonPressed();
         }
+        else if (b == &addParamButton)
+        {
+            auto* row = new ParameterRow("param", "0");
+            paramRows.add(row);
+            paramsContainer.addAndMakeVisible(row);
+            layoutParamRows();
+        }
     }
 
     void resized() override
@@ -113,11 +166,20 @@ public:
         area.removeFromTop(6);
 
         paramsLabel.setBounds(area.removeFromTop(labelH));
-        paramsEditor.setBounds(area.removeFromTop(editorH));
+        addParamButton.setBounds(area.removeFromTop(24));
+        area.removeFromTop(4);
+        paramsViewport.setBounds(area.removeFromTop(editorH));
         area.removeFromTop(6);
 
         envLabel.setBounds(area.removeFromTop(labelH));
-        envEditor.setBounds(area.removeFromTop(editorH));
+        envTypeCombo.setBounds(area.removeFromTop(24));
+        area.removeFromTop(4);
+        envViewport.setBounds(area.removeFromTop(editorH));
+        area.removeFromTop(6);
+
+        refStepCombo.setBounds(area.removeFromTop(24));
+        refVoiceCombo.setBounds(area.removeFromTop(24));
+        refDetails.setBounds(area.removeFromTop(editorH));
         area.removeFromTop(6);
 
         descLabel.setBounds(area.removeFromTop(labelH));
@@ -135,10 +197,22 @@ private:
     ToggleButton transitionToggle;
 
     Label paramsLabel;
-    TextEditor paramsEditor;
+    TextButton addParamButton;
+    Viewport paramsViewport;
+    Component paramsContainer;
+    OwnedArray<ParameterRow> paramRows;
 
     Label envLabel;
-    TextEditor envEditor;
+    ComboBox envTypeCombo;
+    Viewport envViewport;
+    Component envContainer;
+    OwnedArray<ParameterRow> envRows;
+
+    ComboBox refStepCombo;
+    ComboBox refVoiceCombo;
+    TextEditor refDetails;
+
+    std::vector<std::vector<VoiceData>> referenceSteps;
 
     Label descLabel;
     TextEditor descEditor;
@@ -157,10 +231,16 @@ private:
 
         transitionToggle.setToggleState(d.isTransition, dontSendNotification);
         if (! d.params.isVoid())
-            paramsEditor.setText(JSON::toString(d.params));
+            rebuildParamUI(d.params);
+        else
+            rebuildParamUI(var());
+
         if (! d.volumeEnvelope.isVoid())
-            envEditor.setText(JSON::toString(d.volumeEnvelope));
+            rebuildEnvelopeUI(d.volumeEnvelope);
+        else
+            rebuildEnvelopeUI(var());
         descEditor.setText(d.description);
+        populateReferenceCombos();
     }
 
     bool collectData()
@@ -169,28 +249,166 @@ private:
         data.isTransition = transitionToggle.getToggleState();
         data.description = descEditor.getText();
 
-        auto paramsVar = JSON::parse(paramsEditor.getText());
-        if (! paramsVar.isVoid() && ! paramsVar.isObject())
-        {
-            AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
-                                             "Invalid Input",
-                                             "Parameters must be a JSON object.");
-            return false;
-        }
-        data.params = paramsVar;
-
-        auto envVar = JSON::parse(envEditor.getText());
-        if (! envVar.isVoid() && ! envVar.isObject())
-        {
-            AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
-                                             "Invalid Input",
-                                             "Volume envelope must be a JSON object.");
-            return false;
-        }
-        data.volumeEnvelope = envVar;
+        data.params = collectParamsVar();
+        data.volumeEnvelope = collectEnvelopeVar();
 
         accepted = true;
         return true;
+    }
+
+    //==========================================================================
+    void rebuildParamUI(const var& paramsVar)
+    {
+        for (auto* r : paramRows)
+            delete r;
+        paramRows.clear(true);
+
+        paramsContainer.setSize(300, 0);
+
+        if (auto* obj = paramsVar.getDynamicObject())
+        {
+            for (const auto& p : obj->getProperties())
+            {
+                auto* row = new ParameterRow(p.name.toString(), p.value.toString());
+                paramRows.add(row);
+                paramsContainer.addAndMakeVisible(row);
+            }
+        }
+
+        layoutParamRows();
+    }
+
+    void layoutParamRows()
+    {
+        int y = 0;
+        for (auto* r : paramRows)
+        {
+            r->setBounds(0, y, 280, 24);
+            y += 26;
+        }
+        paramsContainer.setSize(300, y);
+        paramsViewport.setViewPosition(0, 0);
+    }
+
+    var collectParamsVar()
+    {
+        std::unique_ptr<DynamicObject> obj(new DynamicObject());
+        for (auto* r : paramRows)
+            obj->setProperty(r->getName(), r->getValue());
+        return var(obj.release());
+    }
+
+    //==========================================================================
+    void rebuildEnvelopeUI(const var& envVar = var())
+    {
+        for (auto* r : envRows)
+            delete r;
+        envRows.clear(true);
+
+        envContainer.setSize(300, 0);
+
+        String type = "None";
+        if (auto* obj = envVar.getDynamicObject())
+        {
+            type = obj->getProperty("type").toString();
+            if (auto* p = obj->getProperty("params").getDynamicObject())
+            {
+                for (const auto& prop : p->getProperties())
+                {
+                    auto* row = new ParameterRow(prop.name.toString(), prop.value.toString());
+                    envRows.add(row);
+                    envContainer.addAndMakeVisible(row);
+                }
+            }
+        }
+
+        envTypeCombo.setSelectedItemIndex(type == "linear_fade" ? 1 : 0);
+
+        layoutEnvRows();
+    }
+
+    void layoutEnvRows()
+    {
+        int y = 0;
+        for (auto* r : envRows)
+        {
+            r->setBounds(0, y, 280, 24);
+            y += 26;
+        }
+        envContainer.setSize(300, y);
+        envViewport.setViewPosition(0, 0);
+    }
+
+    var collectEnvelopeVar()
+    {
+        if (envTypeCombo.getSelectedId() == 1)
+            return var();
+
+        String type = envTypeCombo.getSelectedId() == 2 ? "linear_fade" : "None";
+        std::unique_ptr<DynamicObject> envObj(new DynamicObject());
+        envObj->setProperty("type", type);
+        std::unique_ptr<DynamicObject> params(new DynamicObject());
+        for (auto* r : envRows)
+            params->setProperty(r->getName(), r->getValue());
+        envObj->setProperty("params", var(params.release()));
+        return var(envObj.release());
+    }
+
+    void populateReferenceCombos()
+    {
+        refStepCombo.clear();
+        refVoiceCombo.clear();
+        for (size_t i = 0; i < referenceSteps.size(); ++i)
+            refStepCombo.addItem(String("Step ") + String(i + 1), int(i + 1));
+
+        if (referenceSteps.empty())
+            return;
+
+        refStepCombo.onChange = [this] { updateVoiceCombo(); };
+        refVoiceCombo.onChange = [this] { updateReferenceDetails(); };
+        refStepCombo.setSelectedItemIndex(0);
+        updateVoiceCombo();
+    }
+
+    void updateVoiceCombo()
+    {
+        refVoiceCombo.clear();
+        int stepIdx = refStepCombo.getSelectedItemIndex();
+        if (stepIdx >= 0 && stepIdx < (int)referenceSteps.size())
+        {
+            const auto& voices = referenceSteps[(size_t)stepIdx];
+            for (size_t i = 0; i < voices.size(); ++i)
+                refVoiceCombo.addItem(String("Voice ") + String(i + 1), int(i + 1));
+            if (!voices.empty())
+                refVoiceCombo.setSelectedItemIndex(0);
+        }
+        updateReferenceDetails();
+    }
+
+    void updateReferenceDetails()
+    {
+        int stepIdx = refStepCombo.getSelectedItemIndex();
+        int vIdx = refVoiceCombo.getSelectedItemIndex();
+        if (stepIdx >= 0 && vIdx >= 0 &&
+            stepIdx < (int)referenceSteps.size() &&
+            vIdx < (int)referenceSteps[(size_t)stepIdx].size())
+        {
+            const auto& v = referenceSteps[(size_t)stepIdx][(size_t)vIdx];
+            String text;
+            text << "Function: " << v.synthFunction << "\n";
+            text << "Transition: " << (v.isTransition ? "yes" : "no") << "\n";
+            if (auto* obj = v.params.getDynamicObject())
+            {
+                text << "Params:\n";
+                for (const auto& p : obj->getProperties())
+                    text << "  " << p.name.toString() << ": " << p.value.toString() << "\n";
+            }
+            refDetails.setText(text);
+        }
+        else
+        {
+            refDetails.clear();
+        }
     }
 };
 
@@ -200,9 +418,10 @@ private:
 
 VoiceEditorDialog::VoiceData showVoiceEditor(const StringArray& synthNames,
                                              const VoiceEditorDialog::VoiceData* existing,
+                                             const std::vector<std::vector<VoiceEditorDialog::VoiceData>>* refSteps,
                                              bool* success)
 {
-    VoiceEditorDialog dialog(synthNames, existing);
+    VoiceEditorDialog dialog(synthNames, existing, refSteps);
     DialogWindow::LaunchOptions opts;
     opts.content.setOwned(&dialog);
     opts.dialogTitle = "Voice Editor";
