@@ -1,8 +1,8 @@
 #include "VoiceModel.h"
 #include <cmath>
 
-VoiceModel::VoiceModel(std::vector<Voice>* voicesIn)
-    : voices(voicesIn) {}
+VoiceModel::VoiceModel(std::vector<Voice>* voicesIn, juce::TableListBox* ownerIn)
+    : voices(voicesIn), owner(ownerIn) {}
 
 int VoiceModel::getNumRows()
 {
