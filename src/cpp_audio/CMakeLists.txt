@@ -32,6 +32,9 @@ juce_add_console_app(diy_av_audio_cpp
         Common.cpp
         AudioUtils.h
         AudioUtils.cpp
+        BufferAudioSource.h
+        StepPreviewer.h
+        StepPreviewer.cpp
 )
 
 juce_generate_juce_header(diy_av_audio_cpp)
