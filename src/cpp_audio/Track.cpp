@@ -152,7 +152,7 @@ Track loadTrackFromJson(const juce::File &file) {
                                           .toString()
                                           .toStdString();
                 voice.isTransition =
-                    vobj->getPropertyWithDefault("is_transition", false);
+                    getPropertyWithDefault(vobj, "is_transition", false);
                 if (auto *paramsObj =
                         vobj->getProperty("params").getDynamicObject())
                   voice.params = paramsObj->getProperties();
@@ -286,7 +286,7 @@ int loadExternalStepsFromJson(const juce::File &file,
                                           .toString()
                                           .toStdString();
                 voice.isTransition =
-                    vobj->getProperty("is_transition").withDefault(false);
+                    withDefault(vobj->getProperty("is_transition"), false);
                 if (auto *paramsObj =
                         vobj->getProperty("params").getDynamicObject())
                   voice.params = paramsObj->getProperties();
