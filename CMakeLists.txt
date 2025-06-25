@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(DIY_AV_Entrainment_Fast VERSION 1.0 LANGUAGES CXX)s
+project(DIY_AV_Entrainment_Fast VERSION 1.0 LANGUAGES CXX)
 
 #--------------------------------------------------
 # C++ standard
