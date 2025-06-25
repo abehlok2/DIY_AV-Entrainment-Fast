@@ -1,24 +1,54 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
 
+// include dialog implementations that currently only exist as .cpp files
+#include "SubliminalDialog.cpp"
+
 using namespace juce;
 
 // Forward declarations for UI components that will be implemented later.
 class StepListPanel;
 class StepConfigPanel;
 
-class MainComponent : public Component
+class MainComponent : public Component,
+                      private Button::Listener
 {
 public:
     MainComponent()
     {
         setSize (800, 600);
-        // TODO: create and add child components once implemented
+        addAndMakeVisible(subliminalButton);
+        subliminalButton.addListener(this);
+        subliminalButton.setButtonText("Add Subliminal Voice");
     }
 
     void resized() override
     {
-        // TODO: layout child components
+        subliminalButton.setBounds(10, 10, 160, 30);
+    }
+
+private:
+    TextButton subliminalButton;
+
+    void buttonClicked(Button* b) override
+    {
+        if (b == &subliminalButton)
+        {
+            SubliminalDialog dlg;
+            DialogWindow::LaunchOptions opts;
+            opts.content.setOwned(&dlg);
+            opts.dialogTitle = "Add Subliminal Voice";
+            opts.componentToCentreAround = this;
+            opts.useNativeTitleBar = true;
+            opts.resizable = false;
+            int result = opts.runModal();
+
+            if (result != 0 && dlg.wasAccepted())
+            {
+                auto voice = dlg.getVoice();
+                DBG("Subliminal voice added: " << voice.description);
+            }
+        }
     }
 };
 
