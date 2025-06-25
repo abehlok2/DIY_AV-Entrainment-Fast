@@ -8,7 +8,10 @@
 class StepModel : public juce::TableListBoxModel
 {
 public:
-    StepModel(std::vector<Step>* steps = nullptr);
+    StepModel(std::vector<Step>* steps = nullptr, juce::TableListBox* owner = nullptr);
+
+    void setOwner(juce::TableListBox* newOwner) { owner = newOwner; }
+    juce::TableListBox* getOwner() const { return owner; }
 
     int getNumRows() override;
     void paintRowBackground(juce::Graphics& g, int rowNumber, int width, int height, bool rowIsSelected) override;
@@ -18,4 +21,5 @@ public:
 
 private:
     std::vector<Step>* steps;
+    juce::TableListBox* owner { nullptr };
 };
