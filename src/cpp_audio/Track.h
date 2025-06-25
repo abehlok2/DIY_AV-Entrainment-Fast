@@ -61,4 +61,8 @@ struct Track
 Track loadTrackFromJson(const juce::File& file);
 bool writeWavFile(const juce::File& file, const juce::AudioBuffer<float>& buffer, double sampleRate);
 juce::AudioBuffer<float> assembleTrack(const Track& track);
+/** Loads steps from a JSON file containing a top-level "steps" array and
+    appends them to the provided vector.
+    @return number of steps successfully loaded. */
+int loadExternalStepsFromJson(const juce::File& file, std::vector<Step>& steps);
 
