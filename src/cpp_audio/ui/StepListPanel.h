@@ -1,8 +1,10 @@
 #pragma once
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <functional>
 
 class StepListPanel : public juce::Component,
                       private juce::ListBoxModel,
+                      private juce::ListBox::Listener,
                       private juce::Button::Listener
 {
 public:
@@ -19,6 +21,12 @@ public:
     void redo();
     bool canUndo() const;
     bool canRedo() const;
+
+    // Access steps and selection
+    const juce::Array<StepData>& getSteps() const { return steps; }
+    int getSelectedIndex() const { return stepList.getSelectedRow(); }
+
+    std::function<void(int)> onStepSelected;
 
 private:
     // UI components
@@ -49,4 +57,5 @@ private:
     void updateDuration();
     void pushHistory();
     void updateUndoRedoButtons();
+    void selectedRowsChanged(int lastRowSelected) override;
 };
