@@ -156,11 +156,16 @@ Track loadTrackFromJson(const juce::File& file)
                             Voice voice;
                             if (auto* vobj = v.getDynamicObject())
                             {
-                                voice.synthFunction = vobj->getProperty("synth_function_name").toString().toStdString();
-                                voice.isTransition = getPropertyWithDefault(vobj, "is_transition", false);
-                                if (auto* paramsObj = vobj->getProperty("params").getDynamicObject())
-                                    voice.params = *paramsObj;
-                                voice.description = vobj->getProperty("description").toString();
+
+                                voice.synthFunction =
+                                    vobj->getProperty("synth_function_name").toString().toStdString();
+                                voice.isTransition = vobj->getProperty("is_transition", false);
+                                if (auto* paramsObj =
+                                        vobj->getProperty("params").getDynamicObject())
+                                    voice.params = paramsObj->getProperties();
+                                voice.description =
+                                    vobj->getProperty("description").toString();
+
                             }
                             step.voices.push_back(std::move(voice));
                         }
@@ -251,7 +256,8 @@ bool saveTrackToJson(const Track& track, const juce::File& file)
             for (const auto& voice : step.voices)
             {
                 auto* vobj = new juce::DynamicObject();
-                vobj->setProperty("synth_function_name", voice.synthFunction);
+                vobj->setProperty("synth_function_name",
+                                   juce::String(voice.synthFunction));
                 vobj->setProperty("is_transition", voice.isTransition);
                 vobj->setProperty("params", namedValueSetToVar(voice.params));
                 vobj->setProperty("description", voice.description);
@@ -297,11 +303,16 @@ int loadExternalStepsFromJson(const juce::File& file, std::vector<Step>& steps)
                             Voice voice;
                             if (auto* vobj = v.getDynamicObject())
                             {
-                                voice.synthFunction = vobj->getProperty("synth_function_name").toString().toStdString();
-                                voice.isTransition = getPropertyWithDefault(vobj, "is_transition", false);
-                                if (auto* paramsObj = vobj->getProperty("params").getDynamicObject())
-                                    voice.params = *paramsObj;
-                                voice.description = vobj->getProperty("description").toString();
+
+                                voice.synthFunction =
+                                    vobj->getProperty("synth_function_name").toString().toStdString();
+                                voice.isTransition = vobj->getProperty("is_transition", false);
+                                if (auto* paramsObj =
+                                        vobj->getProperty("params").getDynamicObject())
+                                    voice.params = paramsObj->getProperties();
+                                voice.description =
+                                    vobj->getProperty("description").toString();
+
                             }
                             step.voices.push_back(std::move(voice));
                         }
