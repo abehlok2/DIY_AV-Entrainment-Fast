@@ -229,31 +229,40 @@ public:
     addAndMakeVisible(&numSweeps);
 
     for (int i = 0; i < 3; ++i) {
-      SweepControls sc;
-      sc.startMin.setRange(20, 20000, 1);
-      sc.startMax.setRange(20, 22050, 1);
-      sc.endMin.setRange(20, 20000, 1);
-      sc.endMax.setRange(20, 22050, 1);
-      sc.startMin.setValue(i == 0 ? 1000 : (i == 1 ? 500 : 1850));
-      sc.startMax.setValue(i == 0 ? 10000 : (i == 1 ? 1000 : 3350));
-      sc.endMin.setValue(sc.startMin.getValue());
-      sc.endMax.setValue(sc.startMax.getValue());
-      sc.startQ.setRange(1, 1000, 1);
-      sc.startQ.setValue(25);
-      sc.endQ.setRange(1, 1000, 1);
-      sc.endQ.setValue(25);
-      sc.startCasc.setRange(1, 20, 1);
-      sc.startCasc.setValue(10);
-      sc.endCasc.setRange(1, 20, 1);
-      sc.endCasc.setValue(10);
-      addAndMakeVisible(&sc.startMin);
-      addAndMakeVisible(&sc.endMin);
-      addAndMakeVisible(&sc.startMax);
-      addAndMakeVisible(&sc.endMax);
-      addAndMakeVisible(&sc.startQ);
-      addAndMakeVisible(&sc.endQ);
-      addAndMakeVisible(&sc.startCasc);
-      addAndMakeVisible(&sc.endCasc);
+      // FIX: Allocate SweepControls on the heap because it contains non-copyable
+      // juce::Slider members.
+      auto* sc = new SweepControls();
+
+      // FIX: Use the arrow operator (->) to access members of a pointer.
+      sc->startMin.setRange(20, 20000, 1);
+      sc->startMax.setRange(20, 22050, 1);
+      sc->endMin.setRange(20, 20000, 1);
+      sc->endMax.setRange(20, 22050, 1);
+      sc->startMin.setValue(i == 0 ? 1000 : (i == 1 ? 500 : 1850));
+      sc->startMax.setValue(i == 0 ? 10000 : (i == 1 ? 1000 : 3350));
+      sc->endMin.setValue(sc->startMin.getValue());
+      sc->endMax.setValue(sc->startMax.getValue());
+      sc->startQ.setRange(1, 1000, 1);
+      sc->startQ.setValue(25);
+      sc->endQ.setRange(1, 1000, 1);
+      sc->endQ.setValue(25);
+      sc->startCasc.setRange(1, 20, 1);
+      sc->startCasc.setValue(10);
+      sc->endCasc.setRange(1, 20, 1);
+      sc->endCasc.setValue(10);
+      
+      // FIX: Pass the address of the member sliders.
+      addAndMakeVisible(&sc->startMin);
+      addAndMakeVisible(&sc->endMin);
+      addAndMakeVisible(&sc->startMax);
+      addAndMakeVisible(&sc->endMax);
+      addAndMakeVisible(&sc->startQ);
+      addAndMakeVisible(&sc->endQ);
+      addAndMakeVisible(&sc->startCasc);
+      addAndMakeVisible(&sc->endCasc);
+
+      // FIX: Add the pointer to the OwnedArray, which now takes ownership.
+      // This avoids the illegal attempt to copy the object.
       sweepControls.add(sc);
     }
     updateSweepVisibility(1);
@@ -304,6 +313,7 @@ public:
   ~NoiseGeneratorDialog() override {
     transport.stop();
     transport.releaseResources();
+    // No need to manually delete sweepControls members, OwnedArray handles it.
   }
 
   void resized() override {
@@ -327,20 +337,21 @@ public:
     numSweeps.setBounds(x, y, w, h);
     y += h + 8;
     for (int i = 0; i < sweepControls.size(); ++i) {
-      auto &sc = sweepControls.getReference(i);
-      if (!sc.startMin.isVisible())
+      // FIX: Get a pointer from the array and use the arrow operator ->
+      auto *sc = sweepControls.getUnchecked(i);
+      if (!sc->startMin.isVisible())
         continue;
-      sc.startMin.setBounds(x, y, w / 4 - 2, h);
-      sc.endMin.setBounds(x + w / 4 + 2, y, w / 4 - 2, h);
+      sc->startMin.setBounds(x, y, w / 4 - 2, h);
+      sc->endMin.setBounds(x + w / 4 + 2, y, w / 4 - 2, h);
       y += h + 2;
-      sc.startMax.setBounds(x, y, w / 4 - 2, h);
-      sc.endMax.setBounds(x + w / 4 + 2, y, w / 4 - 2, h);
+      sc->startMax.setBounds(x, y, w / 4 - 2, h);
+      sc->endMax.setBounds(x + w / 4 + 2, y, w / 4 - 2, h);
       y += h + 2;
-      sc.startQ.setBounds(x, y, w / 4 - 2, h);
-      sc.endQ.setBounds(x + w / 4 + 2, y, w / 4 - 2, h);
+      sc->startQ.setBounds(x, y, w / 4 - 2, h);
+      sc->endQ.setBounds(x + w / 4 + 2, y, w / 4 - 2, h);
       y += h + 2;
-      sc.startCasc.setBounds(x, y, w / 4 - 2, h);
-      sc.endCasc.setBounds(x + w / 4 + 2, y, w / 4 - 2, h);
+      sc->startCasc.setBounds(x, y, w / 4 - 2, h);
+      sc->endCasc.setBounds(x + w / 4 + 2, y, w / 4 - 2, h);
       y += h + 8;
     }
     lfoPhaseStart.setBounds(x, y, w / 2 - 5, h);
@@ -377,7 +388,11 @@ private:
   Slider lfoStart{Slider::LinearHorizontal, Slider::TextBoxRight};
   Slider lfoEnd{Slider::LinearHorizontal, Slider::TextBoxRight};
   Slider numSweeps{Slider::LinearHorizontal, Slider::TextBoxRight};
-  Array<SweepControls> sweepControls;
+  
+  // FIX: Use juce::OwnedArray to store pointers to SweepControls objects,
+  // preventing the compiler from trying to copy non-copyable Sliders.
+  OwnedArray<SweepControls> sweepControls;
+
   Slider lfoPhaseStart{Slider::LinearHorizontal, Slider::TextBoxRight};
   Slider lfoPhaseEnd{Slider::LinearHorizontal, Slider::TextBoxRight};
   Slider intraPhaseStart{Slider::LinearHorizontal, Slider::TextBoxRight};
@@ -413,16 +428,17 @@ private:
     p.sweeps.clear();
     int n = (int)numSweeps.getValue();
     for (int i = 0; i < n && i < sweepControls.size(); ++i) {
-      const auto &sc = sweepControls.getReference(i);
+      // FIX: Get a pointer from the array and use the arrow operator ->
+      const auto *sc = sweepControls.getUnchecked(i);
       NoiseParams::Sweep s;
-      s.startMin = (int)sc.startMin.getValue();
-      s.endMin = (int)sc.endMin.getValue();
-      s.startMax = (int)sc.startMax.getValue();
-      s.endMax = (int)sc.endMax.getValue();
-      s.startQ = (int)sc.startQ.getValue();
-      s.endQ = (int)sc.endQ.getValue();
-      s.startCasc = (int)sc.startCasc.getValue();
-      s.endCasc = (int)sc.endCasc.getValue();
+      s.startMin = (int)sc->startMin.getValue();
+      s.endMin = (int)sc->endMin.getValue();
+      s.startMax = (int)sc->startMax.getValue();
+      s.endMax = (int)sc->endMax.getValue();
+      s.startQ = (int)sc->startQ.getValue();
+      s.endQ = (int)sc->endQ.getValue();
+      s.startCasc = (int)sc->startCasc.getValue();
+      s.endCasc = (int)sc->endCasc.getValue();
       p.sweeps.add(s);
     }
     return p;
@@ -430,16 +446,17 @@ private:
 
   void updateSweepVisibility(int count) {
     for (int i = 0; i < sweepControls.size(); ++i) {
-      auto &sc = sweepControls.getReference(i);
+      // FIX: Get a pointer from the array and use the arrow operator ->
+      auto *sc = sweepControls.getUnchecked(i);
       bool vis = i < count;
-      sc.startMin.setVisible(vis);
-      sc.endMin.setVisible(vis);
-      sc.startMax.setVisible(vis);
-      sc.endMax.setVisible(vis);
-      sc.startQ.setVisible(vis);
-      sc.endQ.setVisible(vis);
-      sc.startCasc.setVisible(vis);
-      sc.endCasc.setVisible(vis);
+      sc->startMin.setVisible(vis);
+      sc->endMin.setVisible(vis);
+      sc->startMax.setVisible(vis);
+      sc->endMax.setVisible(vis);
+      sc->startQ.setVisible(vis);
+      sc->endQ.setVisible(vis);
+      sc->startCasc.setVisible(vis);
+      sc->endCasc.setVisible(vis);
     }
   }
 
@@ -509,15 +526,16 @@ private:
     for (int i = 0; i < sweepControls.size(); ++i) {
       if (i < p.sweeps.size()) {
         const auto &s = p.sweeps.getReference(i);
-        auto &sc = sweepControls.getReference(i);
-        sc.startMin.setValue(s.startMin);
-        sc.endMin.setValue(s.endMin);
-        sc.startMax.setValue(s.startMax);
-        sc.endMax.setValue(s.endMax);
-        sc.startQ.setValue(s.startQ);
-        sc.endQ.setValue(s.endQ);
-        sc.startCasc.setValue(s.startCasc);
-        sc.endCasc.setValue(s.endCasc);
+        // FIX: Get a pointer from the array and use the arrow operator ->
+        auto *sc = sweepControls.getUnchecked(i);
+        sc->startMin.setValue(s.startMin);
+        sc->endMin.setValue(s.endMin);
+        sc->startMax.setValue(s.startMax);
+        sc->endMax.setValue(s.endMax);
+        sc->startQ.setValue(s.startQ);
+        sc->endQ.setValue(s.endQ);
+        sc->startCasc.setValue(s.startCasc);
+        sc->endCasc.setValue(s.endCasc);
       }
     }
     lfoPhaseStart.setValue(p.startLfoPhaseOffsetDeg);
