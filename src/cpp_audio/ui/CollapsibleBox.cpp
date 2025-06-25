@@ -6,7 +6,7 @@ CollapsibleBox::CollapsibleBox(const juce::String& titleIn)
     toggleButton.setClickingTogglesState(true);
     toggleButton.setToggleState(true, juce::dontSendNotification);
     toggleButton.addListener(this);
-    addAndMakeVisible(toggleButton);
+    addAndMakeVisible(&toggleButton);
     updateToggleState();
 }
 

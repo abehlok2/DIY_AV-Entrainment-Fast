@@ -4,23 +4,23 @@
 StepPreviewComponent::StepPreviewComponent(juce::AudioDeviceManager& dm)
     : previewer(dm)
 {
-    addAndMakeVisible(playPauseButton);
+    addAndMakeVisible(&playPauseButton);
     playPauseButton.addListener(this);
 
-    addAndMakeVisible(stopButton);
+    addAndMakeVisible(&stopButton);
     stopButton.addListener(this);
 
-    addAndMakeVisible(resetButton);
+    addAndMakeVisible(&resetButton);
     resetButton.addListener(this);
 
-    addAndMakeVisible(positionSlider);
+    addAndMakeVisible(&positionSlider);
     positionSlider.setSliderStyle(juce::Slider::LinearHorizontal);
     positionSlider.addListener(this);
 
-    addAndMakeVisible(timeLabel);
+    addAndMakeVisible(&timeLabel);
     timeLabel.setJustificationType(juce::Justification::centred);
 
-    addAndMakeVisible(stepLabel);
+    addAndMakeVisible(&stepLabel);
     stepLabel.setJustificationType(juce::Justification::centred);
     stepLabel.setText("No step loaded", juce::dontSendNotification);
 }

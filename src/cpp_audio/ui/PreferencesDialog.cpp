@@ -30,24 +30,24 @@ public:
     {
         setSize (420, 360);
 
-        addAndMakeVisible (fontFamilyLabel);
+        addAndMakeVisible (&fontFamilyLabel);
         fontFamilyLabel.setText ("Font Family:", dontSendNotification);
-        addAndMakeVisible (fontCombo);
+        addAndMakeVisible (&fontCombo);
         fontCombo.addItemList (Font::getAvailableFontNames(), 1);
         if (prefs.fontFamily.isNotEmpty())
             fontCombo.setText (prefs.fontFamily, dontSendNotification);
 
-        addAndMakeVisible (fontSizeLabel);
+        addAndMakeVisible (&fontSizeLabel);
         fontSizeLabel.setText ("Font Size:", dontSendNotification);
-        addAndMakeVisible (fontSizeSlider);
+        addAndMakeVisible (&fontSizeSlider);
         fontSizeSlider.setRange (6, 48, 1);
         fontSizeSlider.setSliderStyle (Slider::IncDecButtons);
         fontSizeSlider.setTextBoxStyle (Slider::TextBoxLeft, false, 60, 20);
         fontSizeSlider.setValue (prefs.fontSize);
 
-        addAndMakeVisible (themeLabel);
+        addAndMakeVisible (&themeLabel);
         themeLabel.setText ("Theme:", dontSendNotification);
-        addAndMakeVisible (themeCombo);
+        addAndMakeVisible (&themeCombo);
         themeCombo.addItem ("Dark", 1);
         themeCombo.addItem ("Green", 2);
         themeCombo.addItem ("light-blue", 3);
@@ -57,33 +57,33 @@ public:
         else
             themeCombo.setSelectedId (1);
 
-        addAndMakeVisible (exportLabel);
+        addAndMakeVisible (&exportLabel);
         exportLabel.setText ("Export Directory:", dontSendNotification);
-        addAndMakeVisible (exportEdit);
+        addAndMakeVisible (&exportEdit);
         exportEdit.setText (prefs.exportDir);
-        addAndMakeVisible (browseButton);
+        addAndMakeVisible (&browseButton);
         browseButton.setButtonText ("Browse");
         browseButton.addListener (this);
 
-        addAndMakeVisible (sampleRateLabel);
+        addAndMakeVisible (&sampleRateLabel);
         sampleRateLabel.setText ("Sample Rate (Hz):", dontSendNotification);
-        addAndMakeVisible (sampleRateSlider);
+        addAndMakeVisible (&sampleRateSlider);
         sampleRateSlider.setRange (8000, 192000, 1);
         sampleRateSlider.setSliderStyle (Slider::IncDecButtons);
         sampleRateSlider.setTextBoxStyle (Slider::TextBoxLeft, false, 80, 20);
         sampleRateSlider.setValue (prefs.sampleRate);
 
-        addAndMakeVisible (testDurationLabel);
+        addAndMakeVisible (&testDurationLabel);
         testDurationLabel.setText ("Test Step Duration (s):", dontSendNotification);
-        addAndMakeVisible (testDurationSlider);
+        addAndMakeVisible (&testDurationSlider);
         testDurationSlider.setRange (0.1, 600.0, 0.1);
         testDurationSlider.setSliderStyle (Slider::IncDecButtons);
         testDurationSlider.setTextBoxStyle (Slider::TextBoxLeft, false, 80, 20);
         testDurationSlider.setValue (prefs.testStepDuration);
 
-        addAndMakeVisible (targetAmpLabel);
+        addAndMakeVisible (&targetAmpLabel);
         targetAmpLabel.setText ("Target Output Amplitude:", dontSendNotification);
-        addAndMakeVisible (targetAmpSlider);
+        addAndMakeVisible (&targetAmpSlider);
         targetAmpSlider.setSliderStyle (Slider::IncDecButtons);
         targetAmpSlider.setTextBoxStyle (Slider::TextBoxLeft, false, 80, 20);
         if (ampMode == "dB")
@@ -98,33 +98,33 @@ public:
             targetAmpSlider.setValue (prefs.targetOutputAmplitude);
         }
 
-        addAndMakeVisible (ampModeLabel);
+        addAndMakeVisible (&ampModeLabel);
         ampModeLabel.setText ("Amplitude Display:", dontSendNotification);
-        addAndMakeVisible (ampModeCombo);
+        addAndMakeVisible (&ampModeCombo);
         ampModeCombo.addItem ("absolute", 1);
         ampModeCombo.addItem ("dB", 2);
         ampModeCombo.setSelectedId (ampMode == "dB" ? 2 : 1);
         ampModeCombo.addListener (this);
 
-        addAndMakeVisible (crossfadeCurveLabel);
+        addAndMakeVisible (&crossfadeCurveLabel);
         crossfadeCurveLabel.setText ("Crossfade Curve:", dontSendNotification);
-        addAndMakeVisible (crossfadeCurveCombo);
+        addAndMakeVisible (&crossfadeCurveCombo);
         crossfadeCurveCombo.addItem ("linear", 1);
         crossfadeCurveCombo.addItem ("equal_power", 2);
         crossfadeCurveCombo.setSelectedId (prefs.crossfadeCurve == "equal_power" ? 2 : 1);
 
         trackMetadataToggle.setButtonText ("Include track export metadata");
         trackMetadataToggle.setToggleState (prefs.trackMetadata, dontSendNotification);
-        addAndMakeVisible (trackMetadataToggle);
+        addAndMakeVisible (&trackMetadataToggle);
 
         applyTargetAmpToggle.setButtonText ("Apply Target Amplitude");
         applyTargetAmpToggle.setToggleState (prefs.applyTargetAmplitude, dontSendNotification);
-        addAndMakeVisible (applyTargetAmpToggle);
+        addAndMakeVisible (&applyTargetAmpToggle);
 
-        addAndMakeVisible (okButton);
+        addAndMakeVisible (&okButton);
         okButton.setButtonText ("OK");
         okButton.addListener (this);
-        addAndMakeVisible (cancelButton);
+        addAndMakeVisible (&cancelButton);
         cancelButton.setButtonText ("Cancel");
         cancelButton.addListener (this);
     }

@@ -9,7 +9,7 @@ StepListPanel::StepListPanel()
 public:
     StepListPanel()
     {
-        addAndMakeVisible(stepList);
+        addAndMakeVisible(&stepList);
         stepList.setModel(this);
 
         addButton.setButtonText("Add Step");
@@ -35,7 +35,7 @@ public:
 
         pushHistory();
 
-        addAndMakeVisible(totalDuration);
+        addAndMakeVisible(&totalDuration);
         totalDuration.setJustificationType(Justification::centredLeft);
 
         // start with an empty step list

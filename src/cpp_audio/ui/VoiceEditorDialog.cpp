@@ -12,9 +12,9 @@ class ParameterRow : public Component
 public:
     ParameterRow(const String& name, const String& value)
     {
-        addAndMakeVisible(nameLabel);
+        addAndMakeVisible(&nameLabel);
         nameLabel.setText(name, dontSendNotification);
-        addAndMakeVisible(valueEditor);
+        addAndMakeVisible(&valueEditor);
         valueEditor.setText(value);
     }
 
@@ -62,51 +62,51 @@ public:
         setUsingNativeTitleBar(true);
         setResizable(true, false);
 
-        addAndMakeVisible(funcLabel);
+        addAndMakeVisible(&funcLabel);
         funcLabel.setText("Synth Function", dontSendNotification);
 
-        addAndMakeVisible(funcCombo);
+        addAndMakeVisible(&funcCombo);
         for (int i = 0; i < synthNames.size(); ++i)
             funcCombo.addItem(synthNames[i], i + 1);
 
-        addAndMakeVisible(transitionToggle);
+        addAndMakeVisible(&transitionToggle);
         transitionToggle.setButtonText("Is Transition");
 
-        addAndMakeVisible(paramsLabel);
+        addAndMakeVisible(&paramsLabel);
         paramsLabel.setText("Parameters", dontSendNotification);
-        addAndMakeVisible(addParamButton);
+        addAndMakeVisible(&addParamButton);
         addParamButton.setButtonText("Add Param");
         addParamButton.addListener(this);
-        addAndMakeVisible(paramsViewport);
+        addAndMakeVisible(&paramsViewport);
         paramsViewport.setViewedComponent(&paramsContainer, false);
 
-        addAndMakeVisible(envLabel);
+        addAndMakeVisible(&envLabel);
         envLabel.setText("Volume Envelope", dontSendNotification);
-        addAndMakeVisible(envTypeCombo);
+        addAndMakeVisible(&envTypeCombo);
         envTypeCombo.addItem("None", 1);
         envTypeCombo.addItem("linear_fade", 2);
         envTypeCombo.onChange = [this] { rebuildEnvelopeUI(); };
-        addAndMakeVisible(envViewport);
+        addAndMakeVisible(&envViewport);
         envViewport.setViewedComponent(&envContainer, false);
 
-        addAndMakeVisible(refStepCombo);
-        addAndMakeVisible(refVoiceCombo);
-        addAndMakeVisible(refDetails);
+        addAndMakeVisible(&refStepCombo);
+        addAndMakeVisible(&refVoiceCombo);
+        addAndMakeVisible(&refDetails);
         refDetails.setMultiLine(true);
         refDetails.setReadOnly(true);
         refDetails.setScrollbarsShown(true);
 
-        addAndMakeVisible(descLabel);
+        addAndMakeVisible(&descLabel);
         descLabel.setText("Description", dontSendNotification);
-        addAndMakeVisible(descEditor);
+        addAndMakeVisible(&descEditor);
         descEditor.setMultiLine(true);
         descEditor.setReturnKeyStartsNewLine(true);
 
-        addAndMakeVisible(okButton);
+        addAndMakeVisible(&okButton);
         okButton.setButtonText("OK");
         okButton.addListener(this);
 
-        addAndMakeVisible(cancelButton);
+        addAndMakeVisible(&cancelButton);
         cancelButton.setButtonText("Cancel");
         cancelButton.addListener(this);
 
