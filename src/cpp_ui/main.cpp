@@ -9,6 +9,7 @@ using namespace juce;
 // Forward declarations for UI components that will be implemented later.
 class StepListPanel;
 class StepConfigPanel;
+#include "OverlayClipPanel.h"
 
 class MainComponent : public Component,
                       private Button::Listener
@@ -17,13 +18,17 @@ public:
     MainComponent()
     {
         setSize (800, 600);
+        addAndMakeVisible(overlayPanel);
         addAndMakeVisible(subliminalButton);
         subliminalButton.addListener(this);
         subliminalButton.setButtonText("Add Subliminal Voice");
+
     }
 
     void resized() override
     {
+        overlayPanel.setBounds(getLocalBounds().reduced(8));
+
         subliminalButton.setBounds(10, 10, 160, 30);
     }
 
@@ -49,7 +54,11 @@ private:
                 DBG("Subliminal voice added: " << voice.description);
             }
         }
+
     }
+
+private:
+    OverlayClipPanel overlayPanel;
 };
 
 class MainWindow : public DocumentWindow

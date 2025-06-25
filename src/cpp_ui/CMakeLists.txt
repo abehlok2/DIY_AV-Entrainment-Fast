@@ -18,6 +18,8 @@ juce_add_gui_app(diy_av_ui_cpp
         FrequencyTesterDialog.cpp
         NoiseGeneratorDialog.cpp
         OverlayClipDialog.cpp
+        OverlayClipPanel.h
+        OverlayClipPanel.cpp
         PreferencesDialog.cpp
         SubliminalDialog.cpp
         VoiceEditorDialog.cpp
