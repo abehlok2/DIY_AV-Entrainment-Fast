@@ -1,5 +1,6 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <map>
+#include "Themes.h"
 
 using namespace juce;
 
