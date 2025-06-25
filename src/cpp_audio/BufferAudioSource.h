@@ -53,7 +53,7 @@ public:
     juce::int64 getTotalLength() const override { return buffer.getNumSamples(); }
     bool isLooping() const override { return looping; }
     void setLooping(bool shouldLoop) override { looping = shouldLoop; }
-    bool isReady() const override { return buffer.getNumSamples() > 0; }
+    bool isReady() const { return buffer.getNumSamples() > 0; }
 
 private:
     juce::AudioBuffer<float> buffer;
