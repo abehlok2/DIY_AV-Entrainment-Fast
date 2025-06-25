@@ -27,9 +27,34 @@ struct GlobalSettings
     juce::String crossfadeCurve { "linear" };
 };
 
+struct BackgroundNoise
+{
+    juce::String filePath;
+    double amp { 0.0 };
+    double pan { 0.0 };
+    double startTime { 0.0 };
+    double fadeIn { 0.0 };
+    double fadeOut { 0.0 };
+    std::vector<std::pair<double, double>> ampEnvelope;
+};
+
+struct Clip
+{
+    juce::String filePath;
+    juce::String description;
+    double start { 0.0 };
+    double duration { 0.0 };
+    double amp { 1.0 };
+    double pan { 0.0 };
+    double fadeIn { 0.0 };
+    double fadeOut { 0.0 };
+};
+
 struct Track
 {
     GlobalSettings settings;
+    BackgroundNoise backgroundNoise;
+    std::vector<Clip> clips;
     std::vector<Step> steps;
 };
 
