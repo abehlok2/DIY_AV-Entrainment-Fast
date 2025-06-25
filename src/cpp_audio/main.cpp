@@ -5,7 +5,7 @@
 
 int main (int argc, char* argv[])
 {
-    juce::ConsoleApplication app (argc, argv);
+    juce::ConsoleApplication app;
 
     if (argc < 2 || argc > 4)
     {
