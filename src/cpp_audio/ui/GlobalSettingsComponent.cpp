@@ -125,9 +125,12 @@ void GlobalSettingsComponent::buttonClicked(Button *b) {
   } else if (b == &noiseGenButton) {
     DialogWindow::LaunchOptions opts;
 
-    // FIXED: Assign the std::unique_ptr directly.
-    // The OptionalScopedPointer will take ownership from it.
-    opts.content = createNoiseGeneratorDialog();
+    // THE DEFINITIVE FIX:
+    // Use static_cast to explicitly convert the derived pointer
+    // (NoiseGeneratorDialog*) to the base pointer (Component*) that setOwned()
+    // expects.
+    opts.content.setOwned(
+        static_cast<Component *>(createNoiseGeneratorDialog().release()));
 
     opts.dialogTitle = "Noise Generator";
     opts.dialogBackgroundColour = Colours::lightgrey;
