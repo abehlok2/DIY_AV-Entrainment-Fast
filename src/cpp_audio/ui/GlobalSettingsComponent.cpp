@@ -123,6 +123,7 @@ void GlobalSettingsComponent::buttonClicked(Button *b) {
     if (chooser.browseForFileToOpen())
       noiseFileEdit.setText(chooser.getResult().getFullPathName());
   } else if (b == &noiseGenButton) {
+    auto dialog = createNoiseGeneratorDialog();
     DialogWindow::LaunchOptions opts;
 
     opts.content.setOwned(dialog.release());
