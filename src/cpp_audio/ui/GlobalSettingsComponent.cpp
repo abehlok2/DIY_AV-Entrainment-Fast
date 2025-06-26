@@ -123,11 +123,11 @@ void GlobalSettingsComponent::buttonClicked(Button *b) {
     if (chooser.browseForFileToOpen())
       noiseFileEdit.setText(chooser.getResult().getFullPathName());
   } else if (b == &noiseGenButton) {
-    auto dialog = createNoiseGeneratorDialog();
     DialogWindow::LaunchOptions opts;
 
-    // FIXED: Use .reset() to assign a raw pointer to a smart pointer.
-    opts.content.reset(dialog.release());
+    // FIXED: Assign the std::unique_ptr directly.
+    // The OptionalScopedPointer will take ownership from it.
+    opts.content = createNoiseGeneratorDialog();
 
     opts.dialogTitle = "Noise Generator";
     opts.dialogBackgroundColour = Colours::lightgrey;
