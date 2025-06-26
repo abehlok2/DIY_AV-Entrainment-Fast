@@ -63,6 +63,7 @@ from ui.subliminal_dialog import SubliminalDialog
 from utils.timeline_visualizer import visualize_track_timeline
 from ui.overlay_clip_dialog import OverlayClipDialog
 from ui.collapsible_box import CollapsibleBox
+from ui.simulator import SimulatorWindow
 from models import StepModel, VoiceModel
 
 # Attempt to import VoiceEditorDialog. Handle if ui/voice_editor_dialog.py is not found.
@@ -192,6 +193,9 @@ class TrackEditorApp(QMainWindow):
         self.track_data = self._get_default_track_data()
         self.current_json_path = None
 
+        # Simulator window (lazy-loaded)
+        self.simulator_window = None
+
         # Validators (reusable)
         self.int_validator_positive = QIntValidator(1, 999999, self)
         self.double_validator_non_negative = QDoubleValidator(0.0, 999999.0, 6, self)
@@ -306,6 +310,11 @@ class TrackEditorApp(QMainWindow):
             act.triggered.connect(partial(self.set_theme, name))
             theme_menu.addAction(act)
 
+        simulator_menu = menubar.addMenu("Simulator")
+        simulator_act = QAction("Open Simulator", self)
+        simulator_act.triggered.connect(self.open_simulator)
+        simulator_menu.addAction(simulator_act)
+
         edit_menu = menubar.addMenu("Edit")
         self.undo_act = QAction("Undo", self)
         self.undo_act.setShortcut("Ctrl+Z")
@@ -374,6 +383,13 @@ class TrackEditorApp(QMainWindow):
                 QTimer.singleShot(0, lambda: self._select_last_voice_in_current_step())
             self._push_history_state()
 
+    def open_simulator(self):
+        if self.simulator_window is None:
+            self.simulator_window = SimulatorWindow(self)
+        self.simulator_window.show()
+        self.simulator_window.raise_()
+        self.simulator_window.activateWindow()
+
     def _setup_ui(self):
         """Setup the widget-based interface."""
         self._setup_widget_ui()
@@ -434,6 +450,10 @@ class TrackEditorApp(QMainWindow):
         self.open_timeline_button = QPushButton("View Timeline")
         self.open_timeline_button.clicked.connect(self.open_timeline_visualizer)
         tools_left_layout.addWidget(self.open_timeline_button)
+
+        self.open_simulator_button = QPushButton("Open Simulator")
+        self.open_simulator_button.clicked.connect(self.open_simulator)
+        tools_left_layout.addWidget(self.open_simulator_button)
         tools_left_layout.addStretch(1)
 
         self.new_file_button = QPushButton("New File")
