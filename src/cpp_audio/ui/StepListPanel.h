@@ -1,61 +1,60 @@
 #pragma once
-#include <juce_gui_basics/juce_gui_basics.h>
 #include <functional>
+#include <juce_gui_basics/juce_gui_basics.h>
 
 class StepListPanel : public juce::Component,
                       private juce::ListBoxModel,
-                      private juce::ListBox::Listener,
-                      private juce::Button::Listener
-{
+                      private juce::Button::Listener {
 public:
-    StepListPanel();
-    ~StepListPanel() override;
+  // The StepData struct needs to be public so that getSteps() can return it.
+  struct StepData {
+    juce::String description{"New Step"};
+    double duration{10.0};
+  };
 
-    int getNumRows() override;
-    void paintListBoxItem(int row, juce::Graphics&, int width, int height, bool rowIsSelected) override;
-    void resized() override;
-    bool keyPressed(const juce::KeyPress&) override;
+  StepListPanel();
+  ~StepListPanel() override;
 
-    // Expose undo/redo functionality
-    void undo();
-    void redo();
-    bool canUndo() const;
-    bool canRedo() const;
+  int getNumRows() override;
+  void paintListBoxItem(int row, juce::Graphics &g, int width, int height,
+                        bool rowIsSelected) override;
+  void resized() override;
+  bool keyPressed(const juce::KeyPress &key) override;
 
-    // Access steps and selection
-    const juce::Array<StepData>& getSteps() const { return steps; }
-    int getSelectedIndex() const { return stepList.getSelectedRow(); }
+  // Expose undo/redo functionality
+  void undo();
+  void redo();
+  bool canUndo() const;
+  bool canRedo() const;
 
-    std::function<void(int)> onStepSelected;
+  // Access steps and selection
+  const juce::Array<StepData> &getSteps() const { return steps; }
+  int getSelectedIndex() const { return stepList.getSelectedRow(); }
+
+  std::function<void(int)> onStepSelected;
 
 private:
-    // UI components
-    juce::ListBox stepList;
-    juce::TextButton addButton, loadButton, dupButton, removeButton,
-                     editDurationButton, editDescriptionButton,
-                     upButton, downButton, undoButton, redoButton;
-    juce::Label totalDuration;
+  // UI components
+  juce::ListBox stepList;
+  juce::TextButton addButton, loadButton, dupButton, removeButton,
+      editDurationButton, editDescriptionButton, upButton, downButton,
+      undoButton, redoButton;
+  juce::Label totalDuration;
 
-    struct StepData
-    {
-        juce::String description { "New Step" };
-        double duration { 10.0 };
-    };
+  juce::Array<StepData> steps;
+  juce::Array<juce::Array<StepData>> history;
+  int historyIndex{-1};
 
-    juce::Array<StepData> steps;
-    juce::Array< juce::Array<StepData> > history;
-    int historyIndex { -1 };
-
-    void buttonClicked(juce::Button*) override;
-    void addStep();
-    void loadExternalSteps();
-    void duplicateStep();
-    void removeStep();
-    void moveStep(int delta);
-    void editStepDuration();
-    void editStepDescription();
-    void updateDuration();
-    void pushHistory();
-    void updateUndoRedoButtons();
-    void selectedRowsChanged(int lastRowSelected) override;
+  void buttonClicked(juce::Button *b) override;
+  void addStep();
+  void loadExternalSteps();
+  void duplicateStep();
+  void removeStep();
+  void moveStep(int delta);
+  void editStepDuration();
+  void editStepDescription();
+  void updateDuration();
+  void pushHistory();
+  void updateUndoRedoButtons();
+  void selectedRowsChanged(int lastRowSelected) override;
 };
