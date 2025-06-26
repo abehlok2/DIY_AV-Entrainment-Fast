@@ -1,7 +1,16 @@
+
 #include "GlobalSettingsComponent.h"
-#include "NoiseGeneratorDialog.h"
+#include "NoiseGeneratorDialog.h" // Include the full dialog implementation here
 
 using namespace juce;
+
+// This function needs to be defined. For now, it returns a new instance.
+// You might have this defined elsewhere, but it's needed for the example to be
+// complete.
+std::unique_ptr<NoiseGeneratorDialog>
+GlobalSettingsComponent::createNoiseGeneratorDialog() {
+  return std::make_unique<NoiseGeneratorDialog>();
+}
 
 GlobalSettingsComponent::GlobalSettingsComponent() {
   addAndMakeVisible(&srLabel);
@@ -18,12 +27,14 @@ GlobalSettingsComponent::GlobalSettingsComponent() {
   outFileLabel.setText("Output File:", dontSendNotification);
   addAndMakeVisible(&outFileEdit);
   addAndMakeVisible(&browseOutButton);
+  browseOutButton.setButtonText("...");
   browseOutButton.addListener(this);
 
   addAndMakeVisible(&noiseFileLabel);
   noiseFileLabel.setText("Noise Preset:", dontSendNotification);
   addAndMakeVisible(&noiseFileEdit);
   addAndMakeVisible(&browseNoiseButton);
+  browseNoiseButton.setButtonText("...");
   browseNoiseButton.addListener(this);
 
   addAndMakeVisible(&noiseAmpLabel);
@@ -32,6 +43,7 @@ GlobalSettingsComponent::GlobalSettingsComponent() {
   noiseAmpEdit.setText("0.0");
 
   addAndMakeVisible(&noiseGenButton);
+  noiseGenButton.setButtonText("Generate Noise Preset...");
   noiseGenButton.addListener(this);
 }
 
@@ -52,43 +64,51 @@ GlobalSettingsComponent::Settings GlobalSettingsComponent::getSettings() const {
 }
 
 void GlobalSettingsComponent::setSettings(const Settings &s) {
-  srEdit.setText(juce::String(s.sampleRate));
-  cfEdit.setText(juce::String(s.crossfadeSeconds));
+  srEdit.setText(String(s.sampleRate));
+  cfEdit.setText(String(s.crossfadeSeconds));
   outFileEdit.setText(s.outputFile);
   noiseFileEdit.setText(s.noiseFile);
-  noiseAmpEdit.setText(juce::String(s.noiseAmp));
+  noiseAmpEdit.setText(String(s.noiseAmp));
 }
 
 void GlobalSettingsComponent::resized() {
   auto area = getLocalBounds().reduced(4);
   const int labelW = 100;
-  const int buttonW = 80;
+  const int buttonW = 30;
   const int rowH = 24;
+  const int gap = 4;
 
-  auto row = area.removeFromTop(rowH);
-  srLabel.setBounds(row.removeFromLeft(labelW));
-  srEdit.setBounds(row);
+  auto row1 = area.removeFromTop(rowH);
+  srLabel.setBounds(row1.removeFromLeft(labelW));
+  srEdit.setBounds(row1);
 
-  row = area.removeFromTop(rowH);
-  cfLabel.setBounds(row.removeFromLeft(labelW));
-  cfEdit.setBounds(row);
+  area.removeFromTop(gap);
 
-  row = area.removeFromTop(rowH);
-  outFileLabel.setBounds(row.removeFromLeft(labelW));
-  browseOutButton.setBounds(row.removeFromRight(buttonW));
-  outFileEdit.setBounds(row);
+  auto row2 = area.removeFromTop(rowH);
+  cfLabel.setBounds(row2.removeFromLeft(labelW));
+  cfEdit.setBounds(row2);
 
-  row = area.removeFromTop(rowH);
-  noiseFileLabel.setBounds(row.removeFromLeft(labelW));
-  browseNoiseButton.setBounds(row.removeFromRight(buttonW));
-  noiseFileEdit.setBounds(row);
+  area.removeFromTop(gap);
 
-  row = area.removeFromTop(rowH);
-  noiseAmpLabel.setBounds(row.removeFromLeft(labelW));
-  noiseAmpEdit.setBounds(row);
+  auto row3 = area.removeFromTop(rowH);
+  outFileLabel.setBounds(row3.removeFromLeft(labelW));
+  browseOutButton.setBounds(row3.removeFromRight(buttonW));
+  outFileEdit.setBounds(row3);
 
-  row = area.removeFromTop(rowH);
-  noiseGenButton.setBounds(row);
+  area.removeFromTop(gap);
+
+  auto row4 = area.removeFromTop(rowH);
+  noiseFileLabel.setBounds(row4.removeFromLeft(labelW));
+  browseNoiseButton.setBounds(row4.removeFromRight(buttonW));
+  noiseFileEdit.setBounds(row4);
+
+  area.removeFromTop(gap);
+
+  auto row5 = area.removeFromTop(rowH);
+  noiseAmpLabel.setBounds(row5.removeFromLeft(labelW));
+  noiseAmpEdit.setBounds(row5);
+
+  noiseGenButton.setBounds(area.removeFromTop(rowH));
 }
 
 void GlobalSettingsComponent::buttonClicked(Button *b) {
@@ -103,8 +123,8 @@ void GlobalSettingsComponent::buttonClicked(Button *b) {
     if (chooser.browseForFileToOpen())
       noiseFileEdit.setText(chooser.getResult().getFullPathName());
   } else if (b == &noiseGenButton) {
-    auto dialog = createNoiseGeneratorDialog();
     DialogWindow::LaunchOptions opts;
+
     opts.content.setOwned(dialog.release());
     opts.dialogTitle = "Noise Generator";
     opts.dialogBackgroundColour = Colours::lightgrey;

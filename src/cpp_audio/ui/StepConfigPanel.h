@@ -15,12 +15,13 @@ public:
 
 private:
     juce::ListBox voiceList;
-    juce::TextButton addButton, dupButton, removeButton, upButton, downButton;
+    juce::TextButton addButton, dupButton, removeButton, editButton, upButton, downButton;
     juce::StringArray voices;
 
     void buttonClicked(juce::Button*) override;
     void addVoice();
     void duplicateVoice();
     void removeVoice();
+    void editVoice();
     void moveVoice(int delta);
 };
