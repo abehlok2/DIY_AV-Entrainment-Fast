@@ -163,7 +163,7 @@ void StepListPanel::removeStep() {
     steps.remove(row);
     if (row > 0)
       stepList.selectRow(row - 1);
-    else if (steps.isNotEmpty())
+    else if (! steps.isEmpty())
       stepList.selectRow(0);
     pushHistory();
   }

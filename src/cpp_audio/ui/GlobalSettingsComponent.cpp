@@ -105,7 +105,7 @@ void GlobalSettingsComponent::buttonClicked(Button *b) {
   } else if (b == &noiseGenButton) {
     auto dialog = createNoiseGeneratorDialog();
     DialogWindow::LaunchOptions opts;
-    opts.content = dialog.release();
+    opts.content.setOwned(dialog.release());
     opts.dialogTitle = "Noise Generator";
     opts.dialogBackgroundColour = Colours::lightgrey;
     opts.escapeKeyTriggersCloseButton = true;
