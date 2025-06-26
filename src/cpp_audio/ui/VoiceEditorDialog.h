@@ -2,16 +2,19 @@
 #include <juce_core/juce_core.h>
 #include <vector>
 
-struct VoiceEditorDialog
+class VoiceEditorDialog
 {
-    struct VoiceData
-    {
-        juce::String synthFunction;
-        bool isTransition = false;
-        juce::var params;
-        juce::var volumeEnvelope;
-        juce::String description;
-    };
+public:
+    struct VoiceData;
+};
+
+struct VoiceEditorDialog::VoiceData
+{
+    juce::String synthFunction;
+    bool isTransition = false;
+    juce::var params;
+    juce::var volumeEnvelope;
+    juce::String description;
 };
 
 VoiceEditorDialog::VoiceData showVoiceEditor(const juce::StringArray& synthNames,
