@@ -82,7 +82,7 @@ set(SOURCES
 #--------------------------------------------------
 # 3) Create the executable
 #--------------------------------------------------
-add_executable(AudioApp ${SOURCES})
+add_executable(AudioApp WIN32 ${SOURCES})
 
 # Include headers from your code tree
 target_include_directories(AudioApp
