@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <juce_gui_basics/juce_gui_basics.h>
+#include "StepConfigPanel.h"
 
 class StepListPanel : public juce::Component,
                       private juce::ListBoxModel,
@@ -10,6 +11,7 @@ public:
   struct StepData {
     juce::String description{"New Step"};
     double duration{10.0};
+    juce::Array<VoiceEditorDialog::VoiceData> voices;
   };
 
   StepListPanel();
@@ -37,8 +39,8 @@ private:
   // UI components
   juce::ListBox stepList;
   juce::TextButton addButton, loadButton, dupButton, removeButton,
-      editDurationButton, editDescriptionButton, upButton, downButton,
-      undoButton, redoButton;
+      editDurationButton, editDescriptionButton, editVoicesButton, upButton,
+      downButton, undoButton, redoButton;
   juce::Label totalDuration;
 
   juce::Array<StepData> steps;
@@ -51,6 +53,7 @@ private:
   void duplicateStep();
   void removeStep();
   void moveStep(int delta);
+  void openStepConfig();
   void editStepDuration();
   void editStepDescription();
   void updateDuration();

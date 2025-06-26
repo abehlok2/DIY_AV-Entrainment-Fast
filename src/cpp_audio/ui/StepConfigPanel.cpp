@@ -41,7 +41,9 @@ void StepConfigPanel::paintListBoxItem(int row, Graphics& g, int width, int heig
     if (isPositiveAndBelow(row, voices.size()))
     {
         g.setColour(Colours::black);
-        g.drawText(voices[row], 4, 0, width - 4, height, Justification::centredLeft);
+        auto label = voices[row].description.isNotEmpty() ? voices[row].description
+                                                          : voices[row].synthFunction;
+        g.drawText(label, 4, 0, width - 4, height, Justification::centredLeft);
     }
 }
 
@@ -77,12 +79,25 @@ void StepConfigPanel::buttonClicked(Button* b)
 
     voiceList.updateContent();
     voiceList.repaint();
+    if (onVoicesChanged)
+        onVoicesChanged();
 }
 
 void StepConfigPanel::addVoice()
 {
-    voices.add("Voice " + String(voices.size() + 1));
-    voiceList.selectRow(voices.size() - 1);
+    juce::StringArray synthNames;
+    synthNames.add("binaural_beat");
+    synthNames.add("isochronic_tone");
+
+    bool ok = false;
+    auto data = showVoiceEditor(synthNames, nullptr, nullptr, &ok);
+    if (ok)
+    {
+        voices.add(data);
+        voiceList.selectRow(voices.size() - 1);
+        if (onVoicesChanged)
+            onVoicesChanged();
+    }
 }
 
 void StepConfigPanel::duplicateVoice()
@@ -90,8 +105,12 @@ void StepConfigPanel::duplicateVoice()
     int row = voiceList.getSelectedRow();
     if (isPositiveAndBelow(row, voices.size()))
     {
-        voices.insert(row + 1, voices[row] + " (Copy)");
+        auto copy = voices[row];
+        copy.description = copy.description + " (Copy)";
+        voices.insert(row + 1, copy);
         voiceList.selectRow(row + 1);
+        if (onVoicesChanged)
+            onVoicesChanged();
     }
 }
 
@@ -103,6 +122,8 @@ void StepConfigPanel::removeVoice()
         voices.remove(row);
         if (row > 0)
             voiceList.selectRow(row - 1);
+        if (onVoicesChanged)
+            onVoicesChanged();
     }
 }
 
@@ -114,6 +135,8 @@ void StepConfigPanel::moveVoice(int delta)
     {
         voices.move(row, target);
         voiceList.selectRow(target);
+        if (onVoicesChanged)
+            onVoicesChanged();
     }
 }
 
@@ -128,11 +151,23 @@ void StepConfigPanel::editVoice()
     synthNames.add("isochronic_tone");
 
     bool ok = false;
-    auto data = showVoiceEditor(synthNames, nullptr, nullptr, &ok);
+    auto data = showVoiceEditor(synthNames, &voices.getReference(row), nullptr, &ok);
     if (ok)
     {
-        juce::String label = data.description.isNotEmpty() ? data.description
-                                                            : data.synthFunction;
-        voices.set(row, label);
+        voices.getReference(row) = data;
+        if (onVoicesChanged)
+            onVoicesChanged();
     }
+}
+
+void StepConfigPanel::setVoices(const juce::Array<VoiceEditorDialog::VoiceData>& v)
+{
+    voices = v;
+    voiceList.updateContent();
+    voiceList.repaint();
+}
+
+juce::Array<VoiceEditorDialog::VoiceData> StepConfigPanel::getVoices() const
+{
+    return voices;
 }
