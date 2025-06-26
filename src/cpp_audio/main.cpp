@@ -9,6 +9,8 @@
 #include "ui/StepListPanel.h"
 #include "ui/StepPreviewComponent.h"
 #include "Track.h"
+#include "ui/PreferencesDialog.h"
+#include "ui/Themes.h"
 
 class MainComponent : public juce::Component
 {
@@ -95,13 +97,19 @@ public:
 
     void initialise (const juce::String&) override
     {
+        juce::Desktop::getInstance().setDefaultLookAndFeel(&lookAndFeel);
+        applyTheme(lookAndFeel, prefs.theme);
         mainWindow.reset(new MainWindow(getApplicationName()));
+        showPreferencesDialog(prefs);
+        applyTheme(lookAndFeel, prefs.theme);
     }
 
     void shutdown() override { mainWindow = nullptr; }
 
 private:
     std::unique_ptr<MainWindow> mainWindow;
+    juce::LookAndFeel_V4 lookAndFeel;
+    Preferences prefs;
 };
 
 START_JUCE_APPLICATION(AudioApplication)

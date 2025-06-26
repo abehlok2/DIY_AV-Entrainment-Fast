@@ -2,6 +2,7 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include <cmath>
 #include "Preferences.h"
+#include "Themes.h"
 #include "PreferencesDialog.h"
 
 using namespace juce;
@@ -297,6 +298,8 @@ bool showPreferencesDialog (Preferences& prefs)
     if (result != 0 && dialog.wasAccepted())
     {
         prefs = dialog.getPreferences();
+        if (auto* lf = dynamic_cast<LookAndFeel_V4*>(&Desktop::getInstance().getDefaultLookAndFeel()))
+            applyTheme(*lf, prefs.theme);
         return true;
     }
     return false;
