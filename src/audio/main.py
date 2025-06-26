@@ -32,6 +32,7 @@ from PyQt5.QtWidgets import (
     QAbstractItemView,
     QAction,
     QProgressBar,
+    QToolBar,
 )
 
 from PyQt5.QtCore import Qt, pyqtSlot, QTimer, QBuffer, QIODevice, QItemSelectionModel
@@ -339,6 +340,10 @@ class TrackEditorApp(QMainWindow):
         freq_test_act.triggered.connect(self.open_frequency_tester)
         tools_menu.addAction(freq_test_act)
 
+        overlay_act = QAction("Add Overlay Clip", self)
+        overlay_act.triggered.connect(self.open_overlay_clip_dialog)
+        tools_menu.addAction(overlay_act)
+
         subliminal_act = QAction("Add Subliminal Voice", self)
         subliminal_act.triggered.connect(self.open_subliminal_dialog)
         tools_menu.addAction(subliminal_act)
@@ -347,6 +352,14 @@ class TrackEditorApp(QMainWindow):
         timeline_act.triggered.connect(self.open_timeline_visualizer)
         tools_menu.addAction(timeline_act)
         self._update_undo_redo_actions_state()
+
+        # --- Toolbar with common actions ---
+        toolbar = QToolBar("Main Toolbar", self)
+        self.addToolBar(toolbar)
+        toolbar.addAction(pref_act)
+        toolbar.addAction(freq_test_act)
+        toolbar.addAction(overlay_act)
+        toolbar.addAction(subliminal_act)
 
 
     def set_theme(self, name):
@@ -389,6 +402,14 @@ class TrackEditorApp(QMainWindow):
     def open_frequency_tester(self):
         dialog = FrequencyTesterDialog(self, self.prefs)
         dialog.exec_()
+
+    def open_overlay_clip_dialog(self):
+        dialog = OverlayClipDialog(self)
+        if dialog.exec_() == QDialog.Accepted:
+            clip = dialog.get_clip_data()
+            self.track_data.setdefault("clips", []).append(clip)
+            self.refresh_clips_tree()
+            self._push_history_state()
 
     def open_subliminal_dialog(self):
         selected_step_index = self.get_selected_step_index()
