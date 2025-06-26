@@ -316,6 +316,23 @@ class TrackEditorApp(QMainWindow):
         self.redo_act.setShortcut("Ctrl+Y")
         self.redo_act.triggered.connect(self.redo)
         edit_menu.addAction(self.redo_act)
+
+        tools_menu = menubar.addMenu("Tools")
+        noise_act = QAction("Noise Generator", self)
+        noise_act.triggered.connect(self.open_noise_generator)
+        tools_menu.addAction(noise_act)
+
+        freq_test_act = QAction("Frequency Tester", self)
+        freq_test_act.triggered.connect(self.open_frequency_tester)
+        tools_menu.addAction(freq_test_act)
+
+        subliminal_act = QAction("Add Subliminal Voice", self)
+        subliminal_act.triggered.connect(self.open_subliminal_dialog)
+        tools_menu.addAction(subliminal_act)
+
+        timeline_act = QAction("View Timeline", self)
+        timeline_act.triggered.connect(self.open_timeline_visualizer)
+        tools_menu.addAction(timeline_act)
         self._update_undo_redo_actions_state()
 
 

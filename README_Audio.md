@@ -73,6 +73,11 @@ duration adapts to the step length:
 This behaviour ensures that very long steps do not delay the preview yet short
 steps can still be heard in full.
 
+### Frequency Tester
+Use **Tools → Frequency Tester** to quickly audition up to ten binaural voices
+without creating a full track. Each voice allows custom base frequency, beat
+frequency, and amplitude using the current preference for absolute level or dB.
+
 ## C++ Port
 A minimal C++ implementation using JUCE lives in `src/cpp_audio`. Build it with CMake and ensure JUCE is available on your system. The GUI portion now resides under `src/cpp_audio/ui` and links directly to the same audio library to provide an integrated editor application.
 
