@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NoiseParams.h" // Assuming NoiseParams is separated or defined here
+#include "../models/NoiseParams.h" // Assuming NoiseParams is separated or defined here
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <juce_gui_extra/juce_gui_extra.h>
 
