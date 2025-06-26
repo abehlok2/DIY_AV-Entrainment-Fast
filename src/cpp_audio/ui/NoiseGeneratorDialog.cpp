@@ -105,12 +105,24 @@ static AudioBuffer<float> generateNoiseBuffer(const NoiseParams &p) {
   Array<var> startSweeps, endSweeps, sweeps, startQ, endQ, startCasc, endCasc;
 
   for (const auto &s : p.sweeps) {
-    startSweeps.add(var(new DynamicObject{{"start_min", s.startMin},
-                                          {"start_max", s.startMax}}));
-    endSweeps.add(
-        var(new DynamicObject{{"end_min", s.endMin}, {"end_max", s.endMax}}));
-    sweeps.add(var(new DynamicObject{{"start_min", s.startMin},
-                                     {"start_max", s.startMax}}));
+    // --- FIX START ---
+    // Create DynamicObjects for the start, end, and continuous sweeps
+    auto *startSweepObj = new DynamicObject();
+    startSweepObj->setProperty("start_min", s.startMin);
+    startSweepObj->setProperty("start_max", s.startMax);
+    startSweeps.add(var(startSweepObj));
+
+    auto *endSweepObj = new DynamicObject();
+    endSweepObj->setProperty("end_min", s.endMin);
+    endSweepObj->setProperty("end_max", s.endMax);
+    endSweeps.add(var(endSweepObj));
+
+    auto *sweepObj = new DynamicObject();
+    sweepObj->setProperty("start_min", s.startMin);
+    sweepObj->setProperty("start_max", s.startMax);
+    sweeps.add(var(sweepObj));
+    // --- FIX END ---
+
     startQ.add(s.startQ);
     endQ.add(s.endQ);
     startCasc.add(s.startCasc);
