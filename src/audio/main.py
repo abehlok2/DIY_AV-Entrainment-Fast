@@ -63,7 +63,11 @@ from ui.subliminal_dialog import SubliminalDialog
 from utils.timeline_visualizer import visualize_track_timeline
 from ui.overlay_clip_dialog import OverlayClipDialog
 from ui.collapsible_box import CollapsibleBox
+
 from ui.simulator import SimulatorWindow
+
+from ui.step_preview_component import StepPreviewComponent
+
 from models import StepModel, VoiceModel
 
 # Attempt to import VoiceEditorDialog. Handle if ui/voice_editor_dialog.py is not found.
@@ -325,6 +329,23 @@ class TrackEditorApp(QMainWindow):
         self.redo_act.setShortcut("Ctrl+Y")
         self.redo_act.triggered.connect(self.redo)
         edit_menu.addAction(self.redo_act)
+
+        tools_menu = menubar.addMenu("Tools")
+        noise_act = QAction("Noise Generator", self)
+        noise_act.triggered.connect(self.open_noise_generator)
+        tools_menu.addAction(noise_act)
+
+        freq_test_act = QAction("Frequency Tester", self)
+        freq_test_act.triggered.connect(self.open_frequency_tester)
+        tools_menu.addAction(freq_test_act)
+
+        subliminal_act = QAction("Add Subliminal Voice", self)
+        subliminal_act.triggered.connect(self.open_subliminal_dialog)
+        tools_menu.addAction(subliminal_act)
+
+        timeline_act = QAction("View Timeline", self)
+        timeline_act.triggered.connect(self.open_timeline_visualizer)
+        tools_menu.addAction(timeline_act)
         self._update_undo_redo_actions_state()
 
 
@@ -427,9 +448,9 @@ class TrackEditorApp(QMainWindow):
         main_layout.addWidget(vertical_splitter, 1)
 
         # Tool Buttons (Noise Generator, Frequency Tester, Subliminal Voice)
-        tools_groupbox = QGroupBox("Tools")
+        tools_groupbox = CollapsibleBox("Tools")
         tools_layout = QHBoxLayout()
-        tools_groupbox.setLayout(tools_layout)
+        tools_groupbox.setContentLayout(tools_layout)
         tools_left_layout = QVBoxLayout()
         tools_right_layout = QVBoxLayout()
         tools_layout.addLayout(tools_left_layout)
@@ -475,9 +496,9 @@ class TrackEditorApp(QMainWindow):
         control_layout.addWidget(tools_groupbox)
 
         # Global Settings
-        globals_groupbox = QGroupBox("Global Settings")
+        globals_groupbox = CollapsibleBox("Global Settings")
         globals_layout = QGridLayout()
-        globals_groupbox.setLayout(globals_layout)
+        globals_groupbox.setContentLayout(globals_layout)
         globals_layout.addWidget(QLabel("Sample Rate:"), 0, 0)
         self.sr_entry = QLineEdit(str(DEFAULT_SAMPLE_RATE))
         self.sr_entry.setValidator(self.int_validator_positive)
@@ -538,8 +559,9 @@ class TrackEditorApp(QMainWindow):
         steps_outer_layout = QVBoxLayout(steps_outer_widget)
         steps_outer_layout.setContentsMargins(0,0,0,0)
         main_splitter.addWidget(steps_outer_widget)
-        steps_groupbox = QGroupBox("Steps")
-        steps_groupbox_layout = QVBoxLayout(steps_groupbox)
+        steps_groupbox = CollapsibleBox("Steps")
+        steps_groupbox_layout = QVBoxLayout()
+        steps_groupbox.setContentLayout(steps_groupbox_layout)
         steps_outer_layout.addWidget(steps_groupbox)
         self.step_model = StepModel(self.track_data.get("steps", []))
         self.steps_tree = QTreeView()
@@ -593,38 +615,22 @@ class TrackEditorApp(QMainWindow):
         steps_groupbox_layout.addLayout(steps_button_layout_2)
 
         # --- Test Step Preview Section ---
-        test_step_groupbox = QGroupBox("Test Step Preview")
-        test_step_main_layout = QVBoxLayout(test_step_groupbox)
+        self.step_preview = StepPreviewComponent()
+        steps_groupbox_layout.addWidget(self.step_preview)
 
-        test_controls_top_layout = QHBoxLayout() # For buttons
-        self.test_step_play_pause_button = QPushButton("Play")
-        self.test_step_play_pause_button.clicked.connect(self.on_play_pause_step_test)
-        test_controls_top_layout.addWidget(self.test_step_play_pause_button)
+        # Maintain existing attribute names for compatibility
+        self.test_step_play_pause_button = self.step_preview.play_pause_button
+        self.test_step_stop_button = self.step_preview.stop_button
+        self.test_step_reset_button = self.step_preview.reset_button
+        self.test_step_loaded_label = self.step_preview.loaded_label
+        self.test_step_time_slider = self.step_preview.time_slider
+        self.test_step_time_label = self.step_preview.time_label
 
-        self.test_step_stop_button = QPushButton("Stop")
-        self.test_step_stop_button.clicked.connect(self.on_stop_step_test) # Connect to the base on_stop_step_test
-        test_controls_top_layout.addWidget(self.test_step_stop_button)
-
-        self.test_step_reset_button = QPushButton("Reset Tester") # New button
-        self.test_step_reset_button.clicked.connect(self.on_reset_step_test)
-        test_controls_top_layout.addWidget(self.test_step_reset_button)
-        test_controls_top_layout.addStretch()
-        test_step_main_layout.addLayout(test_controls_top_layout)
-
-        self.test_step_loaded_label = QLabel("No step loaded for preview.") # New label
-        self.test_step_loaded_label.setWordWrap(True)
-        self.test_step_loaded_label.setAlignment(Qt.AlignCenter) 
-        test_step_main_layout.addWidget(self.test_step_loaded_label)
-
-        self.test_step_time_slider = QSlider(Qt.Horizontal)
-        self.test_step_time_slider.sliderMoved.connect(self.on_test_slider_moved)
-        self.test_step_time_slider.sliderReleased.connect(self.on_test_slider_released)
-        test_step_main_layout.addWidget(self.test_step_time_slider)
-
-        self.test_step_time_label = QLabel("00:00 / 00:00")
-        self.test_step_time_label.setAlignment(Qt.AlignCenter)
-        test_step_main_layout.addWidget(self.test_step_time_label)
-        steps_groupbox_layout.addWidget(test_step_groupbox)
+        self.step_preview.play_pause_button.clicked.connect(self.on_play_pause_step_test)
+        self.step_preview.stop_button.clicked.connect(self.on_stop_step_test)
+        self.step_preview.reset_button.clicked.connect(self.on_reset_step_test)
+        self.step_preview.time_slider.sliderMoved.connect(self.on_test_slider_moved)
+        self.step_preview.time_slider.sliderReleased.connect(self.on_test_slider_released)
 
 
         # --- Right Pane (Splitter) ---
@@ -636,9 +642,10 @@ class TrackEditorApp(QMainWindow):
         voices_outer_layout = QVBoxLayout(voices_outer_widget)
         voices_outer_layout.setContentsMargins(0,0,0,0)
         right_splitter.addWidget(voices_outer_widget)
-        self.voices_groupbox = QGroupBox("Voices for Selected Step")
+        self.voices_groupbox = CollapsibleBox("Voices for Selected Step")
         # Use an HBox layout so buttons can be stacked on the left side
-        voices_groupbox_layout = QHBoxLayout(self.voices_groupbox)
+        voices_groupbox_layout = QHBoxLayout()
+        self.voices_groupbox.setContentLayout(voices_groupbox_layout)
         voices_outer_layout.addWidget(self.voices_groupbox)
         self.voice_model = VoiceModel([])
         self.voices_tree = QTreeView()
@@ -688,8 +695,9 @@ class TrackEditorApp(QMainWindow):
         # Splitter to allow resizing between voice details and overlay clips
         details_splitter = QSplitter(Qt.Vertical)
         voice_details_outer_layout.addWidget(details_splitter)
-        self.voice_details_groupbox = QGroupBox("Selected Voice Details")
-        voice_details_groupbox_layout = QVBoxLayout(self.voice_details_groupbox)
+        self.voice_details_groupbox = CollapsibleBox("Selected Voice Details")
+        voice_details_groupbox_layout = QVBoxLayout()
+        self.voice_details_groupbox.setContentLayout(voice_details_groupbox_layout)
         details_splitter.addWidget(self.voice_details_groupbox)
         self.voice_details_text = QTextEdit()
         self.voice_details_text.setReadOnly(True)
@@ -698,9 +706,10 @@ class TrackEditorApp(QMainWindow):
         voice_details_groupbox_layout.addWidget(self.voice_details_text)
 
         # --- Overlay Clips Widgets ---
-        self.clips_groupbox = QGroupBox("Overlay Clips")
+        self.clips_groupbox = CollapsibleBox("Overlay Clips")
         # Layout with buttons stacked vertically on the left
-        clips_groupbox_layout = QHBoxLayout(self.clips_groupbox)
+        clips_groupbox_layout = QHBoxLayout()
+        self.clips_groupbox.setContentLayout(clips_groupbox_layout)
         details_splitter.addWidget(self.clips_groupbox)
 
         self.clips_tree = QTreeWidget()

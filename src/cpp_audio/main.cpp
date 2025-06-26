@@ -53,7 +53,7 @@ public:
     void resized() override
     {
         auto area = getLocalBounds().reduced (8);
-        settings.setBounds (area.removeFromTop (120));
+        settings.setBounds (area.removeFromTop (144));
         preview.setBounds(area.removeFromTop(80));
         stepList.setBounds (area);
     }

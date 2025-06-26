@@ -28,4 +28,5 @@ private:
     juce::Label srLabel, cfLabel, outFileLabel, noiseFileLabel, noiseAmpLabel;
     juce::TextEditor srEdit, cfEdit, outFileEdit, noiseFileEdit, noiseAmpEdit;
     juce::TextButton browseOutButton {"Browse"}, browseNoiseButton {"Browse"};
+    juce::TextButton noiseGenButton {"Noise Generator"};
 };

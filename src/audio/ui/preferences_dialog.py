@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QGroupBox,
+    QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
     QFontComboBox, QSpinBox, QDoubleSpinBox, QLineEdit, QPushButton,
     QFileDialog, QCheckBox, QComboBox, QDialogButtonBox, QLabel
 )
@@ -12,6 +12,7 @@ try:
 except ImportError:  # Running as a script without packages
     from utils.preferences import Preferences
 from . import themes  # reuse themes from audio package
+from .collapsible_box import CollapsibleBox
 
 class PreferencesDialog(QDialog):
     def __init__(self, prefs: Preferences, parent=None):
@@ -21,7 +22,7 @@ class PreferencesDialog(QDialog):
         layout = QVBoxLayout(self)
 
         # Font settings
-        font_group = QGroupBox("Font")
+        font_group = CollapsibleBox("Font")
         form = QFormLayout()
         self.font_combo = QFontComboBox()
         if prefs.font_family:
@@ -31,11 +32,11 @@ class PreferencesDialog(QDialog):
         self.font_size_spin.setValue(prefs.font_size)
         form.addRow("Family:", self.font_combo)
         form.addRow("Size:", self.font_size_spin)
-        font_group.setLayout(form)
+        font_group.setContentLayout(form)
         layout.addWidget(font_group)
 
         # Theme
-        theme_group = QGroupBox("Theme")
+        theme_group = CollapsibleBox("Theme")
         theme_layout = QHBoxLayout()
         self.theme_combo = QComboBox()
         self.theme_combo.addItems(themes.THEMES.keys())
@@ -44,22 +45,22 @@ class PreferencesDialog(QDialog):
             self.theme_combo.setCurrentIndex(idx)
         theme_layout.addWidget(QLabel("Theme:"))
         theme_layout.addWidget(self.theme_combo)
-        theme_group.setLayout(theme_layout)
+        theme_group.setContentLayout(theme_layout)
         layout.addWidget(theme_group)
 
         # Export directory
-        export_group = QGroupBox("Export")
+        export_group = CollapsibleBox("Export")
         export_layout = QHBoxLayout()
         self.export_edit = QLineEdit(prefs.export_dir)
         browse_btn = QPushButton("Browse")
         browse_btn.clicked.connect(self.browse_dir)
         export_layout.addWidget(self.export_edit)
         export_layout.addWidget(browse_btn)
-        export_group.setLayout(export_layout)
+        export_group.setContentLayout(export_layout)
         layout.addWidget(export_group)
 
         # Sample rate, test step duration, and target amplitude
-        audio_group = QGroupBox("Audio/Test")
+        audio_group = CollapsibleBox("Audio/Test")
         audio_form = QFormLayout()
         self.sample_rate_spin = QSpinBox()
         self.sample_rate_spin.setRange(8000, 192000)
@@ -105,7 +106,7 @@ class PreferencesDialog(QDialog):
         audio_form.addRow("Crossfade Curve:", self.crossfade_curve_combo)
         audio_form.addRow(self.track_metadata_chk)
         audio_form.addRow(self.apply_target_amp_chk)
-        audio_group.setLayout(audio_form)
+        audio_group.setContentLayout(audio_form)
         layout.addWidget(audio_group)
 
         # Buttons

@@ -1,4 +1,5 @@
 #include "GlobalSettingsComponent.h"
+#include "NoiseGeneratorDialog.h"
 
 using namespace juce;
 
@@ -30,12 +31,16 @@ GlobalSettingsComponent::GlobalSettingsComponent()
     noiseAmpLabel.setText("Noise Amp:", dontSendNotification);
     addAndMakeVisible(&noiseAmpEdit);
     noiseAmpEdit.setText("0.0");
+
+    addAndMakeVisible(&noiseGenButton);
+    noiseGenButton.addListener(this);
 }
 
 GlobalSettingsComponent::~GlobalSettingsComponent()
 {
     browseOutButton.removeListener(this);
     browseNoiseButton.removeListener(this);
+    noiseGenButton.removeListener(this);
 }
 
 GlobalSettingsComponent::Settings GlobalSettingsComponent::getSettings() const
@@ -86,6 +91,9 @@ void GlobalSettingsComponent::resized()
     row = area.removeFromTop(rowH);
     noiseAmpLabel.setBounds(row.removeFromLeft(labelW));
     noiseAmpEdit.setBounds(row);
+
+    row = area.removeFromTop(rowH);
+    noiseGenButton.setBounds(row);
 }
 
 void GlobalSettingsComponent::buttonClicked(Button* b)
@@ -101,6 +109,18 @@ void GlobalSettingsComponent::buttonClicked(Button* b)
         FileChooser chooser("Select Noise Preset", File(noiseFileEdit.getText()), "*.noise;*.wav");
         if (chooser.browseForFileToOpen())
             noiseFileEdit.setText(chooser.getResult().getFullPathName());
+    }
+    else if (b == &noiseGenButton)
+    {
+        auto dialog = createNoiseGeneratorDialog();
+        DialogWindow::LaunchOptions opts;
+        opts.content = std::move(dialog);
+        opts.dialogTitle = "Noise Generator";
+        opts.dialogBackgroundColour = Colours::lightgrey;
+        opts.escapeKeyTriggersCloseButton = true;
+        opts.useNativeTitleBar = true;
+        opts.resizable = true;
+        opts.runModal();
     }
 }
 

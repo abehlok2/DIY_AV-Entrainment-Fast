@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QToolButton, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QToolButton, QVBoxLayout, QLayout
 from PyQt5.QtCore import Qt
 
 class CollapsibleBox(QWidget):
@@ -25,6 +25,15 @@ class CollapsibleBox(QWidget):
         self.toggle_button.setArrowType(Qt.DownArrow if checked else Qt.RightArrow)
         self.content_area.setVisible(checked)
 
-    def setContentLayout(self, layout: QVBoxLayout):
+    def setContentLayout(self, layout: QLayout):
         """Set the layout that holds the collapsible content."""
         self.content_area.setLayout(layout)
+
+    # Convenience methods for compatibility with QGroupBox-like API
+    def setTitle(self, title: str) -> None:
+        """Set the title shown on the toggle button."""
+        self.toggle_button.setText(title)
+
+    def title(self) -> str:
+        """Return the current title text."""
+        return self.toggle_button.text()
