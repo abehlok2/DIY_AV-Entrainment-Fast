@@ -1317,6 +1317,58 @@ class VoiceEditorDialog(QDialog): # Standard class name
                     ('startMonoPhaseOscPhaseOffsetR', 0.0), ('endMonoPhaseOscPhaseOffsetR', 0.0),
                     ('initial_offset', 0.0), ('post_offset', 0.0), ('transition_curve', 'linear')
                 ]
+            },
+            "generate_swept_notch_pink_sound": {
+                "standard": [
+                    ('filename', 'swept_notch_sound.wav'),
+                    ('duration_seconds', 60),
+                    ('sample_rate', 44100),
+                    ('lfo_freq', 0.08333333333333333),
+                    ('filter_sweeps', None),
+                    ('notch_q', 25),
+                    ('cascade_count', 10),
+                    ('lfo_phase_offset_deg', 90),
+                    ('intra_phase_offset_deg', 0),
+                    ('input_audio_path', None),
+                    ('noise_type', 'pink'),
+                    ('lfo_waveform', 'sine'),
+                    ('memory_efficient', False),
+                    ('n_jobs', 2)
+                ],
+                "transition": [
+                    ('filename', 'swept_notch_sound.wav'),
+                    ('duration_seconds', 60),
+                    ('sample_rate', 44100),
+                    ('start_lfo_freq', 0.08333333333333333),
+                    ('end_lfo_freq', 0.08333333333333333),
+                    ('start_filter_sweeps', None),
+                    ('end_filter_sweeps', None),
+                    ('start_notch_q', 25),
+                    ('end_notch_q', 25),
+                    ('start_cascade_count', 10),
+                    ('end_cascade_count', 10),
+                    ('start_lfo_phase_offset_deg', 90),
+                    ('end_lfo_phase_offset_deg', 90),
+                    ('start_intra_phase_offset_deg', 0),
+                    ('end_intra_phase_offset_deg', 0),
+                    ('input_audio_path', None),
+                    ('noise_type', 'pink'),
+                    ('lfo_waveform', 'sine'),
+                    ('initial_offset', 0.0),
+                    ('post_offset', 0.0),
+                    ('transition_curve', 'linear'),
+                    ('memory_efficient', False),
+                    ('n_jobs', 2)
+                ]
+            },
+            "subliminal_encode": {
+                "standard": [
+                    ('audio_path', None),
+                    ('audio_paths', None),
+                    ('mode', 'sequence'),
+                    ('carrierFreq', 17500.0),
+                    ('amp', 0.5)
+                ]
             }
         }
         # --- End of param_definitions ---
