@@ -1,6 +1,7 @@
 
 #include "StepListPanel.h"
 #include "../VarUtils.h" // Assuming this is a valid path in your project
+#include "StepConfigPanel.h"
 
 using namespace juce;
 
@@ -16,14 +17,15 @@ StepListPanel::StepListPanel() {
   removeButton.setButtonText("Remove Step");
   editDurationButton.setButtonText("Edit Duration");
   editDescriptionButton.setButtonText("Edit Description");
+  editVoicesButton.setButtonText("Edit Voices");
   upButton.setButtonText("Move Up");
   downButton.setButtonText("Move Down");
   undoButton.setButtonText("Undo");
   redoButton.setButtonText("Redo");
 
   for (auto *b : {&addButton, &loadButton, &dupButton, &removeButton,
-                  &editDurationButton, &editDescriptionButton, &upButton,
-                  &downButton, &undoButton, &redoButton}) {
+                  &editDurationButton, &editDescriptionButton, &editVoicesButton,
+                  &upButton, &downButton, &undoButton, &redoButton}) {
     addAndMakeVisible(b);
     b->addListener(this);
   }
@@ -37,8 +39,8 @@ StepListPanel::StepListPanel() {
 
 StepListPanel::~StepListPanel() {
   for (auto *b : {&addButton, &loadButton, &dupButton, &removeButton,
-                  &editDurationButton, &editDescriptionButton, &upButton,
-                  &downButton, &undoButton, &redoButton}) {
+                  &editDurationButton, &editDescriptionButton, &editVoicesButton,
+                  &upButton, &downButton, &undoButton, &redoButton}) {
     b->removeListener(this);
   }
   // REMOVED: stepList.removeListener(this);
@@ -69,13 +71,14 @@ void StepListPanel::resized() {
   auto buttonsArea = area.removeFromBottom(48);
   stepList.setBounds(area);
 
-  auto each = buttonsArea.getWidth() / 10;
+  auto each = buttonsArea.getWidth() / 11;
   addButton.setBounds(buttonsArea.removeFromLeft(each));
   loadButton.setBounds(buttonsArea.removeFromLeft(each));
   dupButton.setBounds(buttonsArea.removeFromLeft(each));
   removeButton.setBounds(buttonsArea.removeFromLeft(each));
   editDurationButton.setBounds(buttonsArea.removeFromLeft(each));
   editDescriptionButton.setBounds(buttonsArea.removeFromLeft(each));
+  editVoicesButton.setBounds(buttonsArea.removeFromLeft(each));
   upButton.setBounds(buttonsArea.removeFromLeft(each));
   downButton.setBounds(buttonsArea.removeFromLeft(each));
   undoButton.setBounds(buttonsArea.removeFromLeft(each));
@@ -95,6 +98,8 @@ void StepListPanel::buttonClicked(Button *b) {
     editStepDuration();
   else if (b == &editDescriptionButton)
     editStepDescription();
+  else if (b == &editVoicesButton)
+    openStepConfig();
   else if (b == &upButton)
     moveStep(-1);
   else if (b == &downButton)
@@ -137,6 +142,20 @@ void StepListPanel::loadExternalSteps() {
             sd.description = desc.isNotEmpty()
                                  ? desc
                                  : String("Step ") + String(steps.size() + 1);
+            if (auto *voicesVar = sobj->getProperty("voices").getArray()) {
+              for (const auto &v : *voicesVar) {
+                if (auto *vobj = v.getDynamicObject()) {
+                  VoiceEditorDialog::VoiceData vd;
+                  vd.synthFunction =
+                      vobj->getProperty("synth_function_name").toString();
+                  vd.isTransition = withDefault(vobj->getProperty("is_transition"), false);
+                  vd.params = vobj->getProperty("params");
+                  vd.volumeEnvelope = vobj->getProperty("volume_envelope");
+                  vd.description = vobj->getProperty("description").toString();
+                  sd.voices.add(std::move(vd));
+                }
+              }
+            }
             steps.add(sd);
           }
         }
@@ -292,4 +311,25 @@ bool StepListPanel::keyPressed(const KeyPress &key) {
 void StepListPanel::selectedRowsChanged(int lastRowSelected) {
   if (onStepSelected)
     onStepSelected(lastRowSelected);
+}
+
+void StepListPanel::openStepConfig() {
+  int row = stepList.getSelectedRow();
+  if (!isPositiveAndBelow(row, steps.size()))
+    return;
+
+  auto *panel = new StepConfigPanel();
+  panel->setVoices(steps[row].voices);
+  panel->onVoicesChanged = [this, panel, row]() {
+    steps.getReference(row).voices = panel->getVoices();
+  };
+
+  DialogWindow::LaunchOptions opts;
+  opts.content.setOwned(panel);
+  opts.dialogTitle = "Edit Voices";
+  opts.dialogBackgroundColour = Colours::lightgrey;
+  opts.escapeKeyTriggersCloseButton = true;
+  opts.useNativeTitleBar = true;
+  opts.resizable = true;
+  opts.runModal();
 }

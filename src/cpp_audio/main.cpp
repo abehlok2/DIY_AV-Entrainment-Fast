@@ -28,6 +28,16 @@ public:
                 Step step;
                 step.durationSeconds = steps[index].duration;
                 step.description = steps[index].description;
+                for (const auto& vd : steps[index].voices)
+                {
+                    Voice v;
+                    v.synthFunction = vd.synthFunction.toStdString();
+                    if (auto* obj = vd.params.getDynamicObject())
+                        v.params = obj->getProperties();
+                    v.isTransition = vd.isTransition;
+                    v.description = vd.description;
+                    step.voices.push_back(std::move(v));
+                }
                 auto gsRaw = settings.getSettings();
                 GlobalSettings gs;
                 gs.sampleRate = gsRaw.sampleRate;
