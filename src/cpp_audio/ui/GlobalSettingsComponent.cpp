@@ -125,13 +125,7 @@ void GlobalSettingsComponent::buttonClicked(Button *b) {
   } else if (b == &noiseGenButton) {
     DialogWindow::LaunchOptions opts;
 
-    // THE DEFINITIVE FIX:
-    // Use static_cast to explicitly convert the derived pointer
-    // (NoiseGeneratorDialog*) to the base pointer (Component*) that setOwned()
-    // expects.
-    opts.content.setOwned(
-        static_cast<Component *>(createNoiseGeneratorDialog().release()));
-
+    opts.content.setOwned(dialog.release());
     opts.dialogTitle = "Noise Generator";
     opts.dialogBackgroundColour = Colours::lightgrey;
     opts.escapeKeyTriggersCloseButton = true;
