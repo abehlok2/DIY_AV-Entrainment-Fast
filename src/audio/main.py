@@ -63,6 +63,7 @@ from ui.subliminal_dialog import SubliminalDialog
 from utils.timeline_visualizer import visualize_track_timeline
 from ui.overlay_clip_dialog import OverlayClipDialog
 from ui.collapsible_box import CollapsibleBox
+from ui.step_preview_component import StepPreviewComponent
 from models import StepModel, VoiceModel
 
 # Attempt to import VoiceEditorDialog. Handle if ui/voice_editor_dialog.py is not found.
@@ -573,38 +574,22 @@ class TrackEditorApp(QMainWindow):
         steps_groupbox_layout.addLayout(steps_button_layout_2)
 
         # --- Test Step Preview Section ---
-        test_step_groupbox = QGroupBox("Test Step Preview")
-        test_step_main_layout = QVBoxLayout(test_step_groupbox)
+        self.step_preview = StepPreviewComponent()
+        steps_groupbox_layout.addWidget(self.step_preview)
 
-        test_controls_top_layout = QHBoxLayout() # For buttons
-        self.test_step_play_pause_button = QPushButton("Play")
-        self.test_step_play_pause_button.clicked.connect(self.on_play_pause_step_test)
-        test_controls_top_layout.addWidget(self.test_step_play_pause_button)
+        # Maintain existing attribute names for compatibility
+        self.test_step_play_pause_button = self.step_preview.play_pause_button
+        self.test_step_stop_button = self.step_preview.stop_button
+        self.test_step_reset_button = self.step_preview.reset_button
+        self.test_step_loaded_label = self.step_preview.loaded_label
+        self.test_step_time_slider = self.step_preview.time_slider
+        self.test_step_time_label = self.step_preview.time_label
 
-        self.test_step_stop_button = QPushButton("Stop")
-        self.test_step_stop_button.clicked.connect(self.on_stop_step_test) # Connect to the base on_stop_step_test
-        test_controls_top_layout.addWidget(self.test_step_stop_button)
-
-        self.test_step_reset_button = QPushButton("Reset Tester") # New button
-        self.test_step_reset_button.clicked.connect(self.on_reset_step_test)
-        test_controls_top_layout.addWidget(self.test_step_reset_button)
-        test_controls_top_layout.addStretch()
-        test_step_main_layout.addLayout(test_controls_top_layout)
-
-        self.test_step_loaded_label = QLabel("No step loaded for preview.") # New label
-        self.test_step_loaded_label.setWordWrap(True)
-        self.test_step_loaded_label.setAlignment(Qt.AlignCenter) 
-        test_step_main_layout.addWidget(self.test_step_loaded_label)
-
-        self.test_step_time_slider = QSlider(Qt.Horizontal)
-        self.test_step_time_slider.sliderMoved.connect(self.on_test_slider_moved)
-        self.test_step_time_slider.sliderReleased.connect(self.on_test_slider_released)
-        test_step_main_layout.addWidget(self.test_step_time_slider)
-
-        self.test_step_time_label = QLabel("00:00 / 00:00")
-        self.test_step_time_label.setAlignment(Qt.AlignCenter)
-        test_step_main_layout.addWidget(self.test_step_time_label)
-        steps_groupbox_layout.addWidget(test_step_groupbox)
+        self.step_preview.play_pause_button.clicked.connect(self.on_play_pause_step_test)
+        self.step_preview.stop_button.clicked.connect(self.on_stop_step_test)
+        self.step_preview.reset_button.clicked.connect(self.on_reset_step_test)
+        self.step_preview.time_slider.sliderMoved.connect(self.on_test_slider_moved)
+        self.step_preview.time_slider.sliderReleased.connect(self.on_test_slider_released)
 
 
         # --- Right Pane (Splitter) ---
