@@ -1,4 +1,5 @@
 #include "StepConfigPanel.h"
+#include "VoiceEditorDialog.h"
 
 using namespace juce;
 
@@ -10,10 +11,11 @@ StepConfigPanel::StepConfigPanel()
     addButton.setButtonText("Add Voice");
     dupButton.setButtonText("Duplicate Voice");
     removeButton.setButtonText("Remove Voice");
+    editButton.setButtonText("Edit Voice");
     upButton.setButtonText("Move Up");
     downButton.setButtonText("Move Down");
 
-    for (auto* b : { &addButton, &dupButton, &removeButton, &upButton, &downButton })
+    for (auto* b : { &addButton, &dupButton, &removeButton, &editButton, &upButton, &downButton })
     {
         addAndMakeVisible(b);
         b->addListener(this);
@@ -22,7 +24,7 @@ StepConfigPanel::StepConfigPanel()
 
 StepConfigPanel::~StepConfigPanel()
 {
-    for (auto* b : { &addButton, &dupButton, &removeButton, &upButton, &downButton })
+    for (auto* b : { &addButton, &dupButton, &removeButton, &editButton, &upButton, &downButton })
         b->removeListener(this);
 }
 
@@ -49,10 +51,11 @@ void StepConfigPanel::resized()
     voiceList.setBounds(area.removeFromTop(getHeight() - 48));
 
     auto buttons = area.removeFromTop(44);
-    auto each = buttons.getWidth() / 5;
+    auto each = buttons.getWidth() / 6;
     addButton.setBounds(buttons.removeFromLeft(each));
     dupButton.setBounds(buttons.removeFromLeft(each));
     removeButton.setBounds(buttons.removeFromLeft(each));
+    editButton.setBounds(buttons.removeFromLeft(each));
     upButton.setBounds(buttons.removeFromLeft(each));
     downButton.setBounds(buttons);
 }
@@ -65,6 +68,8 @@ void StepConfigPanel::buttonClicked(Button* b)
         duplicateVoice();
     else if (b == &removeButton)
         removeVoice();
+    else if (b == &editButton)
+        editVoice();
     else if (b == &upButton)
         moveVoice(-1);
     else if (b == &downButton)
@@ -109,5 +114,25 @@ void StepConfigPanel::moveVoice(int delta)
     {
         voices.move(row, target);
         voiceList.selectRow(target);
+    }
+}
+
+void StepConfigPanel::editVoice()
+{
+    int row = voiceList.getSelectedRow();
+    if (!isPositiveAndBelow(row, voices.size()))
+        return;
+
+    juce::StringArray synthNames;
+    synthNames.add("binaural_beat");
+    synthNames.add("isochronic_tone");
+
+    bool ok = false;
+    auto data = showVoiceEditor(synthNames, nullptr, nullptr, &ok);
+    if (ok)
+    {
+        juce::String label = data.description.isNotEmpty() ? data.description
+                                                            : data.synthFunction;
+        voices.set(row, label);
     }
 }
