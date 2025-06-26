@@ -659,9 +659,10 @@ class TrackEditorApp(QMainWindow):
         self.voices_tree.setColumnWidth(4, 150)
         self.voices_tree.header().setStretchLastSection(True)
         self.voices_tree.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.voices_tree.setEditTriggers(
-            QAbstractItemView.DoubleClicked | QAbstractItemView.EditKeyPressed
-        )
+        # Use key press (e.g., F2) for inline editing so a double click can open
+        # the dedicated voice editor dialog instead of editing the description
+        self.voices_tree.setEditTriggers(QAbstractItemView.EditKeyPressed)
+        self.voices_tree.doubleClicked.connect(self.on_voice_double_clicked)
         self.voices_tree.selectionModel().selectionChanged.connect(
             lambda *_: self.on_voice_select()
         )
@@ -1093,6 +1094,35 @@ class TrackEditorApp(QMainWindow):
     def on_voice_select(self):
         self._update_voice_actions_state()
         self.update_voice_details()
+
+
+    @pyqtSlot("QModelIndex")
+    def on_voice_double_clicked(self, index):
+        """Open the voice editor when a voice row is double clicked."""
+        if not index.isValid():
+            return
+        step_idx = self.get_selected_step_index()
+        if step_idx is None or len(self.get_selected_step_indices()) != 1:
+            return
+        voice_idx = index.row()
+        dialog = VoiceEditorDialog(
+            parent=self,
+            app_ref=self,
+            step_index=step_idx,
+            voice_index=voice_idx,
+        )
+        if dialog.exec_() == QDialog.Accepted:
+            self.refresh_steps_tree()
+            if 0 <= step_idx < self.step_model.rowCount():
+                step_model_index = self.step_model.index(step_idx, 0)
+                self.steps_tree.setCurrentIndex(step_model_index)
+                if 0 <= voice_idx < self.voice_model.rowCount():
+                    voice_model_index = self.voice_model.index(voice_idx, 0)
+                    self.voices_tree.setCurrentIndex(voice_model_index)
+                    self.voices_tree.scrollTo(
+                        voice_model_index, QAbstractItemView.PositionAtCenter
+                    )
+            self._push_history_state()
 
 
 
