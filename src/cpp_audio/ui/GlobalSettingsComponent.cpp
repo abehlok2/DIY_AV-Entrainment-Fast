@@ -1,6 +1,7 @@
 
 #include "GlobalSettingsComponent.h"
 #include "NoiseGeneratorDialog.h" // Include the full dialog implementation here
+#include "FrequencyTesterDialog.h"
 
 using namespace juce;
 
@@ -12,7 +13,8 @@ GlobalSettingsComponent::createNoiseGeneratorDialog() {
   return std::make_unique<NoiseGeneratorDialog>();
 }
 
-GlobalSettingsComponent::GlobalSettingsComponent() {
+GlobalSettingsComponent::GlobalSettingsComponent(juce::AudioDeviceManager& dm)
+    : deviceManager(dm) {
   addAndMakeVisible(&srLabel);
   srLabel.setText("Sample Rate:", dontSendNotification);
   addAndMakeVisible(&srEdit);
@@ -45,12 +47,17 @@ GlobalSettingsComponent::GlobalSettingsComponent() {
   addAndMakeVisible(&noiseGenButton);
   noiseGenButton.setButtonText("Generate Noise Preset...");
   noiseGenButton.addListener(this);
+
+  addAndMakeVisible(&freqTestButton);
+  freqTestButton.setButtonText("Frequency Test...");
+  freqTestButton.addListener(this);
 }
 
 GlobalSettingsComponent::~GlobalSettingsComponent() {
   browseOutButton.removeListener(this);
   browseNoiseButton.removeListener(this);
   noiseGenButton.removeListener(this);
+  freqTestButton.removeListener(this);
 }
 
 GlobalSettingsComponent::Settings GlobalSettingsComponent::getSettings() const {
@@ -109,6 +116,7 @@ void GlobalSettingsComponent::resized() {
   noiseAmpEdit.setBounds(row5);
 
   noiseGenButton.setBounds(area.removeFromTop(rowH));
+  freqTestButton.setBounds(area.removeFromTop(rowH));
 }
 
 void GlobalSettingsComponent::buttonClicked(Button *b) {
@@ -128,6 +136,16 @@ void GlobalSettingsComponent::buttonClicked(Button *b) {
 
     opts.content.setOwned(dialog.release());
     opts.dialogTitle = "Noise Generator";
+    opts.dialogBackgroundColour = Colours::lightgrey;
+    opts.escapeKeyTriggersCloseButton = true;
+    opts.useNativeTitleBar = true;
+    opts.resizable = true;
+    opts.runModal();
+  } else if (b == &freqTestButton) {
+    auto dialog = createFrequencyTesterDialog(deviceManager);
+    DialogWindow::LaunchOptions opts;
+    opts.content.setOwned(dialog.release());
+    opts.dialogTitle = "Frequency Test";
     opts.dialogBackgroundColour = Colours::lightgrey;
     opts.escapeKeyTriggersCloseButton = true;
     opts.useNativeTitleBar = true;
