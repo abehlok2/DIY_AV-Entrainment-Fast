@@ -7,6 +7,7 @@ class StepPreviewer
 {
 public:
     explicit StepPreviewer(juce::AudioDeviceManager& dm);
+    ~StepPreviewer();
 
     bool loadStep(const Step& step, const GlobalSettings& settings, double previewDuration);
 

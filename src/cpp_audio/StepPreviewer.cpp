@@ -7,6 +7,14 @@ StepPreviewer::StepPreviewer(juce::AudioDeviceManager& dm)
     player->setSource(&transport);
 }
 
+StepPreviewer::~StepPreviewer()
+{
+    if (playing)
+        deviceManager.removeAudioCallback(player.get());
+    player->setSource(nullptr);
+    transport.setSource(nullptr);
+}
+
 bool StepPreviewer::loadStep(const Step& step, const GlobalSettings& settings, double previewDuration)
 {
     sampleRate = settings.sampleRate;
