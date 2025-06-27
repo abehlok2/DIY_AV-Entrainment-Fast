@@ -336,6 +336,16 @@ void StepListPanel::openStepConfig() {
 }
 
 
+void StepListPanel::setSteps(const juce::Array<StepData>& newSteps) {
+  steps = newSteps;
+  stepList.updateContent();
+  stepList.repaint();
+  if (!steps.isEmpty())
+    stepList.selectRow(0);
+  pushHistory();
+  updateDuration();
+}
+
 void StepListPanel::setSteps(const std::vector<Step> &newSteps) {
   steps.clear();
   for (const auto &s : newSteps) {
