@@ -71,3 +71,6 @@ juce::AudioBuffer<float> assembleTrack(const Track& track);
     @return number of steps successfully loaded. */
 int loadExternalStepsFromJson(const juce::File& file, std::vector<Step>& steps);
 
+/** Returns a list of all available synth function names. */
+std::vector<juce::String> getAvailableSynthNames();
+

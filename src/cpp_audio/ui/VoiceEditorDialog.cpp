@@ -3,6 +3,115 @@
 
 using namespace juce;
 
+// Mapping of synth function names to their parameter lists
+static std::map<juce::String, juce::StringArray> synthParamNames{
+    {"binaural_beat", juce::StringArray{
+        "ampL","ampR","baseFreq","beatFreq","forceMono","startPhaseL","startPhaseR",
+        "ampOscDepthL","ampOscFreqL","ampOscDepthR","ampOscFreqR","freqOscRangeL",
+        "freqOscFreqL","freqOscRangeR","freqOscFreqR","ampOscPhaseOffsetL",
+        "ampOscPhaseOffsetR","phaseOscFreq","phaseOscRange","glitchInterval",
+        "glitchDur","glitchNoiseLevel","glitchFocusWidth","glitchFocusExp"}},
+    {"binaural_beat_transition", juce::StringArray{
+        "startAmpL","endAmpL","startAmpR","endAmpR","startBaseFreq","endBaseFreq",
+        "startBeatFreq","endBeatFreq","startForceMono","endForceMono",
+        "startStartPhaseL","endStartPhaseL","startStartPhaseR","endStartPhaseR",
+        "startPhaseOscFreq","endPhaseOscFreq","startPhaseOscRange","endPhaseOscRange",
+        "startAmpOscDepthL","endAmpOscDepthL","startAmpOscFreqL","endAmpOscFreqL",
+        "startAmpOscDepthR","endAmpOscDepthR","startAmpOscFreqR","endAmpOscFreqR",
+        "startAmpOscPhaseOffsetL","endAmpOscPhaseOffsetL",
+        "startAmpOscPhaseOffsetR","endAmpOscPhaseOffsetR",
+        "startFreqOscRangeL","endFreqOscRangeL","startFreqOscFreqL","endFreqOscFreqL",
+        "startFreqOscRangeR","endFreqOscRangeR","startFreqOscFreqR","endFreqOscFreqR",
+        "startGlitchInterval","endGlitchInterval","startGlitchDur","endGlitchDur",
+        "startGlitchNoiseLevel","endGlitchNoiseLevel",
+        "startGlitchFocusWidth","endGlitchFocusWidth",
+        "startGlitchFocusExp","endGlitchFocusExp","initial_offset","post_offset",
+        "transition_curve"}},
+    {"isochronic_tone", juce::StringArray{
+        "amp","baseFreq","beatFreq","rampPercent","gapPercent","pan"}},
+    {"isochronic_tone_transition", juce::StringArray{
+        "amp","startBaseFreq","endBaseFreq","startBeatFreq","endBeatFreq",
+        "rampPercent","gapPercent","pan","initial_offset","post_offset",
+        "transition_curve"}},
+    {"monaural_beat_stereo_amps", juce::StringArray{
+        "amp_lower_L","amp_upper_L","amp_lower_R","amp_upper_R","baseFreq","beatFreq",
+        "startPhaseL","startPhaseR","phaseOscFreq","phaseOscRange",
+        "ampOscDepth","ampOscFreq","ampOscPhaseOffset"}},
+    {"monaural_beat_stereo_amps_transition", juce::StringArray{
+        "start_amp_lower_L","end_amp_lower_L","start_amp_upper_L","end_amp_upper_L",
+        "start_amp_lower_R","end_amp_lower_R","start_amp_upper_R","end_amp_upper_R",
+        "startBaseFreq","endBaseFreq","startBeatFreq","endBeatFreq",
+        "startStartPhaseL","endStartPhaseL","startStartPhaseU","endStartPhaseU",
+        "startPhaseOscFreq","endPhaseOscFreq","startPhaseOscRange","endPhaseOscRange",
+        "startAmpOscDepth","endAmpOscDepth","startAmpOscFreq","endAmpOscFreq",
+        "startAmpOscPhaseOffset","endAmpOscPhaseOffset","initial_offset",
+        "post_offset","transition_curve"}},
+    {"noise_flanger", juce::StringArray{
+        "lfo_freq","notch_q","cascade_count","lfo_phase_offset_deg",
+        "intra_phase_offset_deg","noise_type","lfo_waveform"}},
+    {"noise_flanger_transition", juce::StringArray{
+        "start_lfo_freq","end_lfo_freq","start_notch_q","end_notch_q",
+        "start_cascade_count","end_cascade_count",
+        "start_lfo_phase_offset_deg","end_lfo_phase_offset_deg",
+        "start_intra_phase_offset_deg","end_intra_phase_offset_deg",
+        "noise_type","lfo_waveform","initial_offset","post_offset","transition_curve"}},
+    {"qam_beat", juce::StringArray{
+        "ampL","ampR","baseFreqL","baseFreqR","qamAmFreqL","qamAmDepthL",
+        "qamAmPhaseOffsetL","qamAmFreqR","qamAmDepthR","qamAmPhaseOffsetR",
+        "qamAm2FreqL","qamAm2DepthL","qamAm2PhaseOffsetL","qamAm2FreqR",
+        "qamAm2DepthR","qamAm2PhaseOffsetR","modShapeL","modShapeR","crossModDepth",
+        "crossModDelay","harmonicDepth","harmonicRatio","subHarmonicFreq",
+        "subHarmonicDepth","startPhaseL","startPhaseR","phaseOscFreq",
+        "phaseOscRange","phaseOscPhaseOffset","beatingSidebands","sidebandOffset",
+        "sidebandDepth","attackTime","releaseTime"}},
+    {"qam_beat_transition", juce::StringArray{
+        "startAmpL","endAmpL","startAmpR","endAmpR","startBaseFreqL","endBaseFreqL",
+        "startBaseFreqR","endBaseFreqR","startQamAmFreqL","endQamAmFreqL",
+        "startQamAmDepthL","endQamAmDepthL","startQamAmPhaseOffsetL",
+        "endQamAmPhaseOffsetL","startQamAmFreqR","endQamAmFreqR",
+        "startQamAmDepthR","endQamAmDepthR","startQamAmPhaseOffsetR",
+        "endQamAmPhaseOffsetR","startQamAm2FreqL","endQamAm2FreqL",
+        "startQamAm2DepthL","endQamAm2DepthL","startQamAm2PhaseOffsetL",
+        "endQamAm2PhaseOffsetL","startQamAm2FreqR","endQamAm2FreqR",
+        "startQamAm2DepthR","endQamAm2DepthR","startQamAm2PhaseOffsetR",
+        "endQamAm2PhaseOffsetR","startModShapeL","endModShapeL",
+        "startModShapeR","endModShapeR","startCrossModDepth","endCrossModDepth",
+        "startHarmonicDepth","endHarmonicDepth","startSubHarmonicFreq",
+        "endSubHarmonicFreq","startSubHarmonicDepth","endSubHarmonicDepth",
+        "startStartPhaseL","endStartPhaseL","startStartPhaseR","endStartPhaseR",
+        "startPhaseOscFreq","endPhaseOscFreq","startPhaseOscRange",
+        "endPhaseOscRange","crossModDelay","harmonicRatio","phaseOscPhaseOffset",
+        "beatingSidebands","sidebandOffset","sidebandDepth","attackTime",
+        "releaseTime","initial_offset","post_offset","transition_curve"}},
+    {"rhythmic_waveshaping", juce::StringArray{
+        "amp","carrierFreq","modFreq","modDepth","shapeAmount","pan"}},
+    {"rhythmic_waveshaping_transition", juce::StringArray{
+        "amp","startCarrierFreq","endCarrierFreq","startModFreq","endModFreq",
+        "startModDepth","endModDepth","startShapeAmount","endShapeAmount",
+        "pan","initial_offset","post_offset","transition_curve"}},
+    {"stereo_am_independent", juce::StringArray{
+        "amp","carrierFreq","modFreqL","modDepthL","modPhaseL",
+        "modFreqR","modDepthR","modPhaseR","stereo_width_hz"}},
+    {"stereo_am_independent_transition", juce::StringArray{
+        "amp","startCarrierFreq","endCarrierFreq","startModFreqL","endModFreqL",
+        "startModDepthL","endModDepthL","startModPhaseL","startModFreqR",
+        "endModFreqR","startModDepthR","endModDepthR","startModPhaseR",
+        "startStereoWidthHz","endStereoWidthHz","initial_offset","post_offset",
+        "transition_curve"}},
+    {"wave_shape_stereo_am", juce::StringArray{
+        "amp","carrierFreq","shapeModFreq","shapeModDepth","shapeAmount",
+        "stereoModFreqL","stereoModDepthL","stereoModPhaseL","stereoModFreqR",
+        "stereoModDepthR","stereoModPhaseR"}},
+    {"wave_shape_stereo_am_transition", juce::StringArray{
+        "amp","startCarrierFreq","endCarrierFreq","startShapeModFreq",
+        "endShapeModFreq","startShapeModDepth","endShapeModDepth",
+        "startShapeAmount","endShapeAmount","startStereoModFreqL",
+        "endStereoModFreqL","startStereoModDepthL","endStereoModDepthL",
+        "startStereoModPhaseL","startStereoModFreqR","endStereoModFreqR",
+        "startStereoModDepthR","endStereoModDepthR","startStereoModPhaseR",
+        "initial_offset","post_offset","transition_curve"}}
+};
+
 //==============================================================================
 // ParameterRow implementation
 //==============================================================================
@@ -41,15 +150,18 @@ VoiceEditorDialog::VoiceEditorDialog(
   addAndMakeVisible(&funcCombo);
   for (int i = 0; i < synthNames.size(); ++i)
     funcCombo.addItem(synthNames[i], i + 1);
+  funcCombo.onChange = [this] {
+    auto func = funcCombo.getText();
+    auto it = synthParamNames.find(func);
+    if (it != synthParamNames.end())
+      rebuildParamUIWithNames(data.params, it->second);
+  };
 
   addAndMakeVisible(&transitionToggle);
   transitionToggle.setButtonText("Is Transition");
 
   addAndMakeVisible(&paramsLabel);
   paramsLabel.setText("Parameters", dontSendNotification);
-  addAndMakeVisible(&addParamButton);
-  addParamButton.setButtonText("Add Param");
-  addParamButton.addListener(this);
   addAndMakeVisible(&paramsViewport);
   paramsViewport.setViewedComponent(&paramsContainer, false);
 
@@ -85,6 +197,11 @@ VoiceEditorDialog::VoiceEditorDialog(
 
   if (existing)
     populateFromData(*existing);
+  else if (funcCombo.getNumItems() > 0)
+  {
+    funcCombo.setSelectedItemIndex(0);
+    funcCombo.onChange();
+  }
 
   setSize(500, 600);
 }
@@ -92,7 +209,6 @@ VoiceEditorDialog::VoiceEditorDialog(
 VoiceEditorDialog::~VoiceEditorDialog() {
   okButton.removeListener(this);
   cancelButton.removeListener(this);
-  addParamButton.removeListener(this);
 }
 
 bool VoiceEditorDialog::wasAccepted() const { return accepted; }
@@ -109,11 +225,6 @@ void VoiceEditorDialog::buttonClicked(Button *b) {
       exitModalState(1);
   } else if (b == &cancelButton) {
     closeButtonPressed();
-  } else if (b == &addParamButton) {
-    auto *row = new ParameterRow("param", "0");
-    paramRows.add(row);
-    paramsContainer.addAndMakeVisible(row);
-    layoutParamRows();
   }
 }
 
@@ -131,7 +242,6 @@ void VoiceEditorDialog::resized() {
   area.removeFromTop(gap);
 
   paramsLabel.setBounds(area.removeFromTop(labelH));
-  addParamButton.setBounds(area.removeFromTop(buttonH));
   area.removeFromTop(4);
   paramsViewport.setBounds(area.removeFromTop(editorH));
   area.removeFromTop(gap);
@@ -161,7 +271,12 @@ void VoiceEditorDialog::populateFromData(const VoiceData &d) {
   funcCombo.setText(d.synthFunction, dontSendNotification);
   transitionToggle.setToggleState(d.isTransition, dontSendNotification);
 
-  rebuildParamUI(d.params);
+  auto func = funcCombo.getText();
+  auto it = synthParamNames.find(func);
+  if (it != synthParamNames.end())
+    rebuildParamUIWithNames(d.params, it->second);
+  else
+    rebuildParamUI(d.params);
   rebuildEnvelopeUI(d.volumeEnvelope);
 
   descEditor.setText(d.description);
@@ -189,6 +304,22 @@ void VoiceEditorDialog::rebuildParamUI(const var &paramsVar) {
       paramRows.add(row);
       paramsContainer.addAndMakeVisible(row);
     }
+  }
+  layoutParamRows();
+}
+
+void VoiceEditorDialog::rebuildParamUIWithNames(const var &paramsVar,
+                                                const juce::StringArray &names) {
+  paramRows.clear();
+  paramsContainer.removeAllChildren();
+  paramsContainer.setSize(300, 0);
+
+  DynamicObject *obj = paramsVar.getDynamicObject();
+  for (const auto &name : names) {
+    String val = obj ? obj->getProperty(name).toString() : String();
+    auto *row = new ParameterRow(name, val);
+    paramRows.add(row);
+    paramsContainer.addAndMakeVisible(row);
   }
   layoutParamRows();
 }

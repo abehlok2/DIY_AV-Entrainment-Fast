@@ -56,6 +56,8 @@ private:
   void populateFromData(const VoiceData &d);
   bool collectData();
   void rebuildParamUI(const juce::var &paramsVar);
+  void rebuildParamUIWithNames(const juce::var& paramsVar,
+                               const juce::StringArray& names);
   void layoutParamRows();
   juce::var collectParamsVar();
   void rebuildEnvelopeUI(const juce::var &envVar = juce::var());
@@ -70,7 +72,6 @@ private:
   juce::ToggleButton transitionToggle;
 
   juce::Label paramsLabel;
-  juce::TextButton addParamButton;
   juce::Viewport paramsViewport;
   juce::Component paramsContainer;
   juce::OwnedArray<ParameterRow> paramRows;
