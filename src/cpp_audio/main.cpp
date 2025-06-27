@@ -159,6 +159,10 @@ public:
         }
     }
 
+    void newTrack();
+    void loadTrack();
+    void saveTrack();
+
 private:
     juce::AudioDeviceManager deviceManager;
     CollapsibleBox settingsBox;
@@ -344,93 +348,6 @@ private:
         menuOverlayClips
     };
 
-    void newTrack()
-    {
-        GlobalSettingsComponent::Settings s;
-        s.sampleRate = prefs.sampleRate;
-        s.crossfadeSeconds = 1.0;
-        s.outputFile = "my_track.wav";
-        s.noiseFile = juce::String();
-        s.noiseAmp = 0.0;
-        settings.setSettings(s);
-        stepList.clearSteps();
-        clips.clear();
-        currentTrackFile = juce::File();
-        preview.reset();
-    }
-
-    void openTrack()
-    {
-        juce::FileChooser chooser("Open Track JSON", {}, "*.json");
-        if (!chooser.browseForFileToOpen())
-            return;
-        auto file = chooser.getResult();
-        auto track = loadTrackFromJson(file);
-
-        GlobalSettingsComponent::Settings s;
-        s.sampleRate = track.settings.sampleRate;
-        s.crossfadeSeconds = track.settings.crossfadeDuration;
-        s.outputFile = track.settings.outputFilename;
-        s.noiseFile = track.backgroundNoise.filePath;
-        s.noiseAmp = track.backgroundNoise.amp;
-        settings.setSettings(s);
-
-        stepList.setSteps(track.steps);
-
-        clips.clear();
-        for (const auto& c : track.clips)
-        {
-            OverlayClipPanel::ClipData cd;
-            cd.filePath = c.filePath;
-            cd.description = c.description;
-            cd.start = c.start;
-            cd.duration = c.duration;
-            cd.amp = c.amp;
-            cd.pan = c.pan;
-            cd.fadeIn = c.fadeIn;
-            cd.fadeOut = c.fadeOut;
-            clips.push_back(cd);
-        }
-
-        currentTrackFile = file;
-        preview.reset();
-    }
-
-    void saveTrack()
-    {
-        if (!currentTrackFile.existsAsFile())
-        {
-            juce::FileChooser chooser("Save Track JSON", {}, "*.json");
-            if (!chooser.browseForFileToSave(true))
-                return;
-            currentTrackFile = chooser.getResult();
-        }
-
-        Track track;
-        auto gs = settings.getSettings();
-        track.settings.sampleRate = gs.sampleRate;
-        track.settings.crossfadeDuration = gs.crossfadeSeconds;
-        track.settings.crossfadeCurve = prefs.crossfadeCurve;
-        track.settings.outputFilename = gs.outputFile;
-        track.backgroundNoise.filePath = gs.noiseFile;
-        track.backgroundNoise.amp = gs.noiseAmp;
-        track.steps = stepList.toTrackSteps();
-        for (const auto& cd : clips)
-        {
-            Clip c;
-            c.filePath = cd.filePath;
-            c.description = cd.description;
-            c.start = cd.start;
-            c.duration = cd.duration;
-            c.amp = cd.amp;
-            c.pan = cd.pan;
-            c.fadeIn = cd.fadeIn;
-            c.fadeOut = cd.fadeOut;
-            track.clips.push_back(c);
-        }
-
-        saveTrackToJson(track, currentTrackFile);
-    }
 
     void openClipEditor()
     {
@@ -488,6 +405,8 @@ public:
     {
         setUsingNativeTitleBar(true);
         setResizable(true, true);
+
+        setLookAndFeel(&lookAndFeel);
 
         setContentOwned(new MainComponent(), true);
         setMenuBar(this);
