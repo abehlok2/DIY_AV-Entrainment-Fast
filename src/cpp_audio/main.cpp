@@ -11,17 +11,21 @@
 #include "ui/StepPreviewComponent.h"
 #include "Track.h"
 #include "ui/PreferencesDialog.h"
+#include "ui/NoiseGeneratorDialog.h"
+#include "ui/FrequencyTesterDialog.h"
 #include "ui/Themes.h"
 #include <vector>
 
-class MainComponent : public juce::Component
+class MainComponent : public juce::Component,
+                      private juce::MenuBarModel
 {
 public:
-    MainComponent()
-        : settings(deviceManager),
-          preview(deviceManager)
+    MainComponent(Preferences& p, juce::LookAndFeel_V4& lf)
+        : prefs(p), lookAndFeel(lf), settings(deviceManager),
+          preview(deviceManager), menuBar(this)
     {
         deviceManager.initialise(0, 2, nullptr, true);
+        addAndMakeVisible(menuBar);
         addAndMakeVisible(settings);
         addAndMakeVisible(preview);
         addAndMakeVisible(stepList);
@@ -70,11 +74,55 @@ public:
     void resized() override
     {
         auto area = getLocalBounds().reduced (8);
+        menuBar.setBounds(area.removeFromTop(24));
         settings.setBounds (area.removeFromTop (144));
         preview.setBounds(area.removeFromTop(80));
         editClipsButton.setBounds(area.removeFromTop(24));
         area.removeFromTop(4);
         stepList.setBounds (area);
+    }
+
+    juce::StringArray getMenuBarNames() override
+    {
+        return { "File", "Tools" };
+    }
+
+    juce::PopupMenu getMenuForIndex(int index, const juce::String&) override
+    {
+        juce::PopupMenu menu;
+        if (index == 0)
+        {
+            menu.addItem(menuPreferences, "Preferences...");
+        }
+        else if (index == 1)
+        {
+            menu.addItem(menuNoiseGen, "Noise Generator...");
+            menu.addItem(menuFreqTest, "Frequency Tester...");
+            menu.addItem(menuOverlayClips, "Overlay Clips...");
+        }
+        return menu;
+    }
+
+    void menuItemSelected(int menuItemID, int) override
+    {
+        switch (menuItemID)
+        {
+            case menuPreferences:
+                if (showPreferencesDialog(prefs))
+                    applyTheme(lookAndFeel, prefs.theme);
+                break;
+            case menuNoiseGen:
+                openNoiseGenerator();
+                break;
+            case menuFreqTest:
+                openFrequencyTester();
+                break;
+            case menuOverlayClips:
+                openClipEditor();
+                break;
+            default:
+                break;
+        }
     }
 
 private:
@@ -83,7 +131,18 @@ private:
     StepPreviewComponent preview;
     StepListPanel stepList;
     juce::TextButton editClipsButton {"Overlay Clips..."};
+    juce::MenuBarComponent menuBar;
+    Preferences& prefs;
+    juce::LookAndFeel_V4& lookAndFeel;
     std::vector<OverlayClipPanel::ClipData> clips;
+
+    enum MenuIds
+    {
+        menuPreferences = 1,
+        menuNoiseGen,
+        menuFreqTest,
+        menuOverlayClips
+    };
 
     void openClipEditor()
     {
@@ -100,20 +159,47 @@ private:
         opts.resizable = true;
         opts.runModal();
     }
+
+    void openNoiseGenerator()
+    {
+        auto dialog = createNoiseGeneratorDialog();
+        juce::DialogWindow::LaunchOptions opts;
+        opts.content.setOwned(dialog.release());
+        opts.dialogTitle = "Noise Generator";
+        opts.dialogBackgroundColour = juce::Colours::lightgrey;
+        opts.escapeKeyTriggersCloseButton = true;
+        opts.useNativeTitleBar = true;
+        opts.resizable = true;
+        opts.runModal();
+    }
+
+    void openFrequencyTester()
+    {
+        auto dialog = createFrequencyTesterDialog(deviceManager);
+        juce::DialogWindow::LaunchOptions opts;
+        opts.content.setOwned(dialog.release());
+        opts.dialogTitle = "Frequency Tester";
+        opts.dialogBackgroundColour = juce::Colours::lightgrey;
+        opts.escapeKeyTriggersCloseButton = true;
+        opts.useNativeTitleBar = true;
+        opts.resizable = true;
+        opts.runModal();
+    }
 };
 
 class MainWindow : public juce::DocumentWindow
 {
 public:
-    explicit MainWindow(const juce::String& name)
+    MainWindow(const juce::String& name, Preferences& p, juce::LookAndFeel_V4& lf)
         : DocumentWindow(name,
                           juce::Desktop::getInstance().getDefaultLookAndFeel()
                               .findColour(juce::ResizableWindow::backgroundColourId),
-                          juce::DocumentWindow::allButtons)
+                          juce::DocumentWindow::allButtons),
+          prefs(p), lookAndFeel(lf)
     {
         setUsingNativeTitleBar(true);
         setResizable(true, true);
-        setContentOwned(new MainComponent(), true);
+        setContentOwned(new MainComponent(prefs, lookAndFeel), true);
         centreWithSize(getWidth(), getHeight());
         setVisible(true);
     }
@@ -122,6 +208,10 @@ public:
     {
         juce::JUCEApplication::getInstance()->systemRequestedQuit();
     }
+
+private:
+    Preferences& prefs;
+    juce::LookAndFeel_V4& lookAndFeel;
 };
 
 class AudioApplication : public juce::JUCEApplication
@@ -134,7 +224,7 @@ public:
     {
         juce::Desktop::getInstance().setDefaultLookAndFeel(&lookAndFeel);
         applyTheme(lookAndFeel, prefs.theme);
-        mainWindow.reset(new MainWindow(getApplicationName()));
+        mainWindow.reset(new MainWindow(getApplicationName(), prefs, lookAndFeel));
         showPreferencesDialog(prefs);
         applyTheme(lookAndFeel, prefs.theme);
     }
