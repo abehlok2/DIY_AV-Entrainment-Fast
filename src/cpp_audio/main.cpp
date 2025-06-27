@@ -9,6 +9,8 @@
 #include "ui/StepListPanel.h"
 #include "ui/OverlayClipPanel.h"
 #include "ui/StepPreviewComponent.h"
+#include "ui/CollapsibleBox.h"
+#include "ui/ToolsComponent.h"
 #include "Track.h"
 #include "ui/PreferencesDialog.h"
 #include "ui/NoiseGeneratorDialog.h"
@@ -20,17 +22,33 @@ class MainComponent : public juce::Component,
                       private juce::MenuBarModel
 {
 public:
-    MainComponent(Preferences& p, juce::LookAndFeel_V4& lf)
-        : prefs(p), lookAndFeel(lf), settings(deviceManager),
-          preview(deviceManager), menuBar(this)
+    MainComponent()
+        : settingsBox("Global Settings"),
+          toolsBox("Tools"),
+          previewBox("Step Preview")
     {
         deviceManager.initialise(0, 2, nullptr, true);
-        addAndMakeVisible(menuBar);
-        addAndMakeVisible(settings);
-        addAndMakeVisible(preview);
+        {
+            auto ptr = std::make_unique<GlobalSettingsComponent>(deviceManager);
+            settings = ptr.get();
+            settingsBox.setContentComponent(std::move(ptr));
+            addAndMakeVisible(settingsBox);
+        }
+        {
+            auto ptr = std::make_unique<ToolsComponent>();
+            tools = ptr.get();
+            tools->onOverlayClips = [this] { openClipEditor(); };
+            toolsBox.setContentComponent(std::move(ptr));
+            addAndMakeVisible(toolsBox);
+        }
+        {
+            auto ptr = std::make_unique<StepPreviewComponent>(deviceManager);
+            preview = ptr.get();
+            previewBox.setContentComponent(std::move(ptr));
+            addAndMakeVisible(previewBox);
+        }
+
         addAndMakeVisible(stepList);
-        addAndMakeVisible(editClipsButton);
-        editClipsButton.onClick = [this] { openClipEditor(); };
         stepList.onStepSelected = [this](int index)
         {
             const auto& steps = stepList.getSteps();
@@ -49,18 +67,18 @@ public:
                     v.description = vd.description;
                     step.voices.push_back(std::move(v));
                 }
-                auto gsRaw = settings.getSettings();
+                auto gsRaw = settings->getSettings();
                 GlobalSettings gs;
                 gs.sampleRate = gsRaw.sampleRate;
                 gs.crossfadeDuration = gsRaw.crossfadeSeconds;
                 gs.outputFilename = gsRaw.outputFile;
                 gs.crossfadeCurve = "linear";
                 double previewDur = step.durationSeconds < 180.0 ? step.durationSeconds : 60.0;
-                preview.loadStep(step, gs, previewDur);
+                preview->loadStep(step, gs, previewDur);
             }
             else
             {
-                preview.reset();
+                preview->reset();
             }
         };
         setSize (800, 600);
@@ -74,12 +92,13 @@ public:
     void resized() override
     {
         auto area = getLocalBounds().reduced (8);
-        menuBar.setBounds(area.removeFromTop(24));
-        settings.setBounds (area.removeFromTop (144));
-        preview.setBounds(area.removeFromTop(80));
-        editClipsButton.setBounds(area.removeFromTop(24));
+
+        toolsBox.setBounds(area.removeFromTop(40));
+        settingsBox.setBounds(area.removeFromTop(220));
+        previewBox.setBounds(area.removeFromTop(100));
+
         area.removeFromTop(4);
-        stepList.setBounds (area);
+        stepList.setBounds(area);
     }
 
     juce::StringArray getMenuBarNames() override
@@ -127,13 +146,14 @@ public:
 
 private:
     juce::AudioDeviceManager deviceManager;
-    GlobalSettingsComponent settings;
-    StepPreviewComponent preview;
+    CollapsibleBox settingsBox;
+    CollapsibleBox toolsBox;
+    CollapsibleBox previewBox;
+    GlobalSettingsComponent* settings = nullptr;
+    ToolsComponent* tools = nullptr;
+    StepPreviewComponent* preview = nullptr;
     StepListPanel stepList;
-    juce::TextButton editClipsButton {"Overlay Clips..."};
-    juce::MenuBarComponent menuBar;
-    Preferences& prefs;
-    juce::LookAndFeel_V4& lookAndFeel;
+
     std::vector<OverlayClipPanel::ClipData> clips;
 
     enum MenuIds

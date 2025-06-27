@@ -44,6 +44,7 @@ set(SOURCES
     ui/OverlayClipDialog.cpp
     ui/OverlayClipPanel.cpp
     ui/PreferencesDialog.cpp
+    ui/ToolsComponent.cpp
     ui/Simulator.cpp
     ui/StepConfigPanel.cpp
     ui/StepListPanel.cpp
