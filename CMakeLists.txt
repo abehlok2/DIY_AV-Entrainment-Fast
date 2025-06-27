@@ -76,6 +76,7 @@ set(SOURCES
     ${AUDIO_DIR}/ui/StepPreviewComponent.cpp
     ${AUDIO_DIR}/ui/SubliminalDialog.cpp
     ${AUDIO_DIR}/ui/Themes.cpp
+    ${AUDIO_DIR}/ui/ToolsComponent.cpp
     ${AUDIO_DIR}/ui/VoiceEditorDialog.cpp
     ${AUDIO_DIR}/ui/VoiceEditorComponent.cpp
 )
