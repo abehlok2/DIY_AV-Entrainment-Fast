@@ -35,10 +35,10 @@ add_subdirectory(
 set(SOURCES
     # Core
     ${AUDIO_DIR}/main.cpp
-    ${AUDIO_DIR}/AudioUtils.cpp
-    ${AUDIO_DIR}/Common.cpp
-    ${AUDIO_DIR}/StepPreviewer.cpp
-    ${AUDIO_DIR}/Track.cpp
+    ${AUDIO_DIR}/core/AudioUtils.cpp
+    ${AUDIO_DIR}/core/Common.cpp
+    ${AUDIO_DIR}/core/StepPreviewer.cpp
+    ${AUDIO_DIR}/core/Track.cpp
 
     # Models
     ${AUDIO_DIR}/models/StepModel.cpp
@@ -101,6 +101,8 @@ endif()
 target_include_directories(AudioApp
     PRIVATE
       ${AUDIO_DIR}
+      ${AUDIO_DIR}/core
+      ${AUDIO_DIR}/synths
 )
 
 #--------------------------------------------------

@@ -1,6 +1,6 @@
 #include "Track.h"
 #include "AudioUtils.h"
-#include "SynthFunctions.h"
+#include "../synths/SynthFunctions.h"
 #include "VarUtils.h"
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_data_structures/juce_data_structures.h>

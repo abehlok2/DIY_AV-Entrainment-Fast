@@ -1,5 +1,5 @@
 #include "NoiseGeneratorDialog.h"
-#include "../cpp_audio/SynthFunctions.h"
+#include "../synths/SynthFunctions.h"
 #include <nlohmann/json.hpp>
 
 using namespace juce;

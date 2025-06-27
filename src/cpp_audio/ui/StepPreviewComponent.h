@@ -1,6 +1,6 @@
 #pragma once
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "../cpp_audio/StepPreviewer.h"
+#include "../core/StepPreviewer.h"
 
 class StepPreviewComponent : public juce::Component,
                               private juce::Button::Listener,
