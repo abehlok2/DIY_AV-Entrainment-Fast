@@ -7,10 +7,12 @@
 
 #include "ui/GlobalSettingsComponent.h"
 #include "ui/StepListPanel.h"
+#include "ui/OverlayClipPanel.h"
 #include "ui/StepPreviewComponent.h"
 #include "Track.h"
 #include "ui/PreferencesDialog.h"
 #include "ui/Themes.h"
+#include <vector>
 
 class MainComponent : public juce::Component
 {
@@ -23,6 +25,8 @@ public:
         addAndMakeVisible(settings);
         addAndMakeVisible(preview);
         addAndMakeVisible(stepList);
+        addAndMakeVisible(editClipsButton);
+        editClipsButton.onClick = [this] { openClipEditor(); };
         stepList.onStepSelected = [this](int index)
         {
             const auto& steps = stepList.getSteps();
@@ -68,6 +72,8 @@ public:
         auto area = getLocalBounds().reduced (8);
         settings.setBounds (area.removeFromTop (144));
         preview.setBounds(area.removeFromTop(80));
+        editClipsButton.setBounds(area.removeFromTop(24));
+        area.removeFromTop(4);
         stepList.setBounds (area);
     }
 
@@ -76,6 +82,24 @@ private:
     GlobalSettingsComponent settings;
     StepPreviewComponent preview;
     StepListPanel stepList;
+    juce::TextButton editClipsButton {"Overlay Clips..."};
+    std::vector<OverlayClipPanel::ClipData> clips;
+
+    void openClipEditor()
+    {
+        auto* panel = new OverlayClipPanel();
+        panel->setClips(clips);
+        panel->onClipsChanged = [this, panel]() { clips = panel->getClips(); };
+
+        juce::DialogWindow::LaunchOptions opts;
+        opts.content.setOwned(panel);
+        opts.dialogTitle = "Overlay Clips";
+        opts.dialogBackgroundColour = juce::Colours::lightgrey;
+        opts.escapeKeyTriggersCloseButton = true;
+        opts.useNativeTitleBar = true;
+        opts.resizable = true;
+        opts.runModal();
+    }
 };
 
 class MainWindow : public juce::DocumentWindow

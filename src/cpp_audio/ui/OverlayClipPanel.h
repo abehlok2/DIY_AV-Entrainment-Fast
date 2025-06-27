@@ -3,6 +3,8 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_audio_utils/juce_audio_utils.h>
+#include <functional>
+#include <vector>
 #include "OverlayClipDialog.h"
 
 class OverlayClipPanel : public juce::Component,
@@ -13,9 +15,16 @@ public:
     OverlayClipPanel();
     ~OverlayClipPanel() override;
 
+    using ClipData = OverlayClipDialog::ClipData;
+
     int getNumRows() override;
     void paintListBoxItem(int row, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     void resized() override;
+
+    void setClips(const std::vector<ClipData>& c);
+    std::vector<ClipData> getClips() const;
+
+    std::function<void()> onClipsChanged;
 
 private:
     void buttonClicked(juce::Button*) override;
@@ -37,5 +46,5 @@ private:
     juce::AudioSourcePlayer sourcePlayer;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
 
-    std::vector<OverlayClipDialog::ClipData> clips;
+    std::vector<ClipData> clips;
 };
