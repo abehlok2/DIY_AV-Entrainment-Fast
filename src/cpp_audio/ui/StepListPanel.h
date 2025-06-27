@@ -1,7 +1,9 @@
 #pragma once
 #include <functional>
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <vector>
 #include "StepConfigPanel.h"
+#include "../Track.h"
 
 class StepListPanel : public juce::Component,
                       private juce::ListBoxModel,
@@ -33,6 +35,10 @@ public:
   const juce::Array<StepData> &getSteps() const { return steps; }
   int getSelectedIndex() const { return stepList.getSelectedRow(); }
   void setSteps(const juce::Array<StepData>& newSteps);
+
+  void setSteps(const std::vector<Step> &newSteps);
+  std::vector<Step> toTrackSteps() const;
+  void clearSteps();
 
   std::function<void(int)> onStepSelected;
 
