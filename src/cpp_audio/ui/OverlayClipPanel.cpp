@@ -57,6 +57,18 @@ void OverlayClipPanel::resized()
     playButton.setBounds(buttons);
 }
 
+void OverlayClipPanel::setClips(const std::vector<ClipData>& c)
+{
+    clips = c;
+    clipList.updateContent();
+    clipList.repaint();
+}
+
+std::vector<OverlayClipPanel::ClipData> OverlayClipPanel::getClips() const
+{
+    return clips;
+}
+
 void OverlayClipPanel::buttonClicked(juce::Button* b)
 {
     if (b == &addButton)
@@ -83,6 +95,8 @@ void OverlayClipPanel::addClip()
         clips.push_back(data);
         clipList.updateContent();
         clipList.selectRow((int)clips.size() - 1);
+        if (onClipsChanged)
+            onClipsChanged();
     }
 }
 
@@ -97,6 +111,8 @@ void OverlayClipPanel::editClip()
     {
         clips[(size_t)row] = data;
         clipList.repaintRow(row);
+        if (onClipsChanged)
+            onClipsChanged();
     }
 }
 
@@ -107,6 +123,8 @@ void OverlayClipPanel::removeClip()
         return;
     clips.erase(clips.begin() + row);
     clipList.updateContent();
+    if (onClipsChanged)
+        onClipsChanged();
 }
 
 void OverlayClipPanel::startPlayback()
