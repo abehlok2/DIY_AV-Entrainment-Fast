@@ -159,6 +159,10 @@ public:
         }
     }
 
+    void newTrack();
+    void loadTrack();
+    void saveTrack();
+
 private:
     juce::AudioDeviceManager deviceManager;
     CollapsibleBox settingsBox;
@@ -344,6 +348,7 @@ private:
         menuOverlayClips
     };
 
+
     void openClipEditor()
     {
         auto* panel = new OverlayClipPanel();
@@ -400,6 +405,8 @@ public:
     {
         setUsingNativeTitleBar(true);
         setResizable(true, true);
+
+        setLookAndFeel(&lookAndFeel);
 
         setContentOwned(new MainComponent(), true);
         setMenuBar(this);
