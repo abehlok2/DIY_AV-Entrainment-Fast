@@ -299,7 +299,7 @@ OverlayClipDialog::ClipData showOverlayClipEditor(bool amplitudeInDb,
 {
     OverlayClipDialogWindow dialog(amplitudeInDb, existing);
     juce::DialogWindow::LaunchOptions opts;
-    opts.content.setOwned(&dialog);
+    opts.content.setNonOwned(&dialog);
     opts.dialogTitle = "Overlay Clip";
     opts.dialogBackgroundColour = juce::Colours::lightgrey;
     opts.escapeKeyTriggersCloseButton = true;

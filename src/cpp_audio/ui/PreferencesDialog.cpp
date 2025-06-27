@@ -303,7 +303,7 @@ bool showPreferencesDialog (Preferences& prefs)
 {
     PreferencesDialog dialog (prefs);
     DialogWindow::LaunchOptions opts;
-    opts.content.setOwned (&dialog);
+    opts.content.setNonOwned (&dialog);
     opts.dialogTitle = "Preferences";
     opts.dialogBackgroundColour = Colours::lightgrey;
     opts.escapeKeyTriggersCloseButton = true;
