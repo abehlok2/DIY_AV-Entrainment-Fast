@@ -81,14 +81,7 @@ target_link_libraries(AudioApp
         # add other juce::<module> targets as needed
 )
 
-<<<<<<< abcd/fix-missing-runmodal-functions-in-juce-dialog-components
-# Ensure modal loop APIs like runModal and runModalLoop are available
-# for our dialogs when building this standalone target.
-=======
-# JUCE's synchronous FileChooser methods are disabled unless this
-# definition is enabled. Some UI components still rely on functions like
-# browseForFileToOpen(), so enable modal loops explicitly.
->>>>>>> main
+# Enable synchronous modal dialogs (runModal, runModalLoop, FileChooser APIs)
 target_compile_definitions(AudioApp PRIVATE JUCE_MODAL_LOOPS_PERMITTED=1)
 
 
