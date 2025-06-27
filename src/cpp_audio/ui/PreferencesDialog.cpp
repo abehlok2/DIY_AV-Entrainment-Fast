@@ -2,6 +2,7 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include <cmath>
 #include "Preferences.h"
+#include "DefaultVoiceDialog.h"
 #include "Themes.h"
 #include "PreferencesDialog.h"
 
@@ -133,6 +134,10 @@ public:
         applyTargetAmpToggle.setToggleState (prefs.applyTargetAmplitude, dontSendNotification);
         addAndMakeVisible (&applyTargetAmpToggle);
 
+        addAndMakeVisible (&defaultVoiceButton);
+        defaultVoiceButton.setButtonText ("Edit Default Voice...");
+        defaultVoiceButton.addListener (this);
+
         addAndMakeVisible (&okButton);
         okButton.setButtonText ("OK");
         okButton.addListener (this);
@@ -213,6 +218,9 @@ public:
         row = area.removeFromTop (rowH);
         applyTargetAmpToggle.setBounds (row);
 
+        row = area.removeFromTop (rowH);
+        defaultVoiceButton.setBounds (row);
+
         area.removeFromTop (10);
         row = area.removeFromTop (30);
         okButton.setBounds (row.removeFromRight (80));
@@ -231,7 +239,8 @@ private:
     ComboBox fontCombo, themeCombo, ampModeCombo, crossfadeCurveCombo;
     Slider fontSizeSlider, sampleRateSlider, testDurationSlider, targetAmpSlider;
     TextEditor exportEdit;
-    TextButton browseButton { "Browse" }, okButton { "OK" }, cancelButton { "Cancel" };
+    TextButton browseButton { "Browse" }, okButton { "OK" }, cancelButton { "Cancel" },
+               defaultVoiceButton { "Edit Default Voice..." };
     ToggleButton trackMetadataToggle, applyTargetAmpToggle;
 
     void buttonClicked (Button* b) override
@@ -252,6 +261,12 @@ private:
         {
             if (auto* dw = findParentComponentOfClass<DialogWindow>())
                 dw->exitModalState (0);
+        }
+        else if (b == &defaultVoiceButton)
+        {
+            DefaultVoiceDialog dlg (prefs);
+            if (dlg.runModalLoop() == 1)
+                prefs.defaultVoice = dlg.getDefaultVoice();
         }
     }
 
