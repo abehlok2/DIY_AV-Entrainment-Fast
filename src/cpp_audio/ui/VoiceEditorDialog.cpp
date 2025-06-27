@@ -141,6 +141,7 @@ VoiceEditorDialog::VoiceEditorDialog(
     : DialogWindow("Edit Voice", Colours::lightgrey, true),
       referenceSteps(refSteps ? *refSteps
                               : std::vector<std::vector<VoiceData>>{}) {
+  hasReferences = refSteps && !refSteps->empty();
   setUsingNativeTitleBar(true);
   setResizable(true, false);
 
@@ -173,13 +174,16 @@ VoiceEditorDialog::VoiceEditorDialog(
   envTypeCombo.onChange = [this] { rebuildEnvelopeUI(); };
   addAndMakeVisible(&envViewport);
   envViewport.setViewedComponent(&envContainer, false);
+  rebuildEnvelopeUI();
 
-  addAndMakeVisible(&refStepCombo);
-  addAndMakeVisible(&refVoiceCombo);
-  addAndMakeVisible(&refDetails);
-  refDetails.setMultiLine(true);
-  refDetails.setReadOnly(true);
-  refDetails.setScrollbarsShown(true);
+  if (hasReferences) {
+    addAndMakeVisible(&refStepCombo);
+    addAndMakeVisible(&refVoiceCombo);
+    addAndMakeVisible(&refDetails);
+    refDetails.setMultiLine(true);
+    refDetails.setReadOnly(true);
+    refDetails.setScrollbarsShown(true);
+  }
 
   addAndMakeVisible(&descLabel);
   descLabel.setText("Description", dontSendNotification);
@@ -249,13 +253,16 @@ void VoiceEditorDialog::resized() {
   envLabel.setBounds(area.removeFromTop(labelH));
   envTypeCombo.setBounds(area.removeFromTop(buttonH));
   area.removeFromTop(4);
-  envViewport.setBounds(area.removeFromTop(editorH));
+  if (envViewport.isVisible())
+    envViewport.setBounds(area.removeFromTop(editorH));
   area.removeFromTop(gap);
 
-  refStepCombo.setBounds(area.removeFromTop(buttonH));
-  refVoiceCombo.setBounds(area.removeFromTop(buttonH));
-  refDetails.setBounds(area.removeFromTop(editorH));
-  area.removeFromTop(gap);
+  if (hasReferences) {
+    refStepCombo.setBounds(area.removeFromTop(buttonH));
+    refVoiceCombo.setBounds(area.removeFromTop(buttonH));
+    refDetails.setBounds(area.removeFromTop(editorH));
+    area.removeFromTop(gap);
+  }
 
   descLabel.setBounds(area.removeFromTop(labelH));
   descEditor.setBounds(area.removeFromTop(editorH));
@@ -280,7 +287,8 @@ void VoiceEditorDialog::populateFromData(const VoiceData &d) {
   rebuildEnvelopeUI(d.volumeEnvelope);
 
   descEditor.setText(d.description);
-  populateReferenceCombos();
+  if (hasReferences)
+    populateReferenceCombos();
 }
 
 bool VoiceEditorDialog::collectData() {
@@ -360,6 +368,7 @@ void VoiceEditorDialog::rebuildEnvelopeUI(const var &envVar) {
   }
   envTypeCombo.setSelectedItemIndex(type == "linear_fade" ? 1 : 0);
   layoutEnvRows();
+  envViewport.setVisible(envTypeCombo.getSelectedId() != 1 && envRows.size() > 0);
 }
 
 void VoiceEditorDialog::layoutEnvRows() {
