@@ -6,9 +6,11 @@ StepPreviewComponent::StepPreviewComponent(juce::AudioDeviceManager& dm)
 {
     addAndMakeVisible(&playPauseButton);
     playPauseButton.addListener(this);
+    playPauseButton.setEnabled(false);
 
     addAndMakeVisible(&stopButton);
     stopButton.addListener(this);
+    stopButton.setEnabled(false);
 
     addAndMakeVisible(&resetButton);
     resetButton.addListener(this);
@@ -27,12 +29,18 @@ StepPreviewComponent::StepPreviewComponent(juce::AudioDeviceManager& dm)
 
 void StepPreviewComponent::loadStep(const Step& step, const GlobalSettings& settings, double previewDuration)
 {
+    previewer.stop();
+    playPauseButton.setButtonText("Play");
     previewer.loadStep(step, settings, previewDuration);
     loadedStepName = step.description;
-    positionSlider.setRange(0.0, previewer.getLength(), 0.001);
+    stepReady = false;
+    playPauseButton.setEnabled(false);
+    stopButton.setEnabled(false);
+    positionSlider.setRange(0.0, 1.0, 0.001);
     positionSlider.setValue(0.0);
-    stepLabel.setText("Ready: " + loadedStepName, juce::dontSendNotification);
-    updateTimeLabel();
+    timeLabel.setText("00:00 / 00:00", juce::dontSendNotification);
+    stepLabel.setText("Loading: " + loadedStepName, juce::dontSendNotification);
+    startTimerHz(30);
 }
 
 void StepPreviewComponent::resized()
@@ -93,13 +101,27 @@ void StepPreviewComponent::sliderValueChanged(juce::Slider* s)
 
 void StepPreviewComponent::timerCallback()
 {
+    if (!stepReady)
+    {
+        if (previewer.isReady())
+        {
+            stepReady = true;
+            playPauseButton.setEnabled(true);
+            stopButton.setEnabled(true);
+            positionSlider.setRange(0.0, previewer.getLength(), 0.001);
+            updateTimeLabel();
+            stepLabel.setText("Ready: " + loadedStepName, juce::dontSendNotification);
+            if (!previewer.isPlaying())
+                stopTimer();
+        }
+        return;
+    }
+
     positionSlider.setValue(previewer.getPosition(), juce::dontSendNotification);
     updateTimeLabel();
     if (! previewer.isPlaying())
     {
         stopTimer();
-        if (loadedStepName.isNotEmpty())
-            stepLabel.setText("Ready: " + loadedStepName, juce::dontSendNotification);
     }
 }
 
@@ -122,7 +144,10 @@ void StepPreviewComponent::reset()
 {
     previewer.stop();
     loadedStepName.clear();
+    stepReady = false;
     playPauseButton.setButtonText("Play");
+    playPauseButton.setEnabled(false);
+    stopButton.setEnabled(false);
     positionSlider.setRange(0.0, 1.0, 0.001);
     positionSlider.setValue(0.0);
     timeLabel.setText("00:00 / 00:00", juce::dontSendNotification);
