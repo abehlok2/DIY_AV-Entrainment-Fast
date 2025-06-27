@@ -19,6 +19,10 @@
 #include <vector>
 #include <fstream>
 
+// Global application preferences and look and feel used across components
+static Preferences prefs;
+static juce::LookAndFeel_V4 lookAndFeel;
+
 class MainComponent : public juce::Component,
                       private juce::MenuBarModel
 {
@@ -283,56 +287,6 @@ private:
         preview.reset();
     }
 
-    void newTrack()
-    {
-        currentFile = juce::File();
-        clips.clear();
-        GlobalSettingsComponent::Settings gs;
-        gs.sampleRate = 44100.0;
-        gs.crossfadeSeconds = 1.0;
-        gs.outputFile = "my_track.wav";
-        gs.noiseFile = "";
-        gs.noiseAmp = 0.0;
-        settings.setSettings(gs);
-        stepList.setSteps({});
-        preview.reset();
-        if (auto* w = findParentComponentOfClass<juce::DocumentWindow>())
-            w->setName("DIY AV Audio - New File");
-    }
-
-    void loadTrack()
-    {
-        juce::FileChooser fc("Load Track", {}, "*.json");
-        if (fc.browseForFileToOpen())
-        {
-            auto file = fc.getResult();
-            auto t = loadTrackFromJson(file);
-            applyTrack(t);
-            currentFile = file;
-            if (auto* w = findParentComponentOfClass<juce::DocumentWindow>())
-                w->setName("DIY AV Audio - " + file.getFileName());
-        }
-    }
-
-    void saveTrack()
-    {
-        juce::File target = currentFile;
-        if (!target.existsAsFile())
-        {
-            juce::FileChooser fc("Save Track", {}, "*.json");
-            if (!fc.browseForFileToSave(true))
-                return;
-            target = fc.getResult();
-        }
-        auto t = collectTrack();
-        if (saveTrackToJson(t, target))
-        {
-            currentFile = target;
-            if (auto* w = findParentComponentOfClass<juce::DocumentWindow>())
-                w->setName("DIY AV Audio - " + target.getFileName());
-        }
-    }
-
     enum MenuIds
     {
         menuNew = 1,
@@ -355,7 +309,7 @@ private:
         settings.setSettings(s);
         stepList.clearSteps();
         clips.clear();
-        currentTrackFile = juce::File();
+        currentFile = juce::File();
         preview.reset();
     }
 
@@ -392,18 +346,18 @@ private:
             clips.push_back(cd);
         }
 
-        currentTrackFile = file;
+        currentFile = file;
         preview.reset();
     }
 
     void saveTrack()
     {
-        if (!currentTrackFile.existsAsFile())
+        if (!currentFile.existsAsFile())
         {
             juce::FileChooser chooser("Save Track JSON", {}, "*.json");
             if (!chooser.browseForFileToSave(true))
                 return;
-            currentTrackFile = chooser.getResult();
+            currentFile = chooser.getResult();
         }
 
         Track track;
@@ -429,7 +383,7 @@ private:
             track.clips.push_back(c);
         }
 
-        saveTrackToJson(track, currentTrackFile);
+        saveTrackToJson(track, currentFile);
     }
 
     void openClipEditor()
@@ -479,12 +433,11 @@ class MainWindow : public juce::DocumentWindow,
                    public juce::MenuBarModel
 {
 public:
-    MainWindow(const juce::String& name, Preferences& p, juce::LookAndFeel_V4& lf)
+    MainWindow(const juce::String& name, juce::LookAndFeel_V4& lf)
         : DocumentWindow(name,
                           juce::Desktop::getInstance().getDefaultLookAndFeel()
                               .findColour(juce::ResizableWindow::backgroundColourId),
-                          juce::DocumentWindow::allButtons),
-          prefs(p), lookAndFeel(lf)
+                          juce::DocumentWindow::allButtons)
     {
         setUsingNativeTitleBar(true);
         setResizable(true, true);
@@ -523,7 +476,7 @@ public:
         if (auto* mc = dynamic_cast<MainComponent*>(getContentComponent()))
         {
             if (menuItemID == 1) mc->newTrack();
-            else if (menuItemID == 2) mc->loadTrack();
+            else if (menuItemID == 2) mc->openTrack();
             else if (menuItemID == 3) mc->saveTrack();
         }
     }
@@ -542,7 +495,7 @@ public:
     {
         juce::Desktop::getInstance().setDefaultLookAndFeel(&lookAndFeel);
         applyTheme(lookAndFeel, prefs.theme);
-        mainWindow.reset(new MainWindow(getApplicationName(), prefs, lookAndFeel));
+        mainWindow.reset(new MainWindow(getApplicationName(), lookAndFeel));
         showPreferencesDialog(prefs);
         applyTheme(lookAndFeel, prefs.theme);
     }
@@ -551,8 +504,6 @@ public:
 
 private:
     std::unique_ptr<MainWindow> mainWindow;
-    juce::LookAndFeel_V4 lookAndFeel;
-    Preferences prefs;
 };
 
 START_JUCE_APPLICATION(AudioApplication)
