@@ -1,5 +1,22 @@
 #include "StepPreviewer.h"
 
+namespace {
+class StepPreviewJob : public juce::ThreadPoolJob
+{
+public:
+    StepPreviewJob(StepPreviewer& o, Step s, GlobalSettings g, double dur)
+        : juce::ThreadPoolJob("StepPreviewJob"), owner(o), step(std::move(s)), settings(std::move(g)), previewDur(dur) {}
+
+    JobStatus runJob() override;
+
+private:
+    StepPreviewer& owner;
+    Step step;
+    GlobalSettings settings;
+    double previewDur = 0.0;
+};
+}
+
 StepPreviewer::StepPreviewer(juce::AudioDeviceManager& dm)
     : deviceManager(dm)
 {
@@ -7,16 +24,19 @@ StepPreviewer::StepPreviewer(juce::AudioDeviceManager& dm)
     player->setSource(&transport);
 }
 
+StepPreviewer::~StepPreviewer()
+{
+    cancelJob();
+}
+
 bool StepPreviewer::loadStep(const Step& step, const GlobalSettings& settings, double previewDuration)
 {
+    cancelJob();
     sampleRate = settings.sampleRate;
-    auto audio = generateAudio(step, settings, previewDuration);
-    bufferSource = std::make_unique<BufferAudioSource>();
-    bufferSource->setBuffer(std::move(audio));
-    transport.setSource(bufferSource.get(), 0, nullptr, sampleRate);
-    lengthSeconds = transport.getLengthInSeconds();
-    transport.setPosition(0.0);
-    return bufferSource->getTotalLength() > 0;
+    ready.store(false);
+    job.reset(new StepPreviewJob(*this, step, settings, previewDuration));
+    pool.addJob(job.get(), true);
+    return true;
 }
 
 void StepPreviewer::play()
@@ -68,6 +88,21 @@ bool StepPreviewer::isPlaying() const
     return playing;
 }
 
+void StepPreviewer::cancelJob()
+{
+    if (job)
+    {
+        pool.removeJob(job.get(), true, 4000);
+        job.reset();
+    }
+    ready.store(false);
+}
+
+bool StepPreviewer::isReady() const
+{
+    return ready.load();
+}
+
 juce::AudioBuffer<float> StepPreviewer::generateAudio(const Step& step, const GlobalSettings& settings, double previewDuration)
 {
     Track t;
@@ -94,5 +129,20 @@ juce::AudioBuffer<float> StepPreviewer::generateAudio(const Step& step, const Gl
         pos += copy;
     }
     return result;
+}
+
+StepPreviewJob::JobStatus StepPreviewJob::runJob()
+{
+    auto audio = owner.generateAudio(step, settings, previewDur);
+    {
+        const juce::ScopedLock sl(owner.lock);
+        owner.bufferSource = std::make_unique<BufferAudioSource>();
+        owner.bufferSource->setBuffer(std::move(audio));
+        owner.transport.setSource(owner.bufferSource.get(), 0, nullptr, owner.sampleRate);
+        owner.lengthSeconds = owner.transport.getLengthInSeconds();
+        owner.transport.setPosition(0.0);
+    }
+    owner.ready.store(true);
+    return jobHasFinished;
 }
 
