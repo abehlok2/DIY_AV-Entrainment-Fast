@@ -13,7 +13,7 @@ public:
   struct StepData {
     juce::String description{"New Step"};
     double duration{10.0};
-    juce::Array<VoiceEditorDialog::VoiceData> voices;
+    juce::Array<VoiceEditorComponent::VoiceData> voices;
   };
 
   StepListPanel();
@@ -39,8 +39,10 @@ public:
   void setSteps(const std::vector<Step> &newSteps);
   std::vector<Step> toTrackSteps() const;
   void clearSteps();
+  void updateStepVoices(int index, const juce::Array<VoiceEditorComponent::VoiceData>& v);
 
   std::function<void(int)> onStepSelected;
+  std::function<void(int)> onEditVoices;
 
 private:
   // UI components

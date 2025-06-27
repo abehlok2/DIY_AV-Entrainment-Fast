@@ -196,8 +196,32 @@ static std::map<String, Theme> themes{
     { "Dark",     { createDarkScheme(),     darkStyle } },
     { "Green",    { createGreenScheme(),    greenStyle } },
     { "light-blue", { createLightBlueScheme(), lightBlueStyle } },
-    { "Material", { createMaterialScheme(), materialStyle } }
+    { "Material", { createMaterialScheme(), materialStyle } },
+    { "Clean", { createCleanScheme(), cleanStyle } }
 };
+
+static LookAndFeel_V4::ColourScheme createCleanScheme()
+{
+    return LookAndFeel_V4::ColourScheme{
+        Colour::fromRGB(40, 40, 40),  // windowBackground
+        Colour::fromRGB(50, 50, 50),  // widgetBackground
+        Colour::fromRGB(40, 40, 40),  // menuBackground
+        Colour::fromRGB(90, 90, 90),  // outline
+        Colour::fromRGB(220, 220, 220), // defaultText
+        Colour::fromRGB(50, 50, 50),  // defaultFill
+        Colour::fromRGB(255, 255, 255), // highlightedText
+        Colour::fromRGB(100, 149, 237), // highlightedFill
+        Colour::fromRGB(220, 220, 220) // menuText
+    };
+}
+
+static const char* cleanStyle = R"(
+QLineEdit, QComboBox, QSlider {
+    background-color: #333333;
+    border: 1px solid #888888;
+    color: #eeeeee;
+}
+)";
 
 void applyTheme (LookAndFeel_V4& lf, const String& name)
 {

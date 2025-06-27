@@ -13,6 +13,7 @@
 #include "ui/OverlayClipPanel.h"
 #include "ui/PreferencesDialog.h"
 #include "ui/StepListPanel.h"
+#include "ui/StepConfigPanel.h"
 #include "ui/StepPreviewComponent.h"
 #include "ui/Themes.h"
 #include "ui/ToolsComponent.h"
@@ -49,10 +50,20 @@ public:
       addAndMakeVisible(previewBox);
     }
 
+    {
+      auto ptr = std::make_unique<StepConfigPanel>();
+      stepConfig = ptr.get();
+      addAndMakeVisible(stepConfig);
+    }
+
     addAndMakeVisible(stepList);
     stepList.onStepSelected = [this](int index) {
       const auto &steps = stepList.getSteps();
       if (juce::isPositiveAndBelow(index, steps.size())) {
+        stepConfig->setVoices(steps[index].voices);
+        stepConfig->onVoicesChanged = [this, index]() {
+          stepList.updateStepVoices(index, stepConfig->getVoices());
+        };
         Step step;
         step.durationSeconds = steps[index].duration;
         step.description = steps[index].description;
@@ -78,6 +89,11 @@ public:
         preview->reset();
       }
     };
+    stepList.onEditVoices = [this](int index) {
+      const auto &steps = stepList.getSteps();
+      if (juce::isPositiveAndBelow(index, steps.size()))
+        stepConfig->setVoices(steps[index].voices);
+    };
     newTrack();
     setSize(800, 600);
   }
@@ -92,7 +108,9 @@ public:
     previewBox.setBounds(area.removeFromTop(100));
 
     area.removeFromTop(4);
-    stepList.setBounds(area);
+    auto left = area.removeFromLeft(area.getWidth() * 0.5);
+    stepList.setBounds(left);
+    stepConfig->setBounds(area);
   }
 
   juce::StringArray getMenuBarNames() override { return {"File", "Tools"}; }
@@ -151,6 +169,7 @@ public:
     s.noiseAmp = 0.0;
     settings->setSettings(s);
     stepList.clearSteps();
+    stepConfig->setVoices({});
     clips.clear();
     currentFile = juce::File();
     preview->reset();
@@ -172,6 +191,8 @@ public:
     settings->setSettings(s);
 
     stepList.setSteps(track.steps);
+    if (!track.steps.empty())
+      stepConfig->setVoices(track.steps[0].voices);
 
     clips.clear();
     for (const auto &c : track.clips) {
@@ -232,6 +253,7 @@ private:
   GlobalSettingsComponent *settings = nullptr;
   ToolsComponent *tools = nullptr;
   StepPreviewComponent *preview = nullptr;
+  StepConfigPanel *stepConfig = nullptr;
   StepListPanel stepList;
 
   std::vector<OverlayClipPanel::ClipData> clips;
@@ -324,7 +346,7 @@ private:
       sd.duration = s.durationSeconds;
       sd.description = s.description;
       for (const auto &v : s.voices) {
-        VoiceEditorDialog::VoiceData vd;
+        VoiceEditorComponent::VoiceData vd;
         vd.synthFunction = v.synthFunction;
         vd.isTransition = v.isTransition;
         vd.params = namedValueSetToVar(v.params);
@@ -334,6 +356,8 @@ private:
       newSteps.add(sd);
     }
     stepList.setSteps(newSteps);
+    if (!newSteps.isEmpty())
+      stepConfig->setVoices(newSteps[0].voices);
     preview->reset();
   }
 

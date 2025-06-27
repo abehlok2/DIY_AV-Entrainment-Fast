@@ -5,7 +5,7 @@ struct Preferences
 {
     juce::String fontFamily;
     int fontSize { 10 };
-    juce::String theme { "Dark" };
+    juce::String theme { "Clean" };
     juce::String exportDir;
     int sampleRate { 44100 };
     double testStepDuration { 30.0 };

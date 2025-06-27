@@ -1,5 +1,6 @@
 #include "StepConfigPanel.h"
-#include "VoiceEditorDialog.h"
+#include "VoiceEditorComponent.h"
+#include <memory>
 #include "../Track.h"
 
 using namespace juce;
@@ -51,16 +52,32 @@ void StepConfigPanel::paintListBoxItem(int row, Graphics& g, int width, int heig
 void StepConfigPanel::resized()
 {
     auto area = getLocalBounds().reduced(4);
-    voiceList.setBounds(area.removeFromTop(getHeight() - 48));
-
-    auto buttons = area.removeFromTop(44);
-    auto each = buttons.getWidth() / 6;
-    addButton.setBounds(buttons.removeFromLeft(each));
-    dupButton.setBounds(buttons.removeFromLeft(each));
-    removeButton.setBounds(buttons.removeFromLeft(each));
-    editButton.setBounds(buttons.removeFromLeft(each));
-    upButton.setBounds(buttons.removeFromLeft(each));
-    downButton.setBounds(buttons);
+    if (editor)
+    {
+        auto left = area.removeFromLeft(area.getWidth() / 2);
+        voiceList.setBounds(left.removeFromTop(getHeight() - 48));
+        auto buttons = left.removeFromTop(44);
+        auto each = buttons.getWidth() / 6;
+        addButton.setBounds(buttons.removeFromLeft(each));
+        dupButton.setBounds(buttons.removeFromLeft(each));
+        removeButton.setBounds(buttons.removeFromLeft(each));
+        editButton.setBounds(buttons.removeFromLeft(each));
+        upButton.setBounds(buttons.removeFromLeft(each));
+        downButton.setBounds(buttons);
+        editor->setBounds(area);
+    }
+    else
+    {
+        voiceList.setBounds(area.removeFromTop(getHeight() - 48));
+        auto buttons = area.removeFromTop(44);
+        auto each = buttons.getWidth() / 6;
+        addButton.setBounds(buttons.removeFromLeft(each));
+        dupButton.setBounds(buttons.removeFromLeft(each));
+        removeButton.setBounds(buttons.removeFromLeft(each));
+        editButton.setBounds(buttons.removeFromLeft(each));
+        upButton.setBounds(buttons.removeFromLeft(each));
+        downButton.setBounds(buttons);
+    }
 }
 
 void StepConfigPanel::buttonClicked(Button* b)
@@ -90,15 +107,19 @@ void StepConfigPanel::addVoice()
     for (const auto& n : getAvailableSynthNames())
         synthNames.add(n);
 
-    bool ok = false;
-    auto data = showVoiceEditor(synthNames, nullptr, nullptr, &ok);
-    if (ok)
+    editor.reset(new VoiceEditorComponent(synthNames));
+    addAndMakeVisible(editor.get());
+    editor->onSave = [this](const VoiceEditorComponent::VoiceData& d)
     {
-        voices.add(data);
+        voices.add(d);
         voiceList.selectRow(voices.size() - 1);
+        editor.reset();
+        resized();
         if (onVoicesChanged)
             onVoicesChanged();
-    }
+    };
+    editor->onCancel = [this]() { editor.reset(); resized(); };
+    resized();
 }
 
 void StepConfigPanel::duplicateVoice()
@@ -151,24 +172,28 @@ void StepConfigPanel::editVoice()
     for (const auto& n : getAvailableSynthNames())
         synthNames.add(n);
 
-    bool ok = false;
-    auto data = showVoiceEditor(synthNames, &voices.getReference(row), nullptr, &ok);
-    if (ok)
+    editor.reset(new VoiceEditorComponent(synthNames, &voices.getReference(row), nullptr));
+    addAndMakeVisible(editor.get());
+    editor->onSave = [this, row](const VoiceEditorComponent::VoiceData& d)
     {
-        voices.getReference(row) = data;
+        voices.getReference(row) = d;
+        editor.reset();
+        resized();
         if (onVoicesChanged)
             onVoicesChanged();
-    }
+    };
+    editor->onCancel = [this]() { editor.reset(); resized(); };
+    resized();
 }
 
-void StepConfigPanel::setVoices(const juce::Array<VoiceEditorDialog::VoiceData>& v)
+void StepConfigPanel::setVoices(const juce::Array<VoiceEditorComponent::VoiceData>& v)
 {
     voices = v;
     voiceList.updateContent();
     voiceList.repaint();
 }
 
-juce::Array<VoiceEditorDialog::VoiceData> StepConfigPanel::getVoices() const
+juce::Array<VoiceEditorComponent::VoiceData> StepConfigPanel::getVoices() const
 {
     return voices;
 }
