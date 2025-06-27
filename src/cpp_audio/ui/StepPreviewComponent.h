@@ -29,5 +29,6 @@ private:
     juce::Label timeLabel;
     juce::Label stepLabel;
     juce::String loadedStepName;
+    bool stepReady { false };
 };
 
