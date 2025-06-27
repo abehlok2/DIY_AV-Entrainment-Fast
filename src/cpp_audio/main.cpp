@@ -17,6 +17,7 @@
 #include "ui/FrequencyTesterDialog.h"
 #include "ui/Themes.h"
 #include <vector>
+#include <fstream>
 
 class MainComponent : public juce::Component,
                       private juce::MenuBarModel
@@ -81,6 +82,7 @@ public:
                 preview->reset();
             }
         };
+        newTrack();
         setSize (800, 600);
     }
 
@@ -155,6 +157,167 @@ private:
     StepListPanel stepList;
 
     std::vector<OverlayClipPanel::ClipData> clips;
+    juce::File currentFile;
+
+    static juce::NamedValueSet varToNamedValueSet(const juce::var& v)
+    {
+        juce::NamedValueSet set;
+        if (auto* obj = v.getDynamicObject())
+        {
+            for (const auto& p : obj->getProperties())
+                set.set(p.name, p.value);
+        }
+        return set;
+    }
+
+    static juce::var namedValueSetToVar(const juce::NamedValueSet& set)
+    {
+        auto* obj = new juce::DynamicObject();
+        for (const auto& p : set)
+            obj->setProperty(p.name, p.value);
+        return juce::var(obj);
+    }
+
+    Track collectTrack() const
+    {
+        Track t;
+        auto gsRaw = settings.getSettings();
+        t.settings.sampleRate = gsRaw.sampleRate;
+        t.settings.crossfadeDuration = gsRaw.crossfadeSeconds;
+        t.settings.outputFilename = gsRaw.outputFile;
+        t.settings.crossfadeCurve = "linear";
+        t.backgroundNoise.filePath = gsRaw.noiseFile;
+        t.backgroundNoise.amp = gsRaw.noiseAmp;
+
+        for (const auto& cd : clips)
+        {
+            Clip c;
+            c.filePath = cd.filePath;
+            c.start = cd.start;
+            c.duration = cd.duration;
+            c.amp = cd.amp;
+            c.pan = cd.pan;
+            c.fadeIn = cd.fadeIn;
+            c.fadeOut = cd.fadeOut;
+            c.description = cd.description;
+            t.clips.push_back(std::move(c));
+        }
+
+        const auto& steps = stepList.getSteps();
+        for (const auto& sd : steps)
+        {
+            Step s;
+            s.durationSeconds = sd.duration;
+            s.description = sd.description;
+            for (const auto& vd : sd.voices)
+            {
+                Voice v;
+                v.synthFunction = vd.synthFunction.toStdString();
+                v.isTransition = vd.isTransition;
+                v.params = varToNamedValueSet(vd.params);
+                v.description = vd.description;
+                s.voices.push_back(std::move(v));
+            }
+            t.steps.push_back(std::move(s));
+        }
+        return t;
+    }
+
+    void applyTrack(const Track& t)
+    {
+        GlobalSettingsComponent::Settings gs;
+        gs.sampleRate = t.settings.sampleRate;
+        gs.crossfadeSeconds = t.settings.crossfadeDuration;
+        gs.outputFile = t.settings.outputFilename;
+        gs.noiseFile = t.backgroundNoise.filePath;
+        gs.noiseAmp = t.backgroundNoise.amp;
+        settings.setSettings(gs);
+
+        clips.clear();
+        for (const auto& c : t.clips)
+        {
+            OverlayClipPanel::ClipData cd;
+            cd.filePath = c.filePath;
+            cd.start = c.start;
+            cd.duration = c.duration;
+            cd.amp = c.amp;
+            cd.pan = c.pan;
+            cd.fadeIn = c.fadeIn;
+            cd.fadeOut = c.fadeOut;
+            cd.description = c.description;
+            clips.push_back(std::move(cd));
+        }
+
+        juce::Array<StepListPanel::StepData> newSteps;
+        for (const auto& s : t.steps)
+        {
+            StepListPanel::StepData sd;
+            sd.duration = s.durationSeconds;
+            sd.description = s.description;
+            for (const auto& v : s.voices)
+            {
+                VoiceEditorDialog::VoiceData vd;
+                vd.synthFunction = v.synthFunction;
+                vd.isTransition = v.isTransition;
+                vd.params = namedValueSetToVar(v.params);
+                vd.description = v.description;
+                sd.voices.add(vd);
+            }
+            newSteps.add(sd);
+        }
+        stepList.setSteps(newSteps);
+        preview.reset();
+    }
+
+    void newTrack()
+    {
+        currentFile = juce::File();
+        clips.clear();
+        GlobalSettingsComponent::Settings gs;
+        gs.sampleRate = 44100.0;
+        gs.crossfadeSeconds = 1.0;
+        gs.outputFile = "my_track.wav";
+        gs.noiseFile = "";
+        gs.noiseAmp = 0.0;
+        settings.setSettings(gs);
+        stepList.setSteps({});
+        preview.reset();
+        if (auto* w = findParentComponentOfClass<juce::DocumentWindow>())
+            w->setName("DIY AV Audio - New File");
+    }
+
+    void loadTrack()
+    {
+        juce::FileChooser fc("Load Track", {}, "*.json");
+        if (fc.browseForFileToOpen())
+        {
+            auto file = fc.getResult();
+            auto t = loadTrackFromJson(file);
+            applyTrack(t);
+            currentFile = file;
+            if (auto* w = findParentComponentOfClass<juce::DocumentWindow>())
+                w->setName("DIY AV Audio - " + file.getFileName());
+        }
+    }
+
+    void saveTrack()
+    {
+        juce::File target = currentFile;
+        if (!target.existsAsFile())
+        {
+            juce::FileChooser fc("Save Track", {}, "*.json");
+            if (!fc.browseForFileToSave(true))
+                return;
+            target = fc.getResult();
+        }
+        auto t = collectTrack();
+        if (saveTrackToJson(t, target))
+        {
+            currentFile = target;
+            if (auto* w = findParentComponentOfClass<juce::DocumentWindow>())
+                w->setName("DIY AV Audio - " + target.getFileName());
+        }
+    }
 
     enum MenuIds
     {
@@ -207,7 +370,8 @@ private:
     }
 };
 
-class MainWindow : public juce::DocumentWindow
+class MainWindow : public juce::DocumentWindow,
+                   public juce::MenuBarModel
 {
 public:
     MainWindow(const juce::String& name, Preferences& p, juce::LookAndFeel_V4& lf)
@@ -219,7 +383,10 @@ public:
     {
         setUsingNativeTitleBar(true);
         setResizable(true, true);
-        setContentOwned(new MainComponent(prefs, lookAndFeel), true);
+
+        setContentOwned(new MainComponent(), true);
+        setMenuBar(this);
+
         centreWithSize(getWidth(), getHeight());
         setVisible(true);
     }
@@ -229,9 +396,35 @@ public:
         juce::JUCEApplication::getInstance()->systemRequestedQuit();
     }
 
-private:
-    Preferences& prefs;
-    juce::LookAndFeel_V4& lookAndFeel;
+    juce::StringArray getMenuBarNames() override
+    {
+        return {"File"};
+    }
+
+    juce::PopupMenu getMenuForIndex(int, const juce::String& name) override
+    {
+        juce::PopupMenu m;
+        if (name == "File")
+        {
+            m.addItem(1, "New");
+            m.addItem(2, "Load...");
+            m.addItem(3, "Save");
+        }
+        return m;
+    }
+
+    void menuItemSelected(int menuItemID, int) override
+    {
+        if (auto* mc = dynamic_cast<MainComponent*>(getContentComponent()))
+        {
+            if (menuItemID == 1) mc->newTrack();
+            else if (menuItemID == 2) mc->loadTrack();
+            else if (menuItemID == 3) mc->saveTrack();
+        }
+    }
+
+    ~MainWindow() override { setMenuBar(nullptr); }
+
 };
 
 class AudioApplication : public juce::JUCEApplication

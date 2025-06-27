@@ -32,6 +32,7 @@ public:
   // Access steps and selection
   const juce::Array<StepData> &getSteps() const { return steps; }
   int getSelectedIndex() const { return stepList.getSelectedRow(); }
+  void setSteps(const juce::Array<StepData>& newSteps);
 
   std::function<void(int)> onStepSelected;
 
