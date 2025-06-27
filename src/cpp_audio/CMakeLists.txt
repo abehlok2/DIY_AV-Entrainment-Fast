@@ -9,10 +9,10 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/JUCE juce-build)
 # ----------------------------------------
 set(SOURCES
     main.cpp
-    AudioUtils.cpp
-    Common.cpp
-    StepPreviewer.cpp
-    Track.cpp
+    core/AudioUtils.cpp
+    core/Common.cpp
+    core/StepPreviewer.cpp
+    core/Track.cpp
 
     # Models
     models/StepModel.cpp
@@ -70,6 +70,8 @@ endif()
 target_include_directories(AudioApp
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/core
+        ${CMAKE_CURRENT_SOURCE_DIR}/synths
 )
 
 # Platform specific defines

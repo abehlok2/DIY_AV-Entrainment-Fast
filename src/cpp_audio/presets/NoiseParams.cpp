@@ -1,5 +1,5 @@
 #include "NoiseParams.h"
-#include "../VarUtils.h"
+#include "../core/VarUtils.h"
 
 using namespace juce;
 
