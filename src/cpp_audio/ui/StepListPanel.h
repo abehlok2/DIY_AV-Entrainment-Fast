@@ -34,6 +34,7 @@ public:
   // Access steps and selection
   const juce::Array<StepData> &getSteps() const { return steps; }
   int getSelectedIndex() const { return stepList.getSelectedRow(); }
+  void setSteps(const juce::Array<StepData>& newSteps);
 
   void setSteps(const std::vector<Step> &newSteps);
   std::vector<Step> toTrackSteps() const;

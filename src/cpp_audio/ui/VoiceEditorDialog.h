@@ -87,6 +87,7 @@ private:
   juce::TextEditor refDetails;
 
   std::vector<std::vector<VoiceData>> referenceSteps;
+  bool hasReferences = false;
 
   juce::Label descLabel;
   juce::TextEditor descEditor;

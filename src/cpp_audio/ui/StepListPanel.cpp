@@ -335,6 +335,7 @@ void StepListPanel::openStepConfig() {
   opts.runModal();
 }
 
+
 void StepListPanel::setSteps(const std::vector<Step> &newSteps) {
   steps.clear();
   for (const auto &s : newSteps) {
@@ -384,4 +385,5 @@ void StepListPanel::clearSteps() {
   stepList.repaint();
   pushHistory();
   updateDuration();
+
 }
