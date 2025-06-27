@@ -5,7 +5,7 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "Track.h"
+#include "core/Track.h"
 #include "ui/CollapsibleBox.h"
 #include "ui/FrequencyTesterDialog.h"
 #include "ui/GlobalSettingsComponent.h"

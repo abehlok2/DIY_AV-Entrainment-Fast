@@ -4,7 +4,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
-#include "../cpp_audio/SynthFunctions.h"
+#include "../synths/SynthFunctions.h"
 #include "Preferences.h"
 
 using namespace juce;

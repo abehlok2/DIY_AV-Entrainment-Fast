@@ -1,6 +1,6 @@
 #include "StepConfigPanel.h"
 #include "VoiceEditorDialog.h"
-#include "../Track.h"
+#include "../core/Track.h"
 
 using namespace juce;
 

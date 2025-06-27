@@ -79,7 +79,7 @@ without creating a full track. Each voice allows custom base frequency, beat
 frequency, and amplitude using the current preference for absolute level or dB.
 
 ## C++ Port
-A minimal C++ implementation using JUCE lives in `src/cpp_audio`. Build it with CMake and ensure JUCE is available on your system. The GUI portion now resides under `src/cpp_audio/ui` and links directly to the same audio library to provide an integrated editor application.
+A minimal C++ implementation using JUCE lives in `src/cpp_audio`. Build it with CMake and ensure JUCE is available on your system. The code has been reorganized into subfolders: `core` for track assembly and preview classes, `utils` for helper functions, `synths` for the synthesis routines and `ui` for the GUI components. The GUI portion links directly to the same audio library to provide an integrated editor application.
 
 The JUCE port now provides a `StepPreviewComponent` that mirrors the Python UI's play/pause/stop controls and time slider for auditioning a single step. It also includes a **Reset** button and labels the currently loaded step alongside the playback time.
 

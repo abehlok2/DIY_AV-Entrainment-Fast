@@ -9,10 +9,10 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/JUCE juce-build)
 # ----------------------------------------
 set(SOURCES
     main.cpp
-    AudioUtils.cpp
-    Common.cpp
-    StepPreviewer.cpp
-    Track.cpp
+    utils/AudioUtils.cpp
+    utils/Common.cpp
+    core/StepPreviewer.cpp
+    core/Track.cpp
 
     # Models
     models/StepModel.cpp

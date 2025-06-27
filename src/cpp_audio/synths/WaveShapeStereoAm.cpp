@@ -1,5 +1,5 @@
 #include "WaveShapeStereoAm.h"
-#include "AudioUtils.h"
+#include "../utils/AudioUtils.h"
 #include <cmath>
 
 using namespace juce;
