@@ -1,5 +1,5 @@
 #include "HybridQamMonauralBeat.h"
-#include "AudioUtils.h"
+#include "../utils/AudioUtils.h"
 
 using namespace juce;
 
