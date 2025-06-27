@@ -333,3 +333,17 @@ void StepListPanel::openStepConfig() {
   opts.resizable = true;
   opts.runModal();
 }
+
+void StepListPanel::setSteps(const juce::Array<StepData>& newSteps)
+{
+    steps = newSteps;
+    stepList.updateContent();
+    if (steps.isEmpty())
+        stepList.deselectAllRows();
+    else
+        stepList.selectRow(0);
+    history.clear();
+    historyIndex = -1;
+    pushHistory();
+    updateDuration();
+}
