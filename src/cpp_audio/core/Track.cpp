@@ -1,6 +1,6 @@
 #include "Track.h"
-#include "AudioUtils.h"
 #include "../synths/SynthFunctions.h"
+#include "AudioUtils.h"
 #include "VarUtils.h"
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_data_structures/juce_data_structures.h>
@@ -38,12 +38,11 @@ static std::map<juce::String, SynthFunc> synthMap{
      generateSweptNotchPinkSoundTransition},
     {"subliminal_encode", subliminalEncode}};
 
-std::vector<juce::String> getAvailableSynthNames()
-{
-    std::vector<juce::String> names;
-    for (const auto& p : synthMap)
-        names.push_back(p.first);
-    return names;
+std::vector<juce::String> getAvailableSynthNames() {
+  std::vector<juce::String> names;
+  for (const auto &p : synthMap)
+    names.push_back(p.first);
+  return names;
 }
 
 static juce::AudioBuffer<float>
@@ -175,13 +174,6 @@ Track loadTrackFromJson(const juce::File &file) {
     }
   }
   return track;
-}
-
-static juce::var namedValueSetToVar(const juce::NamedValueSet &set) {
-  auto *obj = new juce::DynamicObject();
-  for (const auto &p : set)
-    obj->setProperty(p.name, p.value);
-  return juce::var(obj);
 }
 
 bool saveTrackToJson(const Track &track, const juce::File &file) {
