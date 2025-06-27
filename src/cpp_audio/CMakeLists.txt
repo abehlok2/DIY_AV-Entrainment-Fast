@@ -52,6 +52,7 @@ set(SOURCES
     ui/SubliminalDialog.cpp
     ui/Themes.cpp
     ui/VoiceEditorDialog.cpp
+    ui/VoiceEditorComponent.cpp
 )
 
 # ----------------------------------------

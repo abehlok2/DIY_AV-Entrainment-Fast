@@ -146,7 +146,7 @@ void StepListPanel::loadExternalSteps() {
             if (auto *voicesVar = sobj->getProperty("voices").getArray()) {
               for (const auto &v : *voicesVar) {
                 if (auto *vobj = v.getDynamicObject()) {
-                  VoiceEditorDialog::VoiceData vd;
+                  VoiceEditorComponent::VoiceData vd;
                   vd.synthFunction =
                       vobj->getProperty("synth_function_name").toString();
                   vd.isTransition = withDefault(vobj->getProperty("is_transition"), false);
@@ -318,21 +318,8 @@ void StepListPanel::openStepConfig() {
   int row = stepList.getSelectedRow();
   if (!isPositiveAndBelow(row, steps.size()))
     return;
-
-  auto *panel = new StepConfigPanel();
-  panel->setVoices(steps[row].voices);
-  panel->onVoicesChanged = [this, panel, row]() {
-    steps.getReference(row).voices = panel->getVoices();
-  };
-
-  DialogWindow::LaunchOptions opts;
-  opts.content.setOwned(panel);
-  opts.dialogTitle = "Edit Voices";
-  opts.dialogBackgroundColour = Colours::lightgrey;
-  opts.escapeKeyTriggersCloseButton = true;
-  opts.useNativeTitleBar = true;
-  opts.resizable = true;
-  opts.runModal();
+  if (onEditVoices)
+    onEditVoices(row);
 }
 
 
@@ -353,7 +340,7 @@ void StepListPanel::setSteps(const std::vector<Step> &newSteps) {
     sd.description = s.description;
     sd.duration = s.durationSeconds;
     for (const auto &v : s.voices) {
-      VoiceEditorDialog::VoiceData vd;
+      VoiceEditorComponent::VoiceData vd;
       vd.synthFunction = juce::String(v.synthFunction);
       vd.isTransition = v.isTransition;
       vd.params = namedValueSetToVar(v.params);
@@ -395,5 +382,11 @@ void StepListPanel::clearSteps() {
   stepList.repaint();
   pushHistory();
   updateDuration();
+}
 
+void StepListPanel::updateStepVoices(int index, const juce::Array<VoiceEditorComponent::VoiceData>& v) {
+  if (juce::isPositiveAndBelow(index, steps.size())) {
+    steps.getReference(index).voices = v;
+    pushHistory();
+  }
 }
