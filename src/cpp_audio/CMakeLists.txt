@@ -56,12 +56,26 @@ set(SOURCES
 # ----------------------------------------
 # 3) Define the executable target
 # ----------------------------------------
-add_executable(AudioApp ${SOURCES})
+# Create a GUI executable on all platforms. The WIN32 keyword prevents a
+# console window from appearing on Windows, while it has no effect on
+# Linux. This lets the same project file work for both operating systems.
+if(WIN32)
+    add_executable(AudioApp WIN32 ${SOURCES})
+else()
+    add_executable(AudioApp ${SOURCES})
+endif()
 
 target_include_directories(AudioApp
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+# Platform specific defines
+if(WIN32)
+    target_compile_definitions(AudioApp PRIVATE PLATFORM_WINDOWS=1)
+elseif(UNIX AND NOT APPLE)
+    target_compile_definitions(AudioApp PRIVATE PLATFORM_LINUX=1)
+endif()
 
 # ----------------------------------------
 # 4) Link JUCE modules
