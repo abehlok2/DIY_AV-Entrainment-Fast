@@ -82,7 +82,18 @@ set(SOURCES
 #--------------------------------------------------
 # 3) Create the executable
 #--------------------------------------------------
-add_executable(AudioApp WIN32 ${SOURCES})
+# Build a GUI executable. The WIN32 keyword hides the console window on
+# Windows. On Linux it has no effect but is harmless, so we only use it
+# when running on Windows.
+if(WIN32)
+    add_executable(AudioApp WIN32 ${SOURCES})
+    target_compile_definitions(AudioApp PRIVATE PLATFORM_WINDOWS=1)
+elseif(UNIX AND NOT APPLE)
+    add_executable(AudioApp ${SOURCES})
+    target_compile_definitions(AudioApp PRIVATE PLATFORM_LINUX=1)
+else()
+    add_executable(AudioApp ${SOURCES})
+endif()
 
 # Include headers from your code tree
 target_include_directories(AudioApp
