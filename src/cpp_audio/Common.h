@@ -53,8 +53,3 @@ std::vector<double> trapezoidEnvelopeVectorized(const std::vector<double>& tInCy
 std::vector<double> applyFilters(const std::vector<double>& signalSegment,
                                  double fs);
 
-std::vector<double> calculateTransitionAlpha(double totalDuration,
-                                             double sampleRate,
-                                             double initialOffset = 0.0,
-                                             double postOffset = 0.0,
-                                             const std::string& curve = "linear");
