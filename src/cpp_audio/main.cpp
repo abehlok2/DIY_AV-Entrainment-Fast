@@ -23,7 +23,7 @@
 static Preferences prefs;
 static juce::LookAndFeel_V4 lookAndFeel;
 
-class MainComponent : public juce::Component, private juce::MenuBarModel {
+class MainComponent : public juce::Component, public juce::MenuBarModel {
 public:
   MainComponent()
       : settingsBox("Global Settings"), toolsBox("Tools"),
@@ -126,7 +126,7 @@ public:
       break;
     case menuPreferences:
       if (showPreferencesDialog(prefs))
-        applyTheme(lookAndFeel, prefs.theme);
+        applyTheme(::lookAndFeel, prefs.theme);
       break;
     case menuNoiseGen:
       openNoiseGenerator();
@@ -140,6 +140,88 @@ public:
     default:
       break;
     }
+  }
+
+  void newTrack() {
+    GlobalSettingsComponent::Settings s;
+    s.sampleRate = prefs.sampleRate;
+    s.crossfadeSeconds = 1.0;
+    s.outputFile = "my_track.wav";
+    s.noiseFile = juce::String();
+    s.noiseAmp = 0.0;
+    settings->setSettings(s);
+    stepList.clearSteps();
+    clips.clear();
+    currentFile = juce::File();
+    preview->reset();
+  }
+
+  void openTrack() {
+    juce::FileChooser chooser("Open Track JSON", {}, "*.json");
+    if (!chooser.browseForFileToOpen())
+      return;
+    auto file = chooser.getResult();
+    auto track = loadTrackFromJson(file);
+
+    GlobalSettingsComponent::Settings s;
+    s.sampleRate = track.settings.sampleRate;
+    s.crossfadeSeconds = track.settings.crossfadeDuration;
+    s.outputFile = track.settings.outputFilename;
+    s.noiseFile = track.backgroundNoise.filePath;
+    s.noiseAmp = track.backgroundNoise.amp;
+    settings->setSettings(s);
+
+    stepList.setSteps(track.steps);
+
+    clips.clear();
+    for (const auto &c : track.clips) {
+      OverlayClipPanel::ClipData cd;
+      cd.filePath = c.filePath;
+      cd.description = c.description;
+      cd.start = c.start;
+      cd.duration = c.duration;
+      cd.amp = c.amp;
+      cd.pan = c.pan;
+      cd.fadeIn = c.fadeIn;
+      cd.fadeOut = c.fadeOut;
+      clips.push_back(cd);
+    }
+
+    currentFile = file;
+    preview->reset();
+  }
+
+  void saveTrack() {
+    if (!currentFile.existsAsFile()) {
+      juce::FileChooser chooser("Save Track JSON", {}, "*.json");
+      if (!chooser.browseForFileToSave(true))
+        return;
+      currentFile = chooser.getResult();
+    }
+
+    Track track;
+    auto gs = settings->getSettings();
+    track.settings.sampleRate = gs.sampleRate;
+    track.settings.crossfadeDuration = gs.crossfadeSeconds;
+    track.settings.crossfadeCurve = prefs.crossfadeCurve;
+    track.settings.outputFilename = gs.outputFile;
+    track.backgroundNoise.filePath = gs.noiseFile;
+    track.backgroundNoise.amp = gs.noiseAmp;
+    track.steps = stepList.toTrackSteps();
+    for (const auto &cd : clips) {
+      Clip c;
+      c.filePath = cd.filePath;
+      c.description = cd.description;
+      c.start = cd.start;
+      c.duration = cd.duration;
+      c.amp = cd.amp;
+      c.pan = cd.pan;
+      c.fadeIn = cd.fadeIn;
+      c.fadeOut = cd.fadeOut;
+      track.clips.push_back(c);
+    }
+
+    saveTrackToJson(track, currentFile);
   }
 
 private:
@@ -174,7 +256,7 @@ private:
 
   Track collectTrack() const {
     Track t;
-    auto gsRaw = settings.getSettings();
+    auto gsRaw = settings->getSettings();
     t.settings.sampleRate = gsRaw.sampleRate;
     t.settings.crossfadeDuration = gsRaw.crossfadeSeconds;
     t.settings.outputFilename = gsRaw.outputFile;
@@ -220,7 +302,7 @@ private:
     gs.outputFile = t.settings.outputFilename;
     gs.noiseFile = t.backgroundNoise.filePath;
     gs.noiseAmp = t.backgroundNoise.amp;
-    settings.setSettings(gs);
+    settings->setSettings(gs);
 
     clips.clear();
     for (const auto &c : t.clips) {
@@ -252,7 +334,7 @@ private:
       newSteps.add(sd);
     }
     stepList.setSteps(newSteps);
-    preview.reset();
+    preview->reset();
   }
 
   enum MenuIds {
@@ -264,88 +346,6 @@ private:
     menuFreqTest,
     menuOverlayClips
   };
-
-  void newTrack() {
-    GlobalSettingsComponent::Settings s;
-    s.sampleRate = prefs.sampleRate;
-    s.crossfadeSeconds = 1.0;
-    s.outputFile = "my_track.wav";
-    s.noiseFile = juce::String();
-    s.noiseAmp = 0.0;
-    settings.setSettings(s);
-    stepList.clearSteps();
-    clips.clear();
-    currentFile = juce::File();
-    preview.reset();
-  }
-
-  void openTrack() {
-    juce::FileChooser chooser("Open Track JSON", {}, "*.json");
-    if (!chooser.browseForFileToOpen())
-      return;
-    auto file = chooser.getResult();
-    auto track = loadTrackFromJson(file);
-
-    GlobalSettingsComponent::Settings s;
-    s.sampleRate = track.settings.sampleRate;
-    s.crossfadeSeconds = track.settings.crossfadeDuration;
-    s.outputFile = track.settings.outputFilename;
-    s.noiseFile = track.backgroundNoise.filePath;
-    s.noiseAmp = track.backgroundNoise.amp;
-    settings.setSettings(s);
-
-    stepList.setSteps(track.steps);
-
-    clips.clear();
-    for (const auto &c : track.clips) {
-      OverlayClipPanel::ClipData cd;
-      cd.filePath = c.filePath;
-      cd.description = c.description;
-      cd.start = c.start;
-      cd.duration = c.duration;
-      cd.amp = c.amp;
-      cd.pan = c.pan;
-      cd.fadeIn = c.fadeIn;
-      cd.fadeOut = c.fadeOut;
-      clips.push_back(cd);
-    }
-
-    currentFile = file;
-    preview.reset();
-  }
-
-  void saveTrack() {
-    if (!currentFile.existsAsFile()) {
-      juce::FileChooser chooser("Save Track JSON", {}, "*.json");
-      if (!chooser.browseForFileToSave(true))
-        return;
-      currentFile = chooser.getResult();
-    }
-
-    Track track;
-    auto gs = settings.getSettings();
-    track.settings.sampleRate = gs.sampleRate;
-    track.settings.crossfadeDuration = gs.crossfadeSeconds;
-    track.settings.crossfadeCurve = prefs.crossfadeCurve;
-    track.settings.outputFilename = gs.outputFile;
-    track.backgroundNoise.filePath = gs.noiseFile;
-    track.backgroundNoise.amp = gs.noiseAmp;
-    track.steps = stepList.toTrackSteps();
-    for (const auto &cd : clips) {
-      Clip c;
-      c.filePath = cd.filePath;
-      c.description = cd.description;
-      c.start = cd.start;
-      c.duration = cd.duration;
-      c.amp = cd.amp;
-      c.pan = cd.pan;
-      c.fadeIn = cd.fadeIn;
-      c.fadeOut = cd.fadeOut;
-      track.clips.push_back(c);
-    }
-
-    saveTrackToJson(track, currentFile);
-  }
 
   void openClipEditor() {
     auto *panel = new OverlayClipPanel();
@@ -387,7 +387,7 @@ private:
   }
 };
 
-class MainWindow : public juce::DocumentWindow, public juce::MenuBarModel {
+class MainWindow : public juce::DocumentWindow {
 public:
   MainWindow(const juce::String &name, juce::LookAndFeel_V4 &lf)
       : DocumentWindow(
@@ -398,10 +398,11 @@ public:
     setUsingNativeTitleBar(true);
     setResizable(true, true);
 
-    setLookAndFeel(&lookAndFeel);
+    setLookAndFeel(&lf);
 
-    setContentOwned(new MainComponent(), true);
-    setMenuBar(this);
+    mainComponent = new MainComponent();
+    setContentOwned(mainComponent, true);
+    setMenuBar(mainComponent);
 
     centreWithSize(getWidth(), getHeight());
     setVisible(true);
@@ -411,30 +412,10 @@ public:
     juce::JUCEApplication::getInstance()->systemRequestedQuit();
   }
 
-  juce::StringArray getMenuBarNames() override { return {"File"}; }
-
-  juce::PopupMenu getMenuForIndex(int, const juce::String &name) override {
-    juce::PopupMenu m;
-    if (name == "File") {
-      m.addItem(1, "New");
-      m.addItem(2, "Load...");
-      m.addItem(3, "Save");
-    }
-    return m;
-  }
-
-  void menuItemSelected(int menuItemID, int) override {
-    if (auto *mc = dynamic_cast<MainComponent *>(getContentComponent())) {
-      if (menuItemID == 1)
-        mc->newTrack();
-      else if (menuItemID == 2)
-        mc->openTrack();
-      else if (menuItemID == 3)
-        mc->saveTrack();
-    }
-  }
-
   ~MainWindow() override { setMenuBar(nullptr); }
+
+private:
+  MainComponent *mainComponent;
 };
 
 class AudioApplication : public juce::JUCEApplication {
@@ -446,8 +427,8 @@ public:
     juce::Desktop::getInstance().setDefaultLookAndFeel(&lookAndFeel);
     applyTheme(lookAndFeel, prefs.theme);
     mainWindow.reset(new MainWindow(getApplicationName(), lookAndFeel));
-    showPreferencesDialog(prefs);
-    applyTheme(lookAndFeel, prefs.theme);
+    if (showPreferencesDialog(prefs))
+      applyTheme(lookAndFeel, prefs.theme);
   }
 
   void shutdown() override { mainWindow = nullptr; }
