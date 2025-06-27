@@ -2,6 +2,7 @@
 #include "StepListPanel.h"
 #include "../VarUtils.h" // Assuming this is a valid path in your project
 #include "StepConfigPanel.h"
+#include "../Track.h"
 
 using namespace juce;
 
@@ -332,4 +333,55 @@ void StepListPanel::openStepConfig() {
   opts.useNativeTitleBar = true;
   opts.resizable = true;
   opts.runModal();
+}
+
+void StepListPanel::setSteps(const std::vector<Step> &newSteps) {
+  steps.clear();
+  for (const auto &s : newSteps) {
+    StepData sd;
+    sd.description = s.description;
+    sd.duration = s.durationSeconds;
+    for (const auto &v : s.voices) {
+      VoiceEditorDialog::VoiceData vd;
+      vd.synthFunction = juce::String(v.synthFunction);
+      vd.isTransition = v.isTransition;
+      vd.params = namedValueSetToVar(v.params);
+      vd.description = v.description;
+      sd.voices.add(std::move(vd));
+    }
+    steps.add(std::move(sd));
+  }
+  stepList.updateContent();
+  stepList.repaint();
+  if (!steps.isEmpty())
+    stepList.selectRow(0);
+  pushHistory();
+  updateDuration();
+}
+
+std::vector<Step> StepListPanel::toTrackSteps() const {
+  std::vector<Step> out;
+  for (const auto &sd : steps) {
+    Step s;
+    s.durationSeconds = sd.duration;
+    s.description = sd.description;
+    for (const auto &vd : sd.voices) {
+      Voice v;
+      v.synthFunction = vd.synthFunction.toStdString();
+      v.isTransition = vd.isTransition;
+      v.description = vd.description;
+      v.params = varToNamedValueSet(vd.params);
+      s.voices.push_back(std::move(v));
+    }
+    out.push_back(std::move(s));
+  }
+  return out;
+}
+
+void StepListPanel::clearSteps() {
+  steps.clear();
+  stepList.updateContent();
+  stepList.repaint();
+  pushHistory();
+  updateDuration();
 }
