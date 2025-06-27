@@ -4,6 +4,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
+#include <cmath>
 #include "../synths/SynthFunctions.h"
 #include "Preferences.h"
 
@@ -186,6 +187,17 @@ private:
 
     void startPlayback()
     {
+        // Ensure the device manager is using the same sample rate as the
+        // generated audio buffer. Otherwise the pitch will be scaled by the
+        // ratio between device and buffer sample rates.
+        AudioDeviceManager::AudioDeviceSetup setup;
+        deviceManager.getAudioDeviceSetup (setup);
+        if (std::abs (setup.sampleRate - prefs.sampleRate) > 1.0)
+        {
+            setup.sampleRate = prefs.sampleRate;
+            deviceManager.setAudioDeviceSetup (setup, true);
+        }
+
         auto audio = generateAudio();
         if (audio.getNumSamples() == 0)
             return;
