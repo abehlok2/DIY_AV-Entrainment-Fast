@@ -175,42 +175,20 @@ public:
     preview->reset();
   }
 
-  void openTrack() {
-    juce::FileChooser chooser("Open Track JSON", {}, "*.json");
-    if (!chooser.browseForFileToOpen())
-      return;
-    auto file = chooser.getResult();
-    auto track = loadTrackFromJson(file);
+void openTrack() {
+  juce::FileChooser chooser("Open Track JSON", {}, "*.json");
+  if (!chooser.browseForFileToOpen())
+    return;
 
-    GlobalSettingsComponent::Settings s;
-    s.sampleRate = track.settings.sampleRate;
-    s.crossfadeSeconds = track.settings.crossfadeDuration;
-    s.outputFile = track.settings.outputFilename;
-    s.noiseFile = track.backgroundNoise.filePath;
-    s.noiseAmp = track.backgroundNoise.amp;
-    settings->setSettings(s);
+  auto file = chooser.getResult();
+  auto track = loadTrackFromJson(file);
 
-    stepList.setSteps(track.steps);
-    if (!track.steps.empty())
-      stepConfig->setVoices(track.steps[0].voices);
+  // Use the existing applyTrack function to correctly populate the UI
+  applyTrack(track);
 
-    clips.clear();
-    for (const auto &c : track.clips) {
-      OverlayClipPanel::ClipData cd;
-      cd.filePath = c.filePath;
-      cd.description = c.description;
-      cd.start = c.start;
-      cd.duration = c.duration;
-      cd.amp = c.amp;
-      cd.pan = c.pan;
-      cd.fadeIn = c.fadeIn;
-      cd.fadeOut = c.fadeOut;
-      clips.push_back(cd);
-    }
-
-    currentFile = file;
-    preview->reset();
-  }
+  // Set the current file path
+  currentFile = file;
+}
 
   void saveTrack() {
     if (!currentFile.existsAsFile()) {
