@@ -298,7 +298,7 @@ private:
         gs.noiseFile = "";
         gs.noiseAmp = 0.0;
         settings.setSettings(gs);
-        stepList.setSteps({});
+        stepList.clearSteps();
         preview.reset();
         if (auto* w = findParentComponentOfClass<juce::DocumentWindow>())
             w->setName("DIY AV Audio - New File");
