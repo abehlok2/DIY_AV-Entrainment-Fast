@@ -1,5 +1,6 @@
 #include "StepConfigPanel.h"
 #include "VoiceEditorDialog.h"
+#include "../Track.h"
 
 using namespace juce;
 
@@ -86,8 +87,8 @@ void StepConfigPanel::buttonClicked(Button* b)
 void StepConfigPanel::addVoice()
 {
     juce::StringArray synthNames;
-    synthNames.add("binaural_beat");
-    synthNames.add("isochronic_tone");
+    for (const auto& n : getAvailableSynthNames())
+        synthNames.add(n);
 
     bool ok = false;
     auto data = showVoiceEditor(synthNames, nullptr, nullptr, &ok);
@@ -147,8 +148,8 @@ void StepConfigPanel::editVoice()
         return;
 
     juce::StringArray synthNames;
-    synthNames.add("binaural_beat");
-    synthNames.add("isochronic_tone");
+    for (const auto& n : getAvailableSynthNames())
+        synthNames.add(n);
 
     bool ok = false;
     auto data = showVoiceEditor(synthNames, &voices.getReference(row), nullptr, &ok);

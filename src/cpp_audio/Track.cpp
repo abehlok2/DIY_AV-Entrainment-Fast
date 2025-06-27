@@ -38,6 +38,14 @@ static std::map<juce::String, SynthFunc> synthMap{
      generateSweptNotchPinkSoundTransition},
     {"subliminal_encode", subliminalEncode}};
 
+std::vector<juce::String> getAvailableSynthNames()
+{
+    std::vector<juce::String> names;
+    for (const auto& p : synthMap)
+        names.push_back(p.first);
+    return names;
+}
+
 static juce::AudioBuffer<float>
 resampleBuffer(const juce::AudioBuffer<float> &in, double srcRate,
                double dstRate) {
