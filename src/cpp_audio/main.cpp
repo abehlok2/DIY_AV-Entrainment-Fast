@@ -16,7 +16,8 @@ class MainComponent : public juce::Component
 {
 public:
     MainComponent()
-        : preview(deviceManager)
+        : settings(deviceManager),
+          preview(deviceManager)
     {
         deviceManager.initialise(0, 2, nullptr, true);
         addAndMakeVisible(settings);

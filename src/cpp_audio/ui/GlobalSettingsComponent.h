@@ -2,6 +2,7 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_devices/juce_audio_devices.h>
 #include <memory> // For std::unique_ptr
 
 // Forward declaration to avoid including the full dialog header here.
@@ -18,7 +19,7 @@ public:
     double noiseAmp = 0.0;
   };
 
-  GlobalSettingsComponent();
+  explicit GlobalSettingsComponent(juce::AudioDeviceManager& dm);
   ~GlobalSettingsComponent() override;
 
   Settings getSettings() const;
@@ -31,9 +32,12 @@ private:
   // A helper function to create the dialog.
   std::unique_ptr<NoiseGeneratorDialog> createNoiseGeneratorDialog();
 
+  juce::AudioDeviceManager& deviceManager;
+
   juce::Label srLabel, cfLabel, outFileLabel, noiseFileLabel, noiseAmpLabel;
   juce::TextEditor srEdit, cfEdit, outFileEdit, noiseFileEdit, noiseAmpEdit;
-  juce::TextButton browseOutButton, browseNoiseButton, noiseGenButton;
+  juce::TextButton browseOutButton, browseNoiseButton, noiseGenButton,
+      freqTestButton;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GlobalSettingsComponent)
 };
