@@ -26,7 +26,13 @@ StepPreviewer::StepPreviewer(juce::AudioDeviceManager& dm)
 
 StepPreviewer::~StepPreviewer()
 {
+
     cancelJob();
+
+    if (playing)
+        deviceManager.removeAudioCallback(player.get());
+    player->setSource(nullptr);
+    transport.setSource(nullptr);
 }
 
 bool StepPreviewer::loadStep(const Step& step, const GlobalSettings& settings, double previewDuration)

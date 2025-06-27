@@ -397,37 +397,3 @@ std::vector<double> applyFilters(const std::vector<double>& signalSegment,
     return result;
 }
 
-std::vector<double> calculateTransitionAlpha(double totalDuration,
-                                             double sampleRate,
-                                             double initialOffset,
-                                             double postOffset,
-                                             const std::string& curve)
-{
-    int N = static_cast<int>(totalDuration * sampleRate);
-    std::vector<double> alpha(N, 0.0);
-    if (N <= 0)
-        return alpha;
-
-    double startT = std::min(initialOffset, totalDuration);
-    double endT = std::max(startT, totalDuration - postOffset);
-    double transTime = endT - startT;
-
-    for (int i = 0; i < N; ++i)
-    {
-        double t = static_cast<double>(i) / sampleRate;
-        double a = 0.0;
-        if (transTime > 0.0)
-        {
-            a = (t - startT) / transTime;
-            a = std::clamp(a, 0.0, 1.0);
-        }
-
-        if (curve == "logarithmic")
-            a = 1.0 - std::pow(1.0 - a, 2.0);
-        else if (curve == "exponential")
-            a = std::pow(a, 2.0);
-
-        alpha[i] = a;
-    }
-    return alpha;
-}
