@@ -1,6 +1,6 @@
 
 #include "StepListPanel.h"
-#include "../VarUtils.h" // Assuming this is a valid path in your project
+#include "../utils/VarUtils.h" // Adjusted path after moving utils
 #include "StepConfigPanel.h"
 
 using namespace juce;

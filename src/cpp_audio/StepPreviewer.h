@@ -1,6 +1,6 @@
 #pragma once
 #include "Track.h"
-#include "BufferAudioSource.h"
+#include "utils/BufferAudioSource.h"
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <juce_core/juce_core.h>
 #include <atomic>

@@ -2,7 +2,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_data_structures/juce_data_structures.h>
 #include <juce_events/juce_events.h>
-#include "../VarUtils.h"
+#include "../utils/VarUtils.h"
 
 using namespace juce;
 

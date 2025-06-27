@@ -1,5 +1,5 @@
 #include "BinauralBeat.h"
-#include "AudioUtils.h"
+#include "../utils/AudioUtils.h"
 #include <vector>
 #include <cmath>
 #include <algorithm>

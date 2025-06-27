@@ -1,6 +1,6 @@
 #include "NoiseFlanger.h"
-#include "AudioUtils.h"
-#include "../VarUtils.h"
+#include "../utils/AudioUtils.h"
+#include "../utils/VarUtils.h"
 #include <juce_dsp/juce_dsp.h>
 #include <vector>
 #include <algorithm>

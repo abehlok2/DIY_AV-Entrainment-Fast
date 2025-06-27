@@ -1,7 +1,7 @@
 #include "Track.h"
-#include "AudioUtils.h"
+#include "utils/AudioUtils.h"
 #include "SynthFunctions.h"
-#include "VarUtils.h"
+#include "utils/VarUtils.h"
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_data_structures/juce_data_structures.h>
 #include <juce_dsp/juce_dsp.h>
