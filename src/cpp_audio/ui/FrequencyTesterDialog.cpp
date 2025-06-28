@@ -86,6 +86,7 @@ public:
     FrequencyTesterDialog (AudioDeviceManager& dm, Preferences* prefsIn = nullptr)
         : deviceManager (dm)
     {
+        setOpaque(true);
         if (prefsIn)
             prefs = *prefsIn;
 

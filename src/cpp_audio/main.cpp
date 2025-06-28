@@ -24,6 +24,7 @@ public:
   MainComponent()
       : settingsBox("Global Settings"), toolsBox("Tools"),
         previewBox("Step Preview") {
+    setOpaque(true);
     deviceManager.initialise(0, 2, nullptr, true);
     {
       auto ptr = std::make_unique<GlobalSettingsComponent>(deviceManager);

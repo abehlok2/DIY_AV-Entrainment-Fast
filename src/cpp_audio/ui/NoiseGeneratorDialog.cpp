@@ -160,6 +160,7 @@ static AudioBuffer<float> generateNoiseBuffer(const NoiseParams &p) {
 // NoiseGeneratorDialog Implementation
 //==============================================================================
 NoiseGeneratorDialog::NoiseGeneratorDialog() {
+  setOpaque(true);
   fileEdit.setText("swept_notch_noise.wav");
   addAndMakeVisible(&fileEdit);
   addAndMakeVisible(&fileBrowse);

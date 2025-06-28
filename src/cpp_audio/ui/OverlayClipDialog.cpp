@@ -51,6 +51,7 @@ struct OverlayClipDialogWindow  : public juce::Component,
     OverlayClipDialogWindow(bool ampInDb = false, const ClipData* existing = nullptr)
         : amplitudeInDb(ampInDb)
     {
+        setOpaque(true);
         setSize(400, 260);
         addAndMakeVisible(&fileLabel);
         addAndMakeVisible(&fileEdit);
