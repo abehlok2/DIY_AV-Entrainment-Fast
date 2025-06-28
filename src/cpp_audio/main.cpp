@@ -427,16 +427,16 @@ public:
   const juce::String getApplicationVersion() override { return "1.0"; }
 
   void initialise(const juce::String &) override {
-    setLookAndFeel(&lookAndFeel);
+    juce::LookAndFeel::setDefaultLookAndFeel(&lookAndFeel);
     applyTheme(lookAndFeel, prefs.theme);
     mainWindow.reset(new MainWindow(getApplicationName()));
-    if (showPreferencesDialog(prefs))
-        applyTheme(lookAndFeel, prefs.theme);
+    // The call to showPreferencesDialog has been removed for stability.
+    // The user can access preferences from the File menu.
   }
 
   void shutdown() override {
       mainWindow = nullptr;
-      setLookAndFeel(nullptr);
+      juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
   }
 
 private:
