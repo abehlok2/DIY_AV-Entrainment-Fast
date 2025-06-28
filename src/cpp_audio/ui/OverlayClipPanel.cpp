@@ -4,6 +4,7 @@
 
 OverlayClipPanel::OverlayClipPanel()
 {
+    setOpaque(true);
     addAndMakeVisible(&clipList);
     clipList.setModel(this);
 

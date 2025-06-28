@@ -31,6 +31,7 @@ public:
     explicit PreferencesDialog (const Preferences& prefsIn)
         : prefs (prefsIn), ampMode (prefsIn.amplitudeDisplayMode)
     {
+        setOpaque(true);
         setSize (420, 360);
 
         addAndMakeVisible (&fontFamilyLabel);
