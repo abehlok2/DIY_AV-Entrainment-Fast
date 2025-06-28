@@ -12,6 +12,7 @@ DefaultVoiceDialog::DefaultVoiceDialog(Preferences& prefs)
       preferences(prefs)
 {
     setUsingNativeTitleBar(true);
+    setOpaque(true);
     setResizable(true, false);
 
     addAndMakeVisible(&synthLabel);
