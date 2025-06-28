@@ -400,6 +400,7 @@ public:
                 juce::ResizableWindow::backgroundColourId),
             juce::DocumentWindow::allButtons) {
     setUsingNativeTitleBar(true);
+    setOpaque(true);
     setResizable(true, true);
 
     mainComponent = new MainComponent();

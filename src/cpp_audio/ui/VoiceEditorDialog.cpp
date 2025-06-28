@@ -143,6 +143,7 @@ VoiceEditorDialog::VoiceEditorDialog(
                               : std::vector<std::vector<VoiceData>>{}) {
   hasReferences = refSteps && !refSteps->empty();
   setUsingNativeTitleBar(true);
+  setOpaque(true);
   setResizable(true, false);
 
   addAndMakeVisible(&funcLabel);
