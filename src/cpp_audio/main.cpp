@@ -1,7 +1,3 @@
-// Entry point for the JUCE based audio GUI.
-// This file creates a minimal editor window that hosts
-// the C++ audio widgets translated from the Python version.
-
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -20,9 +16,8 @@
 #include <fstream>
 #include <vector>
 
-// Global application preferences and look and feel used across components
+// Global application preferences used across components
 static Preferences prefs;
-static juce::LookAndFeel_V4 lookAndFeel;
 
 class MainComponent : public juce::Component, public juce::MenuBarModel {
 public:
@@ -144,7 +139,7 @@ public:
       break;
     case menuPreferences:
       if (showPreferencesDialog(prefs))
-        applyTheme(::lookAndFeel, prefs.theme);
+        applyThemeFromPrefs();
       break;
     case menuNoiseGen:
       openNoiseGenerator();
@@ -237,6 +232,12 @@ private:
   std::vector<OverlayClipPanel::ClipData> clips;
 
   juce::File currentFile;
+
+  void applyThemeFromPrefs()
+  {
+      if (auto* laf = dynamic_cast<juce::LookAndFeel_V4*>(&getLookAndFeel()))
+          applyTheme(*laf, prefs.theme);
+  }
 
   static juce::NamedValueSet varToNamedValueSet(const juce::var &v) {
     juce::NamedValueSet set;
@@ -391,7 +392,7 @@ private:
 
 class MainWindow : public juce::DocumentWindow {
 public:
-  MainWindow(const juce::String &name, juce::LookAndFeel_V4 &lf)
+  MainWindow(const juce::String &name)
       : DocumentWindow(
             name,
             juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(
@@ -399,8 +400,6 @@ public:
             juce::DocumentWindow::allButtons) {
     setUsingNativeTitleBar(true);
     setResizable(true, true);
-
-    setLookAndFeel(&lf);
 
     mainComponent = new MainComponent();
     setContentOwned(mainComponent, true);
@@ -426,16 +425,20 @@ public:
   const juce::String getApplicationVersion() override { return "1.0"; }
 
   void initialise(const juce::String &) override {
-    juce::Desktop::getInstance().setDefaultLookAndFeel(&lookAndFeel);
+    setLookAndFeel(&lookAndFeel);
     applyTheme(lookAndFeel, prefs.theme);
-    mainWindow.reset(new MainWindow(getApplicationName(), lookAndFeel));
+    mainWindow.reset(new MainWindow(getApplicationName()));
     if (showPreferencesDialog(prefs))
-      applyTheme(lookAndFeel, prefs.theme);
+        applyTheme(lookAndFeel, prefs.theme);
   }
 
-  void shutdown() override { mainWindow = nullptr; }
+  void shutdown() override {
+      mainWindow = nullptr;
+      setLookAndFeel(nullptr);
+  }
 
 private:
+  juce::LookAndFeel_V4 lookAndFeel;
   std::unique_ptr<MainWindow> mainWindow;
 };
 

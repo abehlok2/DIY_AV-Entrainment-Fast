@@ -313,10 +313,7 @@ bool showPreferencesDialog (Preferences& prefs)
     if (result != 0 && dialog.wasAccepted())
     {
         prefs = dialog.getPreferences();
-        if (auto* lf = dynamic_cast<LookAndFeel_V4*>(&Desktop::getInstance().getDefaultLookAndFeel()))
-            applyTheme(*lf, prefs.theme);
         return true;
     }
     return false;
 }
-
