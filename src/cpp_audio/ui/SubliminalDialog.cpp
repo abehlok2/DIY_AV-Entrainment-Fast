@@ -26,6 +26,7 @@ inline double dbToAmplitude(double db)
 SubliminalDialog::SubliminalDialog(bool ampInDb)
     : amplitudeInDb(ampInDb)
 {
+    setOpaque(true);
     setSize(400, 160);
 
     addAndMakeVisible(&fileLabel);
