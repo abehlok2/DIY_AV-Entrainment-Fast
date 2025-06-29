@@ -25,6 +25,8 @@ public:
   MainComponent()
       : settingsBox("Global Settings"), toolsBox("Tools"),
         previewBox("Step Preview") {
+
+    setPaintingIsUnclipped(true);
     setOpaque(true);
     deviceManager.initialise(0, 2, nullptr, true);
     {
@@ -97,9 +99,11 @@ public:
 
   ~MainComponent() override { deviceManager.closeAudioDevice(); }
 
+
   void paint(juce::Graphics &g) override {
     g.fillAll(getLookAndFeel().findColour(
         juce::ResizableWindow::backgroundColourId));
+
   }
 
   void resized() override {
@@ -417,6 +421,13 @@ public:
     setVisible(true);
   }
 
+  // >>>>>>>>>> CHANGE #1: This function was added <<<<<<<<<<
+  void callForceSoftwareRenderer()
+  {
+      if (mainComponent != nullptr)
+          mainComponent->forceSoftwareRenderer();
+  }
+
   void closeButtonPressed() override {
     juce::JUCEApplication::getInstance()->systemRequestedQuit();
   }
@@ -441,6 +452,10 @@ public:
     juce::LookAndFeel::setDefaultLookAndFeel(&lookAndFeel);
     applyTheme(lookAndFeel, prefs.theme);
     mainWindow.reset(new MainWindow(getApplicationName()));
+
+    // >>>>>>>>>> CHANGE #2: This line was added <<<<<<<<<<
+    mainWindow->callForceSoftwareRenderer();
+
     // The call to showPreferencesDialog has been removed for stability.
     // The user can access preferences from the File menu.
   }
