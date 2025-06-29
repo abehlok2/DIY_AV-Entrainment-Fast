@@ -1,5 +1,9 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_gui_basics/juce_gui_basics.h>
+#if JUCE_WINDOWS
+#include <windows.h>
+#include <combaseapi.h>
+#endif
 
 #include "Track.h"
 #include "ui/CollapsibleBox.h"
@@ -98,6 +102,15 @@ public:
   }
 
   ~MainComponent() override { deviceManager.closeAudioDevice(); }
+
+#if JUCE_WINDOWS
+  void forceSoftwareRenderer()
+  {
+      juce::Desktop::getInstance().setCurrentRenderingEngine (0);
+  }
+#else
+  void forceSoftwareRenderer() {}
+#endif
 
 
   void paint(juce::Graphics &g) override {
@@ -449,6 +462,10 @@ public:
   const juce::String getApplicationVersion() override { return "1.0"; }
 
   void initialise(const juce::String &) override {
+#if JUCE_WINDOWS
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    comInitialised = SUCCEEDED(hr);
+#endif
     juce::LookAndFeel::setDefaultLookAndFeel(&lookAndFeel);
     applyTheme(lookAndFeel, prefs.theme);
     mainWindow.reset(new MainWindow(getApplicationName()));
@@ -463,11 +480,18 @@ public:
   void shutdown() override {
       mainWindow = nullptr;
       juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
+#if JUCE_WINDOWS
+      if (comInitialised)
+          CoUninitialize();
+#endif
   }
 
 private:
   juce::LookAndFeel_V4 lookAndFeel;
   std::unique_ptr<MainWindow> mainWindow;
+#if JUCE_WINDOWS
+  bool comInitialised = false;
+#endif
 };
 
-START_JUCE_APPLICATION(AudioApplication)
+START_JUCE_APPLICATION(AudioApplication
