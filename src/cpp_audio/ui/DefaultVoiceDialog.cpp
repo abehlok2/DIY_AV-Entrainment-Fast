@@ -11,8 +11,8 @@ DefaultVoiceDialog::DefaultVoiceDialog(Preferences& prefs)
     : DialogWindow("Configure Default Voice", Colours::lightgrey, true),
       preferences(prefs)
 {
-    setUsingNativeTitleBar(true);
     setOpaque(true);
+    setUsingNativeTitleBar(true);
     setResizable(true, false);
 
     addAndMakeVisible(&synthLabel);
