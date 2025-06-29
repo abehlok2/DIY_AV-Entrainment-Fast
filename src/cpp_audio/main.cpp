@@ -15,6 +15,7 @@
 #include "ui/ToolsComponent.h"
 #include <fstream>
 #include <vector>
+#include <memory>
 
 // Global application preferences used across components
 static Preferences prefs;
@@ -48,8 +49,8 @@ public:
 
     {
       auto ptr = std::make_unique<StepConfigPanel>();
-      stepConfig = ptr.get();
-      addAndMakeVisible(stepConfig);
+      stepConfig = std::move(ptr);
+      addAndMakeVisible(stepConfig.get());
     }
 
     addAndMakeVisible(stepList);
@@ -227,7 +228,7 @@ private:
   GlobalSettingsComponent *settings = nullptr;
   ToolsComponent *tools = nullptr;
   StepPreviewComponent *preview = nullptr;
-  StepConfigPanel *stepConfig = nullptr;
+  std::unique_ptr<StepConfigPanel> stepConfig;
   StepListPanel stepList;
 
   std::vector<OverlayClipPanel::ClipData> clips;
