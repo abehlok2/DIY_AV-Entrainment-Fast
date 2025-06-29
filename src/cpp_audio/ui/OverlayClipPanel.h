@@ -18,6 +18,7 @@ public:
     using ClipData = OverlayClipDialog::ClipData;
 
     int getNumRows() override;
+    void paint(juce::Graphics& g) override;
     void paintListBoxItem(int row, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     void resized() override;
 

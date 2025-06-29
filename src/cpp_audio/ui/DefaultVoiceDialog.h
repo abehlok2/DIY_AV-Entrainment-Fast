@@ -11,6 +11,8 @@ public:
     explicit DefaultVoiceDialog(Preferences& prefs);
     ~DefaultVoiceDialog() override;
 
+    void paint(juce::Graphics& g) override;
+
     juce::var getDefaultVoice() const;
 
     void closeButtonPressed() override;

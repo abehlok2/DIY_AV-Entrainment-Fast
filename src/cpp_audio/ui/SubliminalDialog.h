@@ -10,6 +10,8 @@ struct SubliminalDialog : public juce::Component,
     bool wasAccepted() const;
     Voice getVoice() const;
 
+    void paint(juce::Graphics& g) override;
+
     void resized() override;
 
 private:

@@ -97,6 +97,11 @@ public:
 
   ~MainComponent() override { deviceManager.closeAudioDevice(); }
 
+  void paint(juce::Graphics &g) override {
+    g.fillAll(getLookAndFeel().findColour(
+        juce::ResizableWindow::backgroundColourId));
+  }
+
   void resized() override {
     auto area = getLocalBounds().reduced(8);
 
@@ -417,6 +422,11 @@ public:
   }
 
   ~MainWindow() override { setMenuBar(nullptr); }
+
+  void paint(juce::Graphics &g) override {
+    g.fillAll(getLookAndFeel().findColour(
+        juce::ResizableWindow::backgroundColourId));
+  }
 
 private:
   MainComponent *mainComponent;

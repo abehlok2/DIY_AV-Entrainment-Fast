@@ -31,6 +31,12 @@ int OverlayClipPanel::getNumRows()
     return static_cast<int>(clips.size());
 }
 
+void OverlayClipPanel::paint(juce::Graphics& g)
+{
+    g.fillAll(getLookAndFeel().findColour(
+        juce::ResizableWindow::backgroundColourId));
+}
+
 void OverlayClipPanel::paintListBoxItem(int row, juce::Graphics& g, int width, int height, bool rowSel)
 {
     if (rowSel)

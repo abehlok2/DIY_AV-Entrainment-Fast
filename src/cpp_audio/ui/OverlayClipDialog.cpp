@@ -125,6 +125,12 @@ struct OverlayClipDialogWindow  : public juce::Component,
     bool wasAccepted() const { return accepted; }
     ClipData getClipData() const { return data; }
 
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(getLookAndFeel().findColour(
+            juce::ResizableWindow::backgroundColourId));
+    }
+
     void resized() override
     {
         auto area = getLocalBounds().reduced(10);

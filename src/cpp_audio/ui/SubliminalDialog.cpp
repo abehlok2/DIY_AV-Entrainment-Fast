@@ -86,6 +86,12 @@ Voice SubliminalDialog::getVoice() const
     return voice;
 }
 
+void SubliminalDialog::paint(juce::Graphics& g)
+{
+    g.fillAll(getLookAndFeel().findColour(
+        juce::ResizableWindow::backgroundColourId));
+}
+
 void SubliminalDialog::resized()
 {
     auto area = getLocalBounds().reduced(10);

@@ -140,6 +140,12 @@ public:
         stopPlayback();
     }
 
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(getLookAndFeel().findColour(
+            juce::ResizableWindow::backgroundColourId));
+    }
+
     void resized() override
     {
         int y = 10;

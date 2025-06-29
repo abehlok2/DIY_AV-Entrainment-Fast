@@ -216,6 +216,11 @@ VoiceEditorDialog::~VoiceEditorDialog() {
   cancelButton.removeListener(this);
 }
 
+void VoiceEditorDialog::paint(juce::Graphics &g) {
+  g.fillAll(getLookAndFeel().findColour(
+      juce::ResizableWindow::backgroundColourId));
+}
+
 bool VoiceEditorDialog::wasAccepted() const { return accepted; }
 
 VoiceEditorDialog::VoiceData VoiceEditorDialog::getVoiceData() const {
