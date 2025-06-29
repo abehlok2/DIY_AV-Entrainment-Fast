@@ -399,13 +399,13 @@ public:
             juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(
                 juce::ResizableWindow::backgroundColourId),
             juce::DocumentWindow::allButtons) {
-    setUsingNativeTitleBar(true);
     setOpaque(true);
     setResizable(true, true);
 
     mainComponent = new MainComponent();
     setContentOwned(mainComponent, true);
     setMenuBar(mainComponent);
+    setUsingNativeTitleBar(true);
 
     centreWithSize(getWidth(), getHeight());
     setVisible(true);
