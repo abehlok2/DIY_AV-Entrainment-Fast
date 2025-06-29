@@ -276,6 +276,11 @@ NoiseGeneratorDialog::~NoiseGeneratorDialog() {
   deviceManager.closeAudioDevice();
 }
 
+void NoiseGeneratorDialog::paint(juce::Graphics &g) {
+  g.fillAll(getLookAndFeel().findColour(
+      juce::ResizableWindow::backgroundColourId));
+}
+
 void NoiseGeneratorDialog::resized() {
   int x = 10, y = 10, w = getWidth() - 20, h = 24;
   fileEdit.setBounds(x, y, w - 80, h);

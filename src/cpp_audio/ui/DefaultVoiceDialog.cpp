@@ -63,6 +63,12 @@ DefaultVoiceDialog::~DefaultVoiceDialog()
     cancelButton.removeListener(this);
 }
 
+void DefaultVoiceDialog::paint(juce::Graphics& g)
+{
+    g.fillAll(getLookAndFeel().findColour(
+        juce::ResizableWindow::backgroundColourId));
+}
+
 void DefaultVoiceDialog::closeButtonPressed()
 {
     setVisible(false);

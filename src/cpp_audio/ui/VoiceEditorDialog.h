@@ -44,6 +44,8 @@ public:
       const std::vector<std::vector<VoiceData>> *refSteps = nullptr);
   ~VoiceEditorDialog() override;
 
+  void paint(juce::Graphics &g) override;
+
   bool wasAccepted() const;
   VoiceData getVoiceData() const;
 

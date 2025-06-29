@@ -99,15 +99,11 @@ public:
 
   ~MainComponent() override { deviceManager.closeAudioDevice(); }
 
-  void forceSoftwareRenderer()
-  {
-    if (auto* peer = getPeer())
-      peer->setCurrentRenderingEngine(0);
-  }
 
-  void paint(juce::Graphics& g) override {
-    // Since this component is marked as opaque, we must fill the entire area
-    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+  void paint(juce::Graphics &g) override {
+    g.fillAll(getLookAndFeel().findColour(
+        juce::ResizableWindow::backgroundColourId));
+
   }
 
   void resized() override {
@@ -437,6 +433,11 @@ public:
   }
 
   ~MainWindow() override { setMenuBar(nullptr); }
+
+  void paint(juce::Graphics &g) override {
+    g.fillAll(getLookAndFeel().findColour(
+        juce::ResizableWindow::backgroundColourId));
+  }
 
 private:
   MainComponent *mainComponent;
