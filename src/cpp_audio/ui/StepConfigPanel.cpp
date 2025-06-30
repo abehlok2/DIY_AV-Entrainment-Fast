@@ -1,7 +1,7 @@
 #include "StepConfigPanel.h"
 #include "VoiceEditorComponent.h"
 #include <memory>
-#include "../core/Track.h"
+#include "../models/TrackData.h"
 
 using namespace juce;
 

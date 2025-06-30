@@ -58,11 +58,14 @@ JSON files produced by the GUI editor.
 
 ## Implementation Steps
 
-1. **Define C++ Data Structures**
+1. **Define C++ Data Structures** ✅
    - Mirror the Python models (`Voice`, `Step`, `Track`) in the C++ `models/`
-     directory.
+     directory. **Implemented:** added `TrackData.h` with structs mapping
+     directly to the JSON schema and updated existing code to include this
+     header.
    - Ensure all synth parameters (including transitions) map directly to their
-     JSON names.
+     JSON names. **Done** by documenting JSON keys in comments for each
+     struct field.
 
 2. **Port Synth Functions**
    - Start with core generators (binaural, isochronic, AM) already present in the
