@@ -1,5 +1,6 @@
 # Rust Real-Time Audio Backend Plan
 
+
 This document outlines a plan for implementing a real-time audio generation backend written in **Rust**. The goal is to mirror the features of the Python `sound_creator.py` engine while providing low latency output that can be controlled from a web interface.
 
 ## Objectives

@@ -73,6 +73,21 @@ JSON files produced by the GUI editor.
      parameters.
    - Implement missing functions and transition variants as needed.
 
+   **Status Checklist**
+
+   - [x] BinauralBeat / BinauralBeatTransition
+   - [x] IsochronicTone / IsochronicToneTransition
+   - [x] RhythmicWaveshaping / Transition
+   - [x] StereoAMIndependent / Transition
+   - [x] WaveShapeStereoAm / Transition
+   - [x] MonauralBeatStereoAmps / Transition
+   - [x] QamBeat / Transition
+   - [x] HybridQamMonauralBeat / Transition
+   - [x] SpatialAngleModulation / Transition
+   - [x] SpatialAngleModulationMonauralBeat / Transition
+   - [x] NoiseFlanger / Transition
+   - [x] Subliminals
+
 3. **Real-Time Engine Prototype**
    - Build a JUCE-based application (`realtime_player.cpp`) that loads a track
      JSON and plays it through the system audio device.
