@@ -1,7 +1,7 @@
 // SubliminalDialog C++ implementation.
 // Translated from src/audio/ui/subliminal_dialog.py and adapted for JUCE.
 
-#include "../cpp_audio/core/Track.h"
+#include "../models/TrackData.h"
 #include "SubliminalDialog.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <cmath>

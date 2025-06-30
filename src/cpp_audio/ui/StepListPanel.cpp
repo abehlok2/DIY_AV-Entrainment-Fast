@@ -2,7 +2,7 @@
 #include "StepListPanel.h"
 #include "../core/VarUtils.h"
 #include "StepConfigPanel.h"
-#include "../core/Track.h"
+#include "../models/TrackData.h"
 
 using namespace juce;
 

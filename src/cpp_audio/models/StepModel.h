@@ -3,7 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <vector>
 #include <string>
-#include "../core/Track.h"
+#include "TrackData.h"
 
 class StepModel : public juce::TableListBoxModel
 {

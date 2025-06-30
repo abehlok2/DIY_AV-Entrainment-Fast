@@ -1,5 +1,5 @@
 #pragma once
-#include "../core/Track.h"
+#include "../models/TrackData.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
 struct SubliminalDialog : public juce::Component,

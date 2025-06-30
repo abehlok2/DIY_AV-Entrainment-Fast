@@ -3,7 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <vector>
 #include "StepConfigPanel.h"
-#include "../core/Track.h"
+#include "../models/TrackData.h"
 
 class StepListPanel : public juce::Component,
                       private juce::ListBoxModel,
