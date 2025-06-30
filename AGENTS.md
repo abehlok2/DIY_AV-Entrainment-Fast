@@ -11,5 +11,16 @@ The synth functions that are used to generate the audio itself are in the src/cp
 
 Models go into the src/cpp_audio/models directory 
 
+---
+
+MORE SPECIFIC INSTRUCTIONS:
+
+Focus now entirely on implementing the Real-Time Generation backend as described by the implementation plan that can be viewed in "cpp_audio/REALTIME_BACKEND_PLAN.MD"
+
+update the plan file with changes as they are implemented. Update this documentation as a TODO to achieve the final goal. 
+
+This will compile SEPARATELY from the AudioApp GUI program. 
+
+And function entirely in it's backend / realtime audio / web-integratable form. 
 
 
