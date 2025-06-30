@@ -81,6 +81,16 @@ frequency, and amplitude using the current preference for absolute level or dB.
 ## C++ Port
 A minimal C++ implementation using JUCE lives in `src/cpp_audio`. Build it with CMake and ensure JUCE is available on your system. Core audio engine files now live in `src/cpp_audio/core` and the synthesizer interface header resides in `src/cpp_audio/synths`. The GUI portion remains under `src/cpp_audio/ui` and links directly to the same audio library to provide an integrated editor application.
 
+### Real-Time Prototype
+The `RealtimePlayer` target builds a small console application for streaming a track JSON in real time. After configuring the project with CMake you can build and run it like so:
+
+```bash
+cmake -B build -S .
+cmake --build build --target RealtimePlayer
+./build/RealtimePlayer my_track.json
+```
+It uses JUCE's audio device classes and a double-buffered rendering loop.
+
 The JUCE port now provides a `StepPreviewComponent` that mirrors the Python UI's play/pause/stop controls and time slider for auditioning a single step. It also includes a **Reset** button and labels the currently loaded step alongside the playback time.
 
 An additional helper `loadExternalStepsFromJson` can append steps from another JSON file to an existing `Track`. The JSON must contain a top-level `steps` list, mirroring the "Load External Step" action in the Python editor. The JUCE `StepListPanel` component now exposes a **Load Steps** button to import such files directly into the list.

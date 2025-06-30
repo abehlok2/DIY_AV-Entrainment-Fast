@@ -81,6 +81,29 @@ set(SOURCES
     ${AUDIO_DIR}/ui/VoiceEditorComponent.cpp
 )
 
+# Sources for realtime_player executable (no GUI components)
+set(REALTIME_SOURCES
+    ${AUDIO_DIR}/realtime_player.cpp
+    ${AUDIO_DIR}/core/AudioUtils.cpp
+    ${AUDIO_DIR}/core/Common.cpp
+    ${AUDIO_DIR}/core/Track.cpp
+    ${AUDIO_DIR}/models/StepModel.cpp
+    ${AUDIO_DIR}/models/VoiceModel.cpp
+    ${AUDIO_DIR}/presets/NoiseParams.cpp
+    ${AUDIO_DIR}/presets/VoicePreset.cpp
+    ${AUDIO_DIR}/synths/BinauralBeat.cpp
+    ${AUDIO_DIR}/synths/HybridQamMonauralBeat.cpp
+    ${AUDIO_DIR}/synths/IsochronicTone.cpp
+    ${AUDIO_DIR}/synths/MonauralBeatStereoAmps.cpp
+    ${AUDIO_DIR}/synths/NoiseFlanger.cpp
+    ${AUDIO_DIR}/synths/QamBeat.cpp
+    ${AUDIO_DIR}/synths/RhythmicWaveshaping.cpp
+    ${AUDIO_DIR}/synths/SpatialAngleModulation.cpp
+    ${AUDIO_DIR}/synths/StereoAMIndependent.cpp
+    ${AUDIO_DIR}/synths/Subliminals.cpp
+    ${AUDIO_DIR}/synths/WaveShapeStereoAm.cpp
+)
+
 #--------------------------------------------------
 # 3) Create the executable
 #--------------------------------------------------
@@ -97,8 +120,17 @@ else()
     add_executable(AudioApp ${SOURCES})
 endif()
 
+# Console realtime player build
+add_executable(RealtimePlayer ${REALTIME_SOURCES})
+
 # Include headers from your code tree
 target_include_directories(AudioApp
+    PRIVATE
+      ${AUDIO_DIR}
+      ${AUDIO_DIR}/core
+        ${AUDIO_DIR}/synths
+)
+target_include_directories(RealtimePlayer
     PRIVATE
       ${AUDIO_DIR}
       ${AUDIO_DIR}/core
@@ -120,6 +152,15 @@ target_link_libraries(AudioApp
                         juce::juce_dsp
                         juce::juce_events
       # add additional juce::<module> as needed
+)
+
+target_link_libraries(RealtimePlayer
+    PRIVATE
+      juce::juce_core
+      juce::juce_audio_basics
+      juce::juce_audio_formats
+      juce::juce_audio_devices
+      juce::juce_dsp
 )
 
 # Enable modal loops for JUCE dialogs so that runModal and runModalLoop
