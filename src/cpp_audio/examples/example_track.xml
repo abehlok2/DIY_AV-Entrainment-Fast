@@ -1,0 +1,15 @@
+<track>
+  <global_settings sample_rate="44100" crossfade_duration="1.0" crossfade_curve="linear" output_filename="example.wav"/>
+  <steps>
+    <step duration="5.0" description="Example">
+      <voices>
+        <voice synth_function_name="binaural_beat" is_transition="false" description="Simple">
+          <params>
+            <frequency>440</frequency>
+            <beat_frequency>10</beat_frequency>
+          </params>
+        </voice>
+      </voices>
+    </step>
+  </steps>
+</track>

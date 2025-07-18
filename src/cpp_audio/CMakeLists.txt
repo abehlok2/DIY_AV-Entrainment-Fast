@@ -13,6 +13,7 @@ set(SOURCES
     core/Common.cpp
     core/StepPreviewer.cpp
     core/Track.cpp
+    core/TrackXml.cpp
 
     # Models
     models/StepModel.cpp

@@ -1,6 +1,7 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_core/juce_core.h>
 #include "core/Track.h"
+#include "core/TrackXml.h"
 #include <thread>
 #include <atomic>
 
@@ -119,7 +120,11 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    Track track = loadTrackFromJson(trackFile);
+    Track track;
+    if (trackFile.hasFileExtension(".xml"))
+        track = loadTrackFromXml(trackFile);
+    else
+        track = loadTrackFromJson(trackFile);
 
     juce::AudioDeviceManager deviceManager;
     deviceManager.initialise(0, 2, nullptr, true);
